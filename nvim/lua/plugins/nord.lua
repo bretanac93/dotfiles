@@ -1,6 +1,6 @@
-return { 
+return {
   "shaunsingh/nord.nvim",
-  name = "nord", 
+  name = "nord",
   priority = 1000,
   config = function()
     vim.cmd.colorscheme "nord"
