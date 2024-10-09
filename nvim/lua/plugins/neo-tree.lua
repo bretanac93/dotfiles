@@ -18,6 +18,7 @@ return {
             ".git",
             "node_modules",
             ".DS_Store",
+            ".idea",
           },
         },
       },
