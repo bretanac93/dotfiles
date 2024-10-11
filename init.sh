@@ -11,3 +11,6 @@ git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
 ln -sf "$PWD/.tmux.conf" "$HOME/.tmux.conf"
 echo "tmux configuration done"
 
+# Link the alacritty configuration to `$HOME/.config`
+ln -sf "$PWD/alacritty" "$HOME/.config/"
+echo "alacritty configuration done"
