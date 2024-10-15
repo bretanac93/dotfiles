@@ -20,11 +20,10 @@ return {
         filtered_items = {
           visible = true,
           show_hidden_count = true,
-          hide_dotfiles = false,
+          hide_dotfiles = true,
           hide_gitignored = true,
-          hide_by_name = {
+          never_show = {
             ".git",
-            "node_modules",
             ".DS_Store",
             ".idea",
           },
