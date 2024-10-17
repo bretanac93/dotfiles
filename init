@@ -15,3 +15,9 @@ echo "tmux configuration done"
 rm -rf "$HOME/.config/kitty"
 ln -sf "$PWD/kitty" "$HOME/.config/kitty"
 echo "kitty configuration done"
+
+# Oh My Zsh
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+echo "oh-my-zsh configuration done"
