@@ -1,5 +1,3 @@
-vim.g.mapleader = " "
-
 local set = vim.opt
 
 set.expandtab = true
@@ -12,4 +10,3 @@ set.undofile = true
 set.wildmode = "longest:full,full"
 set.updatetime = 100
 set.redrawtime = 10000
-
