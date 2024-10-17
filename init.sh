@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+
+
 mkdir -p "$HOME/.config"
 
 # Link neovim configuration to `$HOME/.config`
