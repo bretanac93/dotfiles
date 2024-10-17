@@ -1,34 +1,34 @@
 -- Display buffers as tabs.
 
 local inactiveBg = {
-  bg = { attribute = 'bg', highlight = 'BufferlineInactive' },
+  bg = { attribute = "bg", highlight = "BufferlineInactive" },
 }
 
 return {
-  'akinsho/bufferline.nvim',
-  dependencies = 'nvim-tree/nvim-web-devicons',
+  "akinsho/bufferline.nvim",
+  dependencies = "nvim-tree/nvim-web-devicons",
   opts = {
     options = {
       indicator = {
-        icon = ' ',
+        icon = " ",
       },
       show_close_icon = false,
       tab_size = 0,
       max_name_length = 25,
       offsets = {
         {
-          filetype = 'NvimTree',
-          text = '  Files',
-          highlight = 'StatusLine',
-          text_align = 'left',
+          filetype = "NvimTree",
+          text = "  Files",
+          highlight = "StatusLine",
+          text_align = "left",
         },
         {
-          filetype = 'neo-tree',
+          filetype = "neo-tree",
           text = function()
-            return ' '..vim.fn.fnamemodify(vim.fn.getcwd(), ':~')
+            return " " .. vim.fn.fnamemodify(vim.fn.getcwd(), ":~")
           end,
-          highlight = 'StatusLineComment',
-          text_align = 'left',
+          highlight = "StatusLineComment",
+          text_align = "left",
         },
       },
       hover = {
@@ -36,17 +36,17 @@ return {
         delay = 0,
         reveal = { "close" },
       },
-      separator_style = 'slant',
-      modified_icon = '',
+      separator_style = "slant",
+      modified_icon = "",
       custom_areas = {
         left = function()
           return {
-            { text = ' ' },
+            { text = " " },
           }
         end,
         right = function()
           return {
-            { text = '    ', fg = '#8fff6d' },
+            { text = "    ", fg = "#8fff6d" },
           }
         end,
       },
@@ -57,7 +57,7 @@ return {
     },
     highlights = {
       fill = {
-        bg = { attribute = 'bg', highlight = 'StatusLine' },
+        bg = { attribute = "bg", highlight = "StatusLine" },
       },
       background = inactiveBg,
       close_button = inactiveBg,
@@ -84,31 +84,31 @@ return {
       duplicate = inactiveBg,
       duplicate_visible = inactiveBg,
       separator = {
-        fg = { attribute = 'bg', highlight = 'StatusLine' },
-        bg = { attribute = 'bg', highlight = 'BufferlineInactive' },
+        fg = { attribute = "bg", highlight = "StatusLine" },
+        bg = { attribute = "bg", highlight = "BufferlineInactive" },
       },
       separator_selected = {
-        fg = { attribute = 'bg', highlight = 'StatusLine' },
+        fg = { attribute = "bg", highlight = "StatusLine" },
       },
       separator_visible = {
-        fg = { attribute = 'bg', highlight = 'StatusLine' },
+        fg = { attribute = "bg", highlight = "StatusLine" },
       },
       trunc_marker = {
-        bg = { attribute = 'bg', highlight = 'StatusLine' },
+        bg = { attribute = "bg", highlight = "StatusLine" },
       },
 
       -- Tabs
       tab = inactiveBg,
       tab_separator = {
-        fg = { attribute = 'bg', highlight = 'StatusLine' },
-        bg = { attribute = 'bg', highlight = 'BufferlineInactive' },
+        fg = { attribute = "bg", highlight = "StatusLine" },
+        bg = { attribute = "bg", highlight = "BufferlineInactive" },
       },
       tab_separator_selected = {
-        fg = { attribute = 'bg', highlight = 'StatusLine' },
+        fg = { attribute = "bg", highlight = "StatusLine" },
       },
       tab_close = {
-        bg = 'yellow',
+        bg = "yellow",
       },
     },
-  }
+  },
 }
