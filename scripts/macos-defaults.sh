@@ -1,6 +1,5 @@
 #!/bin/zsh 
 
-
 defaults write com.apple.dock tilesize -int 30 # shrink dock size
 defaults write com.apple.dock size-immutable -bool yes # lock current size
 defaults write com.apple.dock magnification -bool false # disable magnification
