@@ -25,7 +25,7 @@ fi
 echo "oh-my-zsh configured"
 
 rm -rf "$HOME/.oh-my-zsh/custom/themes"
-ln -sf "$PWD/omz/custom/themes" "$HOME/.oh-my-zsh/custom/themes"
+cp -r "$PWD/omz/custom/themes" "$HOME/.oh-my-zsh/custom/themes"
 echo "oh-my-zsh theme configured"
 
 
