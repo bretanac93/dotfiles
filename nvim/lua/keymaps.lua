@@ -26,3 +26,6 @@ vim.keymap.set("v", "p", '"_dP')
 -- Easy insertion of a trailing ; or , from insert mode.
 vim.keymap.set("i", ";;", "<Esc>A;<Esc>")
 vim.keymap.set("i", ",,", "<Esc>A,<Esc>")
+
+vim.keymap.set("n", "[b", ":bprev<CR>")
+vim.keymap.set("n", "]b", ":bnext<CR>")
