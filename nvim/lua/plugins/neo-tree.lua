@@ -11,7 +11,7 @@ return {
       buffers = {
         follow_current_file = {
           enabled = true,
-        }
+        },
       },
       filesystem = {
         follow_current_file = {
@@ -27,6 +27,13 @@ return {
             ".DS_Store",
             ".idea",
           },
+        },
+      },
+      window = {
+        mappings = {
+          ["l"] = "open",
+          ["h"] = "close_node",
+          ["<space>"] = "none",
         },
       },
     })
