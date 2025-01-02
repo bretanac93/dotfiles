@@ -18,6 +18,11 @@ rm -rf "$HOME/.config/kitty"
 ln -sf "$PWD/kitty" "$HOME/.config/kitty"
 echo "kitty configured"
 
+# Link the ghostty configuration
+rm -rf "$HOME/.config/ghostty"
+ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
+echo "ghostty configured"
+
 # Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
