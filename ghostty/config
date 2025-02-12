@@ -1,3 +1,7 @@
 font-family="JetBrainsMono Nerd Font Mono"
 font-size=18
+<<<<<<< HEAD
 theme="nord"
+=======
+theme = tokyonight_night
+>>>>>>> 5390cf3dc26055fcd354d4f463a367ba5ce74e2a
