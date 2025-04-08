@@ -29,3 +29,13 @@ vim.keymap.set("i", ",,", "<Esc>A,<Esc>")
 
 vim.keymap.set("n", "[b", ":bprev<CR>")
 vim.keymap.set("n", "]b", ":bnext<CR>")
+
+-- Move current line down
+vim.keymap.set("n", "<C-J>", ":m .+1<CR>==", { noremap = true, silent = true })
+-- Move current line up
+vim.keymap.set("n", "<C-K>", ":m .-2<CR>==", { noremap = true, silent = true })
+
+-- Move selected lines down
+vim.keymap.set("v", "<C-J>", ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
+-- Move selected lines up
+vim.keymap.set("v", "<C-K>", ":m '<-2<CR>gv=gv", { noremap = true, silent = true })
