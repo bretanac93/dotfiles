@@ -14,7 +14,7 @@ set.updatetime = 100
 set.redrawtime = 10000
 
 set.list = true
-set.listchars = { tab = "▸ ", trail = "•" }
+set.listchars = { tab = ". ", trail = "•" }
 
 vim.cmd([[
 augroup kitty_mp

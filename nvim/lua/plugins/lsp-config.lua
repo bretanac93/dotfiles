@@ -1,71 +1,120 @@
 return {
-	{
+	"neovim/nvim-lspconfig",
+	dependencies = {
 		"williamboman/mason.nvim",
-		lazy = false,
-		config = function()
-			require("mason").setup()
-		end,
-	},
-	{
 		"williamboman/mason-lspconfig.nvim",
-		lazy = false,
-		opts = {
-			auto_install = true,
-		},
+		"b0o/schemastore.nvim",
 	},
-	{
-		"neovim/nvim-lspconfig",
-		lazy = false,
-		config = function()
-			local capabilities = require("cmp_nvim_lsp").default_capabilities()
+	event = "VeryLazy",
+	config = function()
+		require("mason").setup({
+			ui = {
+				height = 0.8,
+			},
+		})
 
-			local lspconfig = require("lspconfig")
+		require("mason-lspconfig").setup({ automatic_installation = true })
 
-			lspconfig.lua_ls.setup({
-				capabilities = capabilities,
-			})
-			lspconfig.gopls.setup({
-				capabilities = capabilities,
-			})
+		local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
-			lspconfig.ts_ls.setup({
-				capabilities = capabilities,
-			})
+		local lspconfig = require("lspconfig")
 
-			lspconfig.pyright.setup({
-				capabilities = capabilities,
-			})
+		lspconfig.lua_ls.setup({
+			capabilities = capabilities,
+		})
+		lspconfig.gopls.setup({
+			capabilities = capabilities,
+		})
 
-			lspconfig.phpactor.setup({
-				capabilities = capabilities,
-			})
+		lspconfig.ts_ls.setup({
+			capabilities = capabilities,
+		})
 
-			lspconfig.volar.setup({
-				capabilities = capabilities,
-				filetypes = { "typescript", "javascript", "html", "vue" },
-			})
+		lspconfig.pyright.setup({
+			capabilities = capabilities,
+		})
 
-			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-			vim.keymap.set("n", "<Leader>d", vim.diagnostic.open_float, {})
-			vim.keymap.set("n", "gd", ":Telescope lsp_definitions<CR>", {})
-			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, {})
-			vim.keymap.set("n", "gi", ":Telescope lsp_implementations<CR>", {})
-			vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", {})
-			vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
-			vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, {})
-			vim.keymap.set("n", "]d", vim.diagnostic.goto_next, {})
-
-			-- Sign configuration
-			vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
-			vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticSignWarn" })
-			vim.fn.sign_define("DiagnosticSignInfo", { text = "", texthl = "DiagnosticSignInfo" })
-			vim.fn.sign_define("DiagnosticSignHint", { text = "", texthl = "DiagnosticSignHint" })
-
-			vim.diagnostic.config({
-				float = {
-					source = "if_many",
+		lspconfig.intelephense.setup({
+			commands = {
+				IntelephenseIndex = {
+					function()
+						vim.lsp.buf.execute_command({ command = "intelephense.index.workspace" })
+					end,
 				},
-			})
-		end,
-	},
+			},
+			on_attach = function(client, bufnr)
+				-- client.server_capabilities.documentFormattingProvider = false
+				-- client.server_capabilities.documentRangeFormattingProvider = false
+				-- if client.server_capabilities.inlayHintProvider then
+				--   vim.lsp.buf.inlay_hint(bufnr, true)
+				-- end
+			end,
+			capabilities = capabilities,
+		})
+
+		lspconfig.volar.setup({
+			on_attach = function(client, bufnr)
+				client.server_capabilities.documentFormattingProvider = false
+				client.server_capabilities.documentRangeFormattingProvider = false
+				-- if client.server_capabilities.inlayHintProvider then
+				--   vim.lsp.buf.inlay_hint(bufnr, true)
+				-- end
+			end,
+			capabilities = capabilities,
+		})
+
+		lspconfig.ts_ls.setup({
+			init_options = {
+				plugins = {
+					{
+						name = "@vue/typescript-plugin",
+						location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
+						languages = { "javascript", "typescript", "vue" },
+					},
+				},
+			},
+			filetypes = {
+				"javascript",
+				"javascriptreact",
+				"javascript.jsx",
+				"typescript",
+				"typescriptreact",
+				"typescript.tsx",
+				"vue",
+			},
+		})
+
+    lspconfig.tailwindcss.setup({ capabilities = capabilities })
+
+    lspconfig.jsonls.setup({
+      capabilities = capabilities,
+      settings = {
+        json = {
+          schemas = require('schemastore').json.schemas(),
+        },
+      },
+    })
+
+		vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
+		vim.keymap.set("n", "<Leader>d", vim.diagnostic.open_float, {})
+		vim.keymap.set("n", "gd", ":Telescope lsp_definitions<CR>", {})
+		vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, {})
+		vim.keymap.set("n", "gi", ":Telescope lsp_implementations<CR>", {})
+		vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", {})
+		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
+		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, {})
+		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, {})
+
+		-- Sign configuration
+		vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
+		vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticSignWarn" })
+		vim.fn.sign_define("DiagnosticSignInfo", { text = "", texthl = "DiagnosticSignInfo" })
+		vim.fn.sign_define("DiagnosticSignHint", { text = "", texthl = "DiagnosticSignHint" })
+
+		vim.diagnostic.config({
+			float = {
+				source = "if_many",
+			},
+		})
+	end,
 }
