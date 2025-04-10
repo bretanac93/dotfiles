@@ -47,6 +47,8 @@ return {
       vim.keymap.set("n", "gi", ':Telescope lsp_implementations<CR>', {})
       vim.keymap.set("n", "gr", ':Telescope lsp_references<CR>', {})
       vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
+      vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, {})
+      vim.keymap.set("n", "]d", vim.diagnostic.goto_next, {})
     end,
   },
 }
