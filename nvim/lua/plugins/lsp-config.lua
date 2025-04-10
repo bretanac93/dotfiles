@@ -36,8 +36,13 @@ return {
 				capabilities = capabilities,
 			})
 
-			lspconfig.kotlin_language_server.setup({
+			lspconfig.phpactor.setup({
 				capabilities = capabilities,
+			})
+
+			lspconfig.volar.setup({
+				capabilities = capabilities,
+				filetypes = { "typescript", "javascript", "html", "vue" },
 			})
 
 			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
