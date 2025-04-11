@@ -13,9 +13,6 @@ set.completeopt = "menuone,longest,preview"
 set.updatetime = 100
 set.redrawtime = 10000
 
-set.list = true
-set.listchars = { tab = ". ", trail = "•" }
-
 vim.cmd([[
 augroup kitty_mp
     autocmd!
