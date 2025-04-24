@@ -26,10 +26,6 @@ return {
 			capabilities = capabilities,
 		})
 
-		lspconfig.ts_ls.setup({
-			capabilities = capabilities,
-		})
-
 		lspconfig.pyright.setup({
 			capabilities = capabilities,
 		})
@@ -42,37 +38,20 @@ return {
 					end,
 				},
 			},
-			on_attach = function(client, bufnr)
-				-- client.server_capabilities.documentFormattingProvider = false
-				-- client.server_capabilities.documentRangeFormattingProvider = false
-				-- if client.server_capabilities.inlayHintProvider then
-				--   vim.lsp.buf.inlay_hint(bufnr, true)
-				-- end
-			end,
 			capabilities = capabilities,
 		})
 
 		lspconfig.volar.setup({
+			filetypes = { "vue" },
 			on_attach = function(client, bufnr)
 				client.server_capabilities.documentFormattingProvider = false
 				client.server_capabilities.documentRangeFormattingProvider = false
-				-- if client.server_capabilities.inlayHintProvider then
-				--   vim.lsp.buf.inlay_hint(bufnr, true)
-				-- end
 			end,
 			capabilities = capabilities,
 		})
 
 		lspconfig.ts_ls.setup({
-			init_options = {
-				plugins = {
-					{
-						name = "@vue/typescript-plugin",
-						location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
-						languages = { "javascript", "typescript", "vue" },
-					},
-				},
-			},
+			capabilities = capabilities,
 			filetypes = {
 				"javascript",
 				"javascriptreact",
@@ -80,20 +59,19 @@ return {
 				"typescript",
 				"typescriptreact",
 				"typescript.tsx",
-				"vue",
 			},
 		})
 
-    lspconfig.tailwindcss.setup({ capabilities = capabilities })
+		lspconfig.tailwindcss.setup({ capabilities = capabilities })
 
-    lspconfig.jsonls.setup({
-      capabilities = capabilities,
-      settings = {
-        json = {
-          schemas = require('schemastore').json.schemas(),
-        },
-      },
-    })
+		lspconfig.jsonls.setup({
+			capabilities = capabilities,
+			settings = {
+				json = {
+					schemas = require("schemastore").json.schemas(),
+				},
+			},
+		})
 
 		vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
 		vim.keymap.set("n", "<Leader>d", vim.diagnostic.open_float, {})
