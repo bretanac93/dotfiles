@@ -42,11 +42,7 @@ return {
 		})
 
 		lspconfig.volar.setup({
-			filetypes = { "vue" },
-			on_attach = function(client, bufnr)
-				client.server_capabilities.documentFormattingProvider = false
-				client.server_capabilities.documentRangeFormattingProvider = false
-			end,
+			filetypes = { "vue", "typescript" },
 			capabilities = capabilities,
 		})
 
@@ -62,7 +58,10 @@ return {
 			},
 		})
 
-		lspconfig.tailwindcss.setup({ capabilities = capabilities })
+		lspconfig.tailwindcss.setup({
+			capabilities = capabilities,
+			filetypes = { "templ", "astro", "javascript", "typescript", "react", "vue", "html", "css", "scss", "less" },
+		})
 
 		lspconfig.jsonls.setup({
 			capabilities = capabilities,
@@ -71,6 +70,20 @@ return {
 					schemas = require("schemastore").json.schemas(),
 				},
 			},
+		})
+
+		lspconfig.templ.setup({
+			capabilities = capabilities,
+		})
+
+		lspconfig.html.setup({
+			capabilities = capabilities,
+			filetypes = { "html", "templ" },
+		})
+
+		lspconfig.htmx.setup({
+			capabilities = capabilities,
+			filetypes = { "html", "templ" },
 		})
 
 		vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
