@@ -13,11 +13,6 @@ echo "nvim configured"
 ln -sf "$PWD/.tmux.conf" "$HOME/.tmux.conf"
 echo "tmux configured"
 
-# Link the kitty configuration
-rm -rf "$HOME/.config/kitty"
-ln -sf "$PWD/kitty" "$HOME/.config/kitty"
-echo "kitty configured"
-
 # Link the ghostty configuration
 rm -rf "$HOME/.config/ghostty"
 ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
@@ -32,5 +27,4 @@ echo "oh-my-zsh configured"
 rm -rf "$HOME/.oh-my-zsh/custom/themes"
 cp -r "$PWD/omz/custom/themes" "$HOME/.oh-my-zsh/custom/themes"
 echo "oh-my-zsh theme configured"
-
 
