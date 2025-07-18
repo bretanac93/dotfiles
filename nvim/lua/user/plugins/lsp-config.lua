@@ -86,6 +86,10 @@ return {
 			filetypes = { "html", "templ" },
 		})
 
+		lspconfig.ruby_lsp.setup({
+			capabilities = capabilities,
+		})
+
 		vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
 		vim.keymap.set("n", "<Leader>d", vim.diagnostic.open_float, {})
 		vim.keymap.set("n", "gd", ":Telescope lsp_definitions<CR>", {})
