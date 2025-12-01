@@ -7,7 +7,7 @@ return {
 		build = "make tiktoken",
 		config = function()
 			require("CopilotChat").setup({
-				model = "claude-3.7-sonnet",
+				model = "claude-4.5-sonnet",
 			})
 		end,
 	},
