@@ -130,6 +130,9 @@ return {
 			float = {
 				source = "if_many",
 			},
+			update_in_insert = false,
+			virtual_text = false,
+			severity_sort = true,
 			signs = {
 				text = {
 					[vim.diagnostic.severity.ERROR] = "",
