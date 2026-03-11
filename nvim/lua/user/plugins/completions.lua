@@ -12,6 +12,7 @@ return {
 	},
 	config = function()
 		-- Set up nvim-cmp.
+		local bigfile = require("user.bigfile")
 		local cmp = require("cmp")
 		local luasnip = require("luasnip")
 		local lspkind = require("lspkind")
@@ -29,6 +30,20 @@ return {
 		local ltrim = function(s)
 			return s:match("^%s*(.*)")
 		end
+
+		local buffer_source = {
+			name = "buffer",
+			option = {
+				get_bufnrs = function()
+					local bufnr = vim.api.nvim_get_current_buf()
+					if bigfile.is_large(bufnr) then
+						return {}
+					end
+
+					return { bufnr }
+				end,
+			},
+		}
 
 		cmp.setup({
 			preselect = false,
@@ -108,7 +123,7 @@ return {
 				{ name = "nvim_lsp" },
 				{ name = "nvim_lsp_signature_help" },
 				{ name = "luasnip" },
-				{ name = "buffer" },
+				buffer_source,
 				{ name = "path" },
 			}),
 			experimental = {
@@ -119,7 +134,7 @@ return {
 		cmp.setup.cmdline({ "/", "?" }, {
 			mapping = cmp.mapping.preset.cmdline(),
 			sources = {
-				{ name = "buffer" },
+				buffer_source,
 			},
 		})
 	end,
