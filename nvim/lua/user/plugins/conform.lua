@@ -1,9 +1,22 @@
 return {
 	"stevearc/conform.nvim",
+	keys = {
+		{
+			"<leader>gf",
+			function()
+				require("conform").format({
+					async = true,
+					lsp_format = "fallback",
+				})
+			end,
+			desc = "Format buffer",
+		},
+	},
 	opts = {
 		formatters_by_ft = {
 			go = { "goimports", "gofmt" },
 			lua = { "stylua" },
+			python = { "black" },
 			php = { "pint" },
 			javascript = { "eslint_d", stop_after_first = true },
 			typescript = { "eslint_d", stop_after_first = true },

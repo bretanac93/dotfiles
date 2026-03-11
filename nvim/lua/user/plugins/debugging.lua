@@ -1,6 +1,20 @@
 return {
   {
     "mfussenegger/nvim-dap",
+    keys = {
+      {
+        "<Leader>dt",
+        function()
+          require("dap").toggle_breakpoint()
+        end,
+      },
+      {
+        "<Leader>dc",
+        function()
+          require("dap").continue()
+        end,
+      },
+    },
     dependencies = {
       "rcarriga/nvim-dap-ui",
       "nvim-neotest/nvim-nio",
@@ -25,10 +39,6 @@ return {
       dap.listeners.before.event_exited.dapui_config = function()
         dapui.close()
       end
-
-      vim.keymap.set("n", "<Leader>dt", dap.toggle_breakpoint, {})
-      vim.keymap.set("n", "<Leader>dc", dap.continue, {})
-
     end,
   },
   {},

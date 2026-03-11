@@ -10,7 +10,7 @@ set.clipboard = "unnamedplus"
 set.undofile = true
 set.wildmode = "longest:full,full"
 set.completeopt = "menuone,longest,preview"
-set.updatetime = 100
+set.updatetime = 250
 set.redrawtime = 10000
 
 vim.cmd([[
