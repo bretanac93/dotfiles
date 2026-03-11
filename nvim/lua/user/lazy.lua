@@ -14,6 +14,9 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup('user.plugins', {
+  rocks = {
+    enabled = false,
+  },
   checker = {
     enabled = true,
     notify = false,
@@ -23,5 +26,17 @@ require('lazy').setup('user.plugins', {
   },
   install = {
     colorscheme = { "tokyonight", "habamax" },
+  },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        "gzip",
+        "netrwPlugin",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+      },
+    },
   },
 })

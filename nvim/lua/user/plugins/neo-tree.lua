@@ -1,6 +1,10 @@
 return {
   "nvim-neo-tree/neo-tree.nvim",
   branch = "v3.x",
+  cmd = { "Neotree" },
+  keys = {
+    { "<leader>n", "<cmd>Neotree filesystem toggle<CR>" },
+  },
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-tree/nvim-web-devicons",
@@ -37,6 +41,5 @@ return {
         },
       },
     })
-    vim.keymap.set("n", "<leader>n", ":Neotree filesystem toggle<CR>", {})
   end,
 }

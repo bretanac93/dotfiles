@@ -1,9 +1,11 @@
 return {
 	{
 		"github/copilot.vim",
+		enabled = false,
 	},
 	{
 		"CopilotC-Nvim/CopilotChat.nvim",
+		enabled = false,
 		build = "make tiktoken",
 		config = function()
 			require("CopilotChat").setup({

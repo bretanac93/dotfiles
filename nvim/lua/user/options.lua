@@ -7,10 +7,12 @@ set.softtabstop = 2
 set.relativenumber = true
 set.signcolumn = "yes:2"
 set.clipboard = "unnamedplus"
+set.autoread = true
 set.undofile = true
 set.wildmode = "longest:full,full"
 set.completeopt = "menuone,longest,preview"
-set.updatetime = 100
+set.lazyredraw = true
+set.updatetime = 250
 set.redrawtime = 10000
 
 vim.cmd([[

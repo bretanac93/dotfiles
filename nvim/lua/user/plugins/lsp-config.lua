@@ -7,6 +7,8 @@ return {
 	},
 	event = "VeryLazy",
 	config = function()
+		local bigfile = require("user.bigfile")
+
 		require("mason").setup({
 			ui = {
 				height = 0.8,
@@ -17,20 +19,41 @@ return {
 
 		local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
+		local function with_defaults(config)
+			return vim.tbl_deep_extend("force", {}, {
+				capabilities = capabilities,
+				flags = {
+					debounce_text_changes = 150,
+				},
+			}, config or {})
+		end
+
+		vim.api.nvim_create_autocmd("LspAttach", {
+			group = vim.api.nvim_create_augroup("user-lsp", { clear = true }),
+			callback = function(args)
+				local client = vim.lsp.get_client_by_id(args.data.client_id)
+				if not client then
+					return
+				end
+
+				client.server_capabilities.semanticTokensProvider = nil
+
+				if bigfile.is_huge(args.buf) and bigfile.is_minified(args.buf) then
+					vim.schedule(function()
+						vim.lsp.buf_detach_client(args.buf, client.id)
+					end)
+				end
+			end,
+		})
+
 		-- Configure LSP servers using the new vim.lsp.config API
-		vim.lsp.config("lua_ls", {
-			capabilities = capabilities,
-		})
+		vim.lsp.config("lua_ls", with_defaults())
 
-		vim.lsp.config("gopls", {
-			capabilities = capabilities,
-		})
+		vim.lsp.config("gopls", with_defaults())
 
-		vim.lsp.config("pyright", {
-			capabilities = capabilities,
-		})
+		vim.lsp.config("pyright", with_defaults())
 
-		vim.lsp.config("intelephense", {
+		vim.lsp.config("intelephense", with_defaults({
 			commands = {
 				IntelephenseIndex = {
 					function()
@@ -38,16 +61,13 @@ return {
 					end,
 				},
 			},
-			capabilities = capabilities,
-		})
+		}))
 
-		vim.lsp.config("vue_ls", {
+		vim.lsp.config("vue_ls", with_defaults({
 			filetypes = { "vue", "typescript" },
-			capabilities = capabilities,
-		})
+		}))
 
-		vim.lsp.config("ts_ls", {
-			capabilities = capabilities,
+		vim.lsp.config("ts_ls", with_defaults({
 			filetypes = {
 				"javascript",
 				"javascriptreact",
@@ -56,39 +76,31 @@ return {
 				"typescriptreact",
 				"typescript.tsx",
 			},
-		})
+		}))
 
-		vim.lsp.config("tailwindcss", {
-			capabilities = capabilities,
+		vim.lsp.config("tailwindcss", with_defaults({
 			filetypes = { "templ", "astro", "javascript", "typescript", "react", "vue", "html", "css", "scss", "less" },
-		})
+		}))
 
-		vim.lsp.config("jsonls", {
-			capabilities = capabilities,
+		vim.lsp.config("jsonls", with_defaults({
 			settings = {
 				json = {
 					schemas = require("schemastore").json.schemas(),
 				},
 			},
-		})
+		}))
 
-		vim.lsp.config("templ", {
-			capabilities = capabilities,
-		})
+		vim.lsp.config("templ", with_defaults())
 
-		vim.lsp.config("html", {
-			capabilities = capabilities,
+		vim.lsp.config("html", with_defaults({
 			filetypes = { "html", "templ" },
-		})
+		}))
 
-		vim.lsp.config("htmx", {
-			capabilities = capabilities,
+		vim.lsp.config("htmx", with_defaults({
 			filetypes = { "html", "templ" },
-		})
+		}))
 
-		vim.lsp.config("ruby_lsp", {
-			capabilities = capabilities,
-		})
+		vim.lsp.config("ruby_lsp", with_defaults())
 
 		-- Enable LSP servers
 		vim.lsp.enable("lua_ls")
@@ -118,6 +130,9 @@ return {
 			float = {
 				source = "if_many",
 			},
+			update_in_insert = false,
+			virtual_text = false,
+			severity_sort = true,
 			signs = {
 				text = {
 					[vim.diagnostic.severity.ERROR] = "",
