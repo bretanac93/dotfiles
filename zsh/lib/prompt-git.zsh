@@ -3,18 +3,39 @@ prompt_git() {
 }
 
 prompt_git_info() {
-  local ref dirty
+  local git_status_output branch_head branch_oid ref dirty line
 
-  prompt_git rev-parse --git-dir >/dev/null 2>&1 || return 0
+  git_status_output="$(prompt_git status --porcelain=2 --branch --ignore-submodules=dirty 2>/dev/null)" || return 0
 
-  ref="$(prompt_git symbolic-ref --quiet --short HEAD 2>/dev/null)" \
-    || ref="$(prompt_git describe --tags --exact-match HEAD 2>/dev/null)" \
-    || ref="$(prompt_git rev-parse --short HEAD 2>/dev/null)" \
-    || return 0
+  for line in ${(f)git_status_output}; do
+    case "$line" in
+      '# branch.head '*)
+        branch_head="${line#\# branch.head }"
+        ;;
+      '# branch.oid '*)
+        branch_oid="${line#\# branch.oid }"
+        branch_oid="${branch_oid%% *}"
+        ;;
+      '# '*)
+        ;;
+      *)
+        dirty=" %{$fg[red]%}*%{$fg[green]%}"
+        ;;
+    esac
+  done
 
-  if [[ -n "$(prompt_git status --porcelain --ignore-submodules=dirty 2>/dev/null)" ]]; then
-    dirty=" %{$fg[red]%}*%{$fg[green]%}"
-  fi
+  case "$branch_head" in
+    '(detached)')
+      ref="$(prompt_git describe --tags --exact-match HEAD 2>/dev/null)"
+      ref="${ref:-${branch_oid[1,7]}}"
+      ;;
+    '(unknown)'|'')
+      ref="${branch_oid[1,7]}"
+      ;;
+    *)
+      ref="$branch_head"
+      ;;
+  esac
 
   print -nr -- "%{$fg[green]%}(${ref//\%/%%}${dirty})%{$reset_color%}"
 }
