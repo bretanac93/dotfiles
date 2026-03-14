@@ -17,17 +17,22 @@ usage() {
   print -u"$fd" "Options:"
   print -u"$fd" "  -c, --claude    open Claude on the right"
   print -u"$fd" "  -x, --codex     open Codex on the right"
-  print -u"$fd" "  -o, --opencode  open OpenCode on the right (default)"
+  print -u"$fd" "  -o, --opencode  open OpenCode on the right"
   print -u"$fd" "  -h, --help      show this help"
   print -u"$fd" ""
   print -u"$fd" "Environment:"
   print -u"$fd" "  WB_EDITOR       override the left editor command"
   print -u"$fd" "                  falls back to \$EDITOR, then nvim"
+  print -u"$fd" "  WB_DEFAULT_ASSISTANT"
+  print -u"$fd" "                  set the default right pane assistant"
+  print -u"$fd" "                  supports: opencode, claude, codex"
+  print -u"$fd" "                  falls back to opencode"
   print -u"$fd" ""
   print -u"$fd" "Examples:"
   print -u"$fd" "  ${script_name}"
   print -u"$fd" "  ${script_name} ~/Code/my-project"
   print -u"$fd" "  ${script_name} -c ~/Code/my-project"
+  print -u"$fd" "  WB_DEFAULT_ASSISTANT=claude ${script_name}"
   print -u"$fd" "  WB_EDITOR=vim ${script_name} -x"
 }
 
@@ -79,7 +84,26 @@ unique_window_name() {
   print -r -- "$candidate"
 }
 
-assistant_command="opencode"
+resolve_assistant_command() {
+  case "$1" in
+    opencode|open-code|o)
+      print -r -- "opencode"
+      ;;
+    claude|claude-code|c|cc)
+      print -r -- "claude"
+      ;;
+    codex|x|cx)
+      print -r -- "codex"
+      ;;
+    *)
+      print -u2 "Unsupported assistant: $1"
+      print -u2 "Use one of: opencode, claude, codex"
+      exit 1
+      ;;
+  esac
+}
+
+assistant_command="$(resolve_assistant_command "${WB_DEFAULT_ASSISTANT:-opencode}")"
 editor_command="${WB_EDITOR:-${EDITOR:-nvim}}"
 editor_words=(${(z)editor_command})
 editor_executable="${editor_words[1]:-}"
