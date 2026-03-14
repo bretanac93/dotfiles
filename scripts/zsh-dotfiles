@@ -13,5 +13,6 @@ export ZDOTDIR="$repo_root"
 export ZSH_CONFIG_DIR="$repo_root/zsh"
 export ZSH_HISTORY_FILE="$state_dir/history"
 export ZSH_COMPDUMP="$cache_dir/.zcompdump"
+export ZSH_LOAD_LOCAL_CONFIG=0
 
 exec zsh -l "$@"
