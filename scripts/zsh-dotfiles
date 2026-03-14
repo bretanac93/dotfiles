@@ -1,0 +1,17 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+script_dir="${0:A:h}"
+repo_root="${script_dir:h}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/zsh-dotfiles"
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh-dotfiles"
+
+mkdir -p "$state_dir" "$cache_dir"
+
+export ZDOTDIR="$repo_root"
+export ZSH_CONFIG_DIR="$repo_root/zsh"
+export ZSH_HISTORY_FILE="$state_dir/history"
+export ZSH_COMPDUMP="$cache_dir/.zcompdump"
+
+exec zsh -l "$@"

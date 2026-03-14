@@ -19,17 +19,16 @@ rm -rf "$HOME/.config/ghostty"
 ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
 echo "ghostty configured"
 
-# Oh My Zsh
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-fi
-echo "oh-my-zsh configured"
-
-rm -rf "$HOME/.oh-my-zsh/custom/themes"
-cp -r "$PWD/omz/custom/themes" "$HOME/.oh-my-zsh/custom/themes"
-echo "oh-my-zsh theme configured"
+# Link zsh configuration
+ln -sf "$PWD/.zshenv" "$HOME/.zshenv"
+ln -sf "$PWD/.zprofile" "$HOME/.zprofile"
+ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
+rm -rf "$HOME/.config/zsh"
+ln -sf "$PWD/zsh" "$HOME/.config/zsh"
+echo "zsh configured"
 
 # Link helper scripts into a directory already on PATH
 ln -sf "$PWD/scripts/tmux-code-layout" "$HOME/.local/bin/tmux-code-layout"
 ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
+ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 echo "scripts configured"
