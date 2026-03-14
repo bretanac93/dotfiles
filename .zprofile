@@ -31,7 +31,7 @@ if [[ -d "$PYENV_ROOT/bin" ]]; then
 fi
 
 if (( $+commands[pyenv] )); then
-  eval "$(pyenv init -)"
+  eval "$(pyenv init - zsh --no-rehash)"
 fi
 
 if [[ -x /usr/libexec/java_home ]]; then
