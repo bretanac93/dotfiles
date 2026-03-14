@@ -3,6 +3,7 @@
 
 
 mkdir -p "$HOME/.config"
+mkdir -p "$HOME/.local/bin"
 
 # Link neovim configuration to `$HOME/.config`
 rm -rf "$HOME/.config/nvim"
@@ -28,3 +29,7 @@ rm -rf "$HOME/.oh-my-zsh/custom/themes"
 cp -r "$PWD/omz/custom/themes" "$HOME/.oh-my-zsh/custom/themes"
 echo "oh-my-zsh theme configured"
 
+# Link helper scripts into a directory already on PATH
+ln -sf "$PWD/scripts/tmux-code-layout" "$HOME/.local/bin/tmux-code-layout"
+ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
+echo "scripts configured"

@@ -1,0 +1,164 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+script_name="${0:t}"
+
+usage() {
+  local fd="${1:-2}"
+
+  print -u"$fd" "Usage: ${script_name} [directory] [-c|--claude|-x|--codex|-o|--opencode]"
+  print -u"$fd" ""
+  print -u"$fd" "Build a tmux coding layout for a folder:"
+  print -u"$fd" "  top-left     editor command (default: nvim)"
+  print -u"$fd" "  bottom-left  shell"
+  print -u"$fd" "  right        selected assistant CLI"
+  print -u"$fd" ""
+  print -u"$fd" "Options:"
+  print -u"$fd" "  -c, --claude    open Claude on the right"
+  print -u"$fd" "  -x, --codex     open Codex on the right"
+  print -u"$fd" "  -o, --opencode  open OpenCode on the right (default)"
+  print -u"$fd" "  -h, --help      show this help"
+  print -u"$fd" ""
+  print -u"$fd" "Environment:"
+  print -u"$fd" "  WB_EDITOR       override the left editor command"
+  print -u"$fd" "                  falls back to \$EDITOR, then nvim"
+  print -u"$fd" ""
+  print -u"$fd" "Examples:"
+  print -u"$fd" "  ${script_name}"
+  print -u"$fd" "  ${script_name} ~/Code/my-project"
+  print -u"$fd" "  ${script_name} -c ~/Code/my-project"
+  print -u"$fd" "  WB_EDITOR=vim ${script_name} -x"
+}
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    print -u2 "Missing required command: $1"
+    exit 1
+  fi
+}
+
+sanitize_name() {
+  local value="$1"
+
+  value="${value//[^A-Za-z0-9_.-]/-}"
+  value="${value##-}"
+  value="${value%%-}"
+
+  if [[ -z "$value" ]]; then
+    value="workspace"
+  fi
+
+  print -r -- "$value"
+}
+
+unique_session_name() {
+  local base="$1"
+  local candidate="$base"
+  local suffix=2
+
+  while tmux has-session -t "$candidate" >/dev/null 2>&1; do
+    candidate="${base}-${suffix}"
+    ((suffix++))
+  done
+
+  print -r -- "$candidate"
+}
+
+unique_window_name() {
+  local session_name="$1"
+  local base="$2"
+  local candidate="$base"
+  local suffix=2
+
+  while tmux list-windows -t "$session_name" -F '#{window_name}' 2>/dev/null | grep -Fxq -- "$candidate"; do
+    candidate="${base}-${suffix}"
+    ((suffix++))
+  done
+
+  print -r -- "$candidate"
+}
+
+assistant_command="opencode"
+editor_command="${WB_EDITOR:-${EDITOR:-nvim}}"
+editor_words=(${(z)editor_command})
+editor_executable="${editor_words[1]:-}"
+target_dir=""
+
+if [[ -z "$editor_executable" ]]; then
+  print -u2 "Editor command cannot be empty"
+  exit 1
+fi
+
+while (( $# > 0 )); do
+  case "$1" in
+    -c|--claude)
+      assistant_command="claude"
+      ;;
+    -x|--codex)
+      assistant_command="codex"
+      ;;
+    -o|--opencode)
+      assistant_command="opencode"
+      ;;
+    -h|--help)
+      usage 1
+      exit 0
+      ;;
+    -*)
+      print -u2 "Unknown option: $1"
+      usage
+      exit 1
+      ;;
+    *)
+      if [[ -n "$target_dir" ]]; then
+        usage
+        exit 1
+      fi
+
+      target_dir="$1"
+      ;;
+  esac
+
+  shift
+done
+
+require_command tmux
+require_command "$editor_executable"
+require_command "$assistant_command"
+
+target_dir="${target_dir:-$PWD}"
+
+if [[ ! -d "$target_dir" ]]; then
+  print -u2 "Directory not found: $target_dir"
+  exit 1
+fi
+
+target_dir="$(cd "$target_dir" && pwd -P)"
+workspace_name="$(sanitize_name "${target_dir:t}")"
+right_pane_width=38
+bottom_pane_height=22
+
+if [[ -n "${TMUX:-}" ]]; then
+  session_name="$(tmux display-message -p '#S')"
+  window_name="$(unique_window_name "$session_name" "$workspace_name")"
+  top_left_pane="$(tmux new-window -d -P -F '#{pane_id}' -t "$session_name:" -n "$window_name" -c "$target_dir")"
+else
+  session_name="$(unique_session_name "$workspace_name")"
+  window_name="workspace"
+  top_left_pane="$(tmux new-session -d -P -F '#{pane_id}' -s "$session_name" -n "$window_name" -c "$target_dir")"
+fi
+
+window_id="$(tmux display-message -p -t "$top_left_pane" '#{window_id}')"
+right_pane="$(tmux split-window -h -P -F '#{pane_id}' -t "$top_left_pane" -c "$target_dir" -p "$right_pane_width")"
+tmux split-window -v -t "$top_left_pane" -c "$target_dir" -p "$bottom_pane_height" >/dev/null
+
+tmux send-keys -t "$top_left_pane" "$editor_command" C-m
+tmux send-keys -t "$right_pane" "$assistant_command" C-m
+tmux select-pane -t "$top_left_pane"
+
+if [[ -n "${TMUX:-}" ]]; then
+  tmux select-window -t "$window_id"
+else
+  exec tmux attach-session -t "$session_name"
+fi
