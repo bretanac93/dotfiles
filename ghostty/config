@@ -1,4 +1,6 @@
 font-family="JetBrainsMono Nerd Font Mono"
 font-size=14
 theme = Nord
+shell-integration = zsh
+shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,path
 window-vsync = false
