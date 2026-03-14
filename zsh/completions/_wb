@@ -1,0 +1,14 @@
+#compdef wb tmux-code-layout
+
+local -a option_args
+option_args=(
+  '(-c --claude -x --codex -o --opencode)'{-c,--claude}'[open Claude in the right pane]'
+  '(-x --codex -c --claude -o --opencode)'{-x,--codex}'[open Codex in the right pane]'
+  '(-o --opencode -c --claude -x --codex)'{-o,--opencode}'[open OpenCode in the right pane]'
+  '(-h --help)'{-h,--help}'[show help]'
+)
+
+_arguments -s -S \
+  $option_args \
+  '1:directory:_files -/' \
+  '*::argument:_guard "" "no more arguments expected"'

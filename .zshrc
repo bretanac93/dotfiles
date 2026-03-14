@@ -15,6 +15,7 @@ fi
 for lib_file in \
   "$ZSH_CONFIG_DIR/lib/options.zsh" \
   "$ZSH_CONFIG_DIR/lib/completion.zsh" \
+  "$ZSH_CONFIG_DIR/lib/completion-styles.zsh" \
   "$ZSH_CONFIG_DIR/lib/prompt-git.zsh" \
   "$ZSH_CONFIG_DIR/lib/keybindings.zsh" \
   "$ZSH_CONFIG_DIR/lib/aliases.zsh" \

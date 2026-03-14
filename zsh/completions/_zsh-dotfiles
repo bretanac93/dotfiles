@@ -1,0 +1,3 @@
+#compdef zsh-dotfiles
+
+_zsh "$@"
