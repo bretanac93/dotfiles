@@ -11,7 +11,7 @@ zstyle ':completion:*' matcher-list \
   'm:{a-z}={A-Z}' \
   'r:|[._-]=* r:|=*'
 
-zstyle ':completion:*:warnings' format 'no matches'
+zstyle ':completion:*:warnings' format ''
 
 if [[ -n "${LS_COLORS:-}" ]]; then
   zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
