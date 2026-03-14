@@ -8,6 +8,8 @@ defaults write com.apple.dock autohide -bool true # autohide dock
 defaults write -g AppleShowScrollBars -string WhenScrolling # show scrollbars only when scrolling
 defaults write com.apple.dock workspaces-edge-delay -float 0 # remove delay for switching spaces
 defaults write com.apple.dock autohide-time-modifier -float 0.5 # speed up autohide animation
+defaults write com.mitchellh.ghostty InitialKeyRepeat -int 8 # shorten repeat delay in Ghostty
+defaults write com.mitchellh.ghostty KeyRepeat -int 0 # maximize repeat rate in Ghostty
 defaults write com.mitchellh.ghostty ApplePressAndHoldEnabled -bool false # allow key repeat in Ghostty
 
 killall cfprefsd

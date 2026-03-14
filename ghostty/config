@@ -1,3 +1,4 @@
 font-family="JetBrainsMono Nerd Font Mono"
 font-size=14
 theme = Nord
+window-vsync = false
