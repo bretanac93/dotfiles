@@ -17,6 +17,7 @@ for lib_file in \
   "$ZSH_CONFIG_DIR/lib/completion.zsh" \
   "$ZSH_CONFIG_DIR/lib/prompt-git.zsh" \
   "$ZSH_CONFIG_DIR/lib/keybindings.zsh" \
+  "$ZSH_CONFIG_DIR/lib/aliases.zsh" \
   "$ZSH_CONFIG_DIR/lib/plugin-loader.zsh"; do
   if [[ -r "$lib_file" ]]; then
     source "$lib_file"
@@ -25,6 +26,10 @@ done
 
 if typeset -f load_zsh_plugins >/dev/null 2>&1; then
   load_zsh_plugins
+fi
+
+if typeset -f load_zsh_aliases >/dev/null 2>&1; then
+  load_zsh_aliases
 fi
 
 theme_file="$ZSH_CONFIG_DIR/themes/${ZSH_THEME}.zsh-theme"
