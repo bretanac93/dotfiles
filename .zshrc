@@ -13,8 +13,10 @@ else
 fi
 
 for lib_file in \
+  "$ZSH_CONFIG_DIR/lib/options.zsh" \
   "$ZSH_CONFIG_DIR/lib/completion.zsh" \
   "$ZSH_CONFIG_DIR/lib/prompt-git.zsh" \
+  "$ZSH_CONFIG_DIR/lib/keybindings.zsh" \
   "$ZSH_CONFIG_DIR/lib/plugin-loader.zsh"; do
   if [[ -r "$lib_file" ]]; then
     source "$lib_file"
