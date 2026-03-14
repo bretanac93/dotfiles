@@ -14,6 +14,9 @@ usage() {
   print -u"$fd" "  bottom-left  shell"
   print -u"$fd" "  right        selected assistant CLI"
   print -u"$fd" ""
+  print -u"$fd" "Inside tmux, this reuses the current window when it has a single pane."
+  print -u"$fd" "If the current window is already split, it opens a new window instead."
+  print -u"$fd" ""
   print -u"$fd" "Options:"
   print -u"$fd" "  -c, --claude    open Claude on the right"
   print -u"$fd" "  -x, --codex     open Codex on the right"
@@ -162,20 +165,31 @@ target_dir="$(cd "$target_dir" && pwd -P)"
 workspace_name="$(sanitize_name "${target_dir:t}")"
 right_pane_width=38
 bottom_pane_height=22
+reuse_current_window=0
 
 if [[ -n "${TMUX:-}" ]]; then
   session_name="$(tmux display-message -p '#S')"
-  window_name="$(unique_window_name "$session_name" "$workspace_name")"
-  top_left_pane="$(tmux new-window -d -P -F '#{pane_id}' -t "$session_name:" -n "$window_name" -c "$target_dir")"
+  if [[ "$(tmux display-message -p '#{window_panes}')" == "1" ]]; then
+    reuse_current_window=1
+    window_id="$(tmux display-message -p '#{window_id}')"
+    top_left_pane="$(tmux display-message -p '#{pane_id}')"
+  else
+    window_name="$(unique_window_name "$session_name" "$workspace_name")"
+    top_left_pane="$(tmux new-window -d -P -F '#{pane_id}' -t "$session_name:" -n "$window_name" -c "$target_dir")"
+  fi
 else
   session_name="$(unique_session_name "$workspace_name")"
   window_name="workspace"
   top_left_pane="$(tmux new-session -d -P -F '#{pane_id}' -s "$session_name" -n "$window_name" -c "$target_dir")"
 fi
 
-window_id="$(tmux display-message -p -t "$top_left_pane" '#{window_id}')"
+window_id="${window_id:-$(tmux display-message -p -t "$top_left_pane" '#{window_id}')}"
 right_pane="$(tmux split-window -h -P -F '#{pane_id}' -t "$top_left_pane" -c "$target_dir" -p "$right_pane_width")"
 tmux split-window -v -t "$top_left_pane" -c "$target_dir" -p "$bottom_pane_height" >/dev/null
+
+if (( reuse_current_window )) && [[ "$(tmux display-message -p -t "$top_left_pane" '#{pane_current_path}')" != "$target_dir" ]]; then
+  tmux send-keys -t "$top_left_pane" "cd -- ${(q)target_dir}" C-m
+fi
 
 tmux send-keys -t "$top_left_pane" "$editor_command" C-m
 tmux send-keys -t "$right_pane" "$assistant_command" C-m
