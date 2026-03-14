@@ -8,18 +8,13 @@ load_zsh_alias_dir() {
 }
 
 load_zsh_aliases() {
-  local aliases_dir profile profile_spec
-  local -a profiles
+  local aliases_dir local_aliases_dir
 
   aliases_dir="$ZSH_CONFIG_DIR/aliases"
   load_zsh_alias_dir "$aliases_dir/common"
 
-  profile_spec="${ZSH_ALIAS_PROFILES:-}"
-  profile_spec="${profile_spec//,/ }"
-  profile_spec="${profile_spec//:/ }"
-  profiles=(${=profile_spec})
-
-  for profile in $profiles; do
-    load_zsh_alias_dir "$aliases_dir/profiles/$profile"
-  done
+  if [[ "${ZSH_LOAD_LOCAL_CONFIG:-1}" != "0" ]]; then
+    local_aliases_dir="${ZSH_LOCAL_CONFIG_DIR:-$HOME/.config/zsh.local}/aliases"
+    load_zsh_alias_dir "$local_aliases_dir"
+  fi
 }
