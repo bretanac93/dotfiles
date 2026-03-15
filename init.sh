@@ -174,28 +174,14 @@ if [[ $op_ready -eq 1 ]]; then
   
   if [[ ${#setup_needed[@]} -gt 0 ]]; then
     print ""
-    print "🔐 Secrets need to be exported from 1Password:"
+    print "🔐 Setting up secrets from 1Password..."
     for script in $setup_needed; do
-      print "   - $script"
+      print ""
+      print "▶️  Running $script..."
+      $script || print "   ⚠️  $script failed - you can run it manually later"
     done
     print ""
-    
-    # Ask if user wants to run them now
-    printf "Run these now? (requires 1Password to be unlocked) [Y/n]: "
-    read -r response
-    if [[ "$response" =~ ^[Yy]$ ]] || [[ -z "$response" ]]; then
-      for script in $setup_needed; do
-        print ""
-        print "▶️  Running $script..."
-        $script || print "   ⚠️  $script failed or was cancelled"
-      done
-    else
-      print ""
-      print "   You can run these later:"
-      for script in $setup_needed; do
-        print "     $script"
-      done
-    fi
+    print "✅ Secret setup complete!"
   fi
 else
   print ""
