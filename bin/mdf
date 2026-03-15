@@ -23,6 +23,7 @@ Commands:
   update, u        Pull latest changes and re-run init
   doctor, d        Check if everything is working
   uninstall       Remove dotfiles (with --dry-run support)
+  aliases, a      Show available aliases
   
 Setup Commands:
   ssh              Export SSH keys from 1Password
@@ -36,9 +37,55 @@ Examples:
   mdf install              # First time setup
   mdf update               # Update to latest
   mdf doctor               # Check health
+  mdf aliases              # Show all aliases
   mdf uninstall --dry-run  # Preview uninstall
 
 EOF
+}
+
+show_aliases() {
+    echo "📋 Dotfiles Aliases"
+    echo "===================="
+    echo ""
+    echo "Git Aliases:"
+    echo "  g          → git"
+    echo "  ga         → git add"
+    echo "  gaa        → git add --all"
+    echo "  gst        → git status"
+    echo "  gd         → git diff"
+    echo "  gds        → git diff --staged"
+    echo "  gco        → git checkout"
+    echo "  gcb        → git checkout -b"
+    echo "  gcm        → git commit -m"
+    echo "  gcam       → git commit -a -m"
+    echo "  gp         → git push"
+    echo "  gpf        → git push --force-with-lease"
+    echo "  gl         → git pull"
+    echo "  gupa       → git pull --rebase --autostash"
+    echo "  glo        → git log --oneline --decorate"
+    echo "  glog       → git log --oneline --decorate --graph"
+    echo "  gsw        → git switch"
+    echo "  gstp       → git stash pop"
+    echo ""
+    echo "Navigation Aliases:"
+    echo "  ..         → cd .."
+    echo "  ...        → cd ../.."
+    echo "  ....       → cd ../../.."
+    echo "  .....      → cd ../../../.."
+    echo "  -          → cd -"
+    echo ""
+    echo "File Listing Aliases:"
+    echo "  l          → ls -l"
+    echo "  la         → ls -a"
+    echo "  ll         → ls -la"
+    echo "  lt         → ls --tree"
+    echo "  l.         → ls -d .*"
+    echo ""
+    echo "Editor Aliases:"
+    echo "  vim        → nvim"
+    echo "  v          → nvim"
+    echo ""
+    echo "Run 'alias | grep YOUR_TERM' to find specific aliases"
 }
 
 run_script() {
@@ -86,6 +133,11 @@ case "${1:-}" in
     git)
         shift
         run_script "setup-git-local" "$@"
+        ;;
+        
+    aliases|a)
+        show_aliases
+        exit 0
         ;;
         
     version|v|--version|-v)
