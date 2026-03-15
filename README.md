@@ -17,9 +17,28 @@ A minimal, fast, and maintainable macOS development environment.
 git clone https://github.com/bretanac93/dotfiles ~/Code/dotfiles
 cd ~/Code/dotfiles
 ./init.sh
+
+# Or use the mdf (My Dotfiles) manager after first setup:
+mdf install  # First time setup
+mdf update   # Update to latest
+mdf doctor   # Check health
 ```
 
 That's it. Your shell, tmux, nvim, and ghostty are configured.
+
+## Daily Use (mdf command)
+
+After initial setup, use the `mdf` command for all dotfiles management:
+
+```bash
+mdf install              # Run init.sh (first time or reconfigure)
+mdf update               # Pull latest changes and update
+mdf doctor               # Check everything is working
+mdf uninstall --dry-run  # Preview uninstall
+mdf ssh                  # Export SSH keys from 1Password
+mdf git                  # Setup git with GPG signing
+mdf help                 # Show all commands
+```
 
 ## What's Included
 
@@ -30,6 +49,7 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 - Completions for custom tools
 
 **Tools** (in `~/.local/bin/`)
+- `mdf` - My Dotfiles manager (main entry point for all commands)
 - `wb` - Launch editor + terminal + AI assistant in tmux
 - `check-deps` - Verify Brewfile dependencies
 - `setup-git-local` - Configure git with GPG signing from 1Password
@@ -52,23 +72,19 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 
 ## Maintenance
 
-Check if everything is working:
+**Using `mdf` (recommended):**
 ```bash
-dotfiles-doctor
+mdf doctor               # Check everything is working
+mdf update               # Update to latest version
+mdf uninstall --dry-run  # Preview uninstall
+mdf uninstall            # Actually remove
 ```
 
-Update to latest version:
+**Or use the tools directly:**
 ```bash
-dotfiles-update
-```
-
-Remove dotfiles (restores from backup):
-```bash
-# Preview what would be removed
-dotfiles-uninstall --dry-run
-
-# Actually remove
-dotfiles-uninstall
+dotfiles-doctor          # Same as: mdf doctor
+dotfiles-update          # Same as: mdf update
+dotfiles-uninstall       # Same as: mdf uninstall
 ```
 
 All existing configs are backed up to `~/.dotfiles-backups/YYYYMMDD-HHMMSS/` before being replaced.

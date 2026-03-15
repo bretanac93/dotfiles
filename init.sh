@@ -89,6 +89,7 @@ fi
 
 # Link helper scripts
 link_file "$PWD/bin/wb" "$HOME/.local/bin/wb" "wb"
+link_file "$PWD/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
 link_file "$PWD/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
 link_file "$PWD/bin/dotfiles-uninstall" "$HOME/.local/bin/dotfiles-uninstall" "dotfiles-uninstall"
 link_file "$PWD/bin/dotfiles-update" "$HOME/.local/bin/dotfiles-update" "dotfiles-update"

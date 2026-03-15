@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+#
+# mdf - My Dotfiles Manager
+# Usage: mdf <command> [options]
+
+set -e
+
+SCRIPT_DIR="${0:A:h}"
+DOTFILES_DIR="${SCRIPT_DIR:h}"  # Go up one level from bin/
+
+VERSION="1.0.0"
+
+show_help() {
+    cat << EOF
+mdf - My Dotfiles Manager v${VERSION}
+
+Usage: mdf <command> [options]
+
+Commands:
+  install, i       Run init.sh to set up dotfiles
+  update, u        Pull latest changes and re-run init
+  doctor, d        Check if everything is working
+  uninstall       Remove dotfiles (with --dry-run support)
+  
+Setup Commands:
+  ssh              Export SSH keys from 1Password
+  git              Configure git with GPG signing from 1Password
+  
+Other:
+  version, v       Show version
+  help, h          Show this help
+
+Examples:
+  mdf install              # First time setup
+  mdf update               # Update to latest
+  mdf doctor               # Check health
+  mdf uninstall --dry-run  # Preview uninstall
+
+EOF
+}
+
+run_script() {
+    local script="$1"
+    shift
+    
+    if [[ -x "$DOTFILES_DIR/bin/$script" ]]; then
+        exec "$DOTFILES_DIR/bin/$script" "$@"
+    elif [[ -x "$DOTFILES_DIR/scripts/$script" ]]; then
+        exec "$DOTFILES_DIR/scripts/$script" "$@"
+    else
+        echo "❌ Command not found: $script"
+        exit 1
+    fi
+}
+
+# Parse command
+case "${1:-}" in
+    install|i)
+        shift
+        cd "$DOTFILES_DIR"
+        exec ./init.sh "$@"
+        ;;
+        
+    update|u)
+        shift
+        run_script "dotfiles-update" "$@"
+        ;;
+        
+    doctor|d)
+        shift
+        run_script "dotfiles-doctor" "$@"
+        ;;
+        
+    uninstall|remove|rm)
+        shift
+        run_script "dotfiles-uninstall" "$@"
+        ;;
+        
+    ssh)
+        shift
+        run_script "setup-ssh" "$@"
+        ;;
+        
+    git)
+        shift
+        run_script "setup-git-local" "$@"
+        ;;
+        
+    version|v|--version|-v)
+        echo "mdf version ${VERSION}"
+        exit 0
+        ;;
+        
+    help|h|--help|-h|"")
+        show_help
+        exit 0
+        ;;
+        
+    *)
+        echo "❌ Unknown command: $1"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac
