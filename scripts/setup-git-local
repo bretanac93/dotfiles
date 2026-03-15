@@ -124,14 +124,11 @@ else
 	gpgsign = true
 EOF
     
-    echo ""
-    echo "✅ Local git config created at: $LOCAL_CONFIG_FILE"
-    echo ""
-    echo "⚠️  Note: You'll need to manually import your GPG keys:"
-    echo "   gpg --import private.key"
-    echo "   gpg --import public.key"
-fi
-
+echo ""
+echo "✅ Local git config created at: $LOCAL_CONFIG_FILE"
+echo ""
+echo "⚠️  IMPORTANT: Your GPG key has a passphrase. When signing commits,"
+echo "   GPG will prompt you to enter it (via terminal, no GUI)."
 echo ""
 echo "To verify your setup, run:"
 echo "  git config --get user.name"
@@ -141,6 +138,11 @@ echo ""
 echo "To list your GPG keys:"
 echo "  gpg --list-secret-keys --keyid-format=short"
 echo ""
-echo "To test signing, run:"
+echo "To test signing (you'll be prompted for passphrase):"
 echo "  git commit --allow-empty -m \"Test GPG signing\""
 echo "  git log --show-signature -1"
+echo ""
+echo "To make signing easier, you can cache your passphrase:"
+echo "  gpg --edit-key $KEY_ID"
+echo "  Then: passwd → (enter new empty passphrase) → save"
+echo "  (Only do this if your machine is secure and you trust it)"

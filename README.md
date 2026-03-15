@@ -91,6 +91,8 @@ The shared `gitconfig` includes this file automatically.
 
 **Note:** GPG must be installed (usually comes with macOS or Linux). The setup script exports keys from 1Password and configures git to use them.
 
+**Passphrase:** Your GPG key has a passphrase. When signing commits, GPG will prompt for it in the terminal (no GUI). This happens once per session or you can configure GPG to cache it.
+
 ## Requirements
 
 - macOS (Apple Silicon)
