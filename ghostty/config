@@ -1,7 +1,39 @@
 font-family="JetBrainsMono Nerd Font Mono"
 font-size=14
-theme = Nord
-macos-option-as-alt = true
+font-thicken = true
+font-feature = -calt
+
+# Try One Dark theme for better contrast than Nord
+theme = one_dark
+background = #1e2127
+foreground = #abb2bf
+
+# Cursor - block style for better visibility
+cursor-style = block
+cursor-color = #56b6c2
+cursor-text = #1e2127
+cursor-opacity = 0.8
+
+# Improve readability
+window-padding-x = 8
+window-padding-y = 8
+window-vsync = false
+
+# Better scrolling
+scrollback-limit = 100000
+mouse-scroll-multiplier = 2
+
+# Shell integration
 shell-integration = zsh
 shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,path
-window-vsync = false
+
+# Key remappings
+macos-option-as-alt = true
+
+# Performance
+auto-update = check
+
+# Render settings for sharper text
+# If text looks blurry, try uncommenting:
+# font-thicken = true
+# font-thicken-strength = 0.5
