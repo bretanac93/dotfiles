@@ -22,12 +22,12 @@ usage() {
   print "Note: You must log out and back in for some changes to take effect."
 }
 
-if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
   usage
   exit 0
 fi
 
-if [[ "$1" == "--check" ]]; then
+if [[ "${1:-}" == "--check" ]]; then
   print "Current macOS defaults:"
   print ""
   print "Dock settings:"

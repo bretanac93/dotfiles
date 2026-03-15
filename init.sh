@@ -40,28 +40,28 @@ ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 ln -sf "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps"
 echo "✓ scripts configured"
 
-# Check dependencies
+# Check and install dependencies
 print ""
 if [[ -x "$PWD/scripts/check-deps" ]]; then
-  zsh "$PWD/scripts/check-deps" "$PWD/Brewfile"
+  if ! zsh "$PWD/scripts/check-deps" "$PWD/Brewfile" 2>/dev/null; then
+    print ""
+    print "Installing missing dependencies..."
+    if command -v brew &>/dev/null; then
+      brew bundle install --file="$PWD/Brewfile"
+    else
+      print "Error: Homebrew not found. Please install Homebrew first."
+      print "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+      exit 1
+    fi
+  fi
 else
   print "Warning: check-deps script not found"
 fi
 
-# macOS-specific: check system defaults status
+# macOS-specific: apply system defaults
 if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults" ]]; then
   print ""
-  
-  # Check current settings
-  local dock_size=$(defaults read com.apple.dock tilesize 2>/dev/null || echo "unset")
-  local ghostty_keyrepeat=$(defaults read com.mitchellh.ghostty KeyRepeat 2>/dev/null || echo "unset")
-  
-  if [[ "$dock_size" == "30" ]] && [[ "$ghostty_keyrepeat" == "0" ]]; then
-    print "✓ macOS defaults applied"
-  else
-    print "⚠️  macOS defaults not applied"
-    print "   Run: $PWD/scripts/macos-defaults"
-  fi
+  zsh "$PWD/scripts/macos-defaults"
 fi
 
 print ""
