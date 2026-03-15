@@ -1,41 +1,36 @@
 #compdef mdf
 #
 # Shell completions for mdf (My Dotfiles Manager)
-# Place this file in your completions directory (e.g., ~/.config/zsh.local/completions/)
 
-_mdf() {
-    local curcontext="$curcontext" state line
-    typeset -A opt_args
+local curcontext="$curcontext" state line
+typeset -A opt_args
 
-    _arguments -C \
-        '1: :->command' \
-        '*:: :->args'
+_arguments -C \
+    '1: :->command' \
+    '*:: :->args'
 
-    case "$state" in
-        command)
-            local -a commands
-            commands=(
-                'install:Run init.sh to set up dotfiles'
-                'update:Pull latest changes and re-run init'
-                'doctor:Check if everything is working'
-                'uninstall:Remove dotfiles'
-                'aliases:Show available aliases'
-                'ssh:Export SSH keys from 1Password'
-                'git:Configure git with GPG signing'
-                'version:Show version'
-                'help:Show help'
-            )
-            _describe -t commands 'mdf command' commands
-            ;;
-        args)
-            case "$line[1]" in
-                uninstall)
-                    _arguments \
-                        '--dry-run[Preview what would be removed]'
-                    ;;
-            esac
-            ;;
-    esac
-}
-
-_mdf "$@"
+case "$state" in
+    command)
+        local -a commands
+        commands=(
+            'install:Run init.sh to set up dotfiles'
+            'update:Pull latest changes and re-run init'
+            'doctor:Check if everything is working'
+            'cleanup:Remove old backups'
+            'uninstall:Remove dotfiles'
+            'aliases:Show available aliases'
+            'ssh:Export SSH keys from 1Password'
+            'git:Configure git with GPG signing'
+            'version:Show version'
+            'help:Show help'
+        )
+        _describe -t commands 'mdf command' commands
+        ;;
+    args)
+        case "$line[1]" in
+            uninstall|cleanup)
+                _arguments '--dry-run[Preview what would be removed]'
+                ;;
+        esac
+        ;;
+esac

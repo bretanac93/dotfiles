@@ -60,7 +60,7 @@ if [[ -r "$ZSH_CONFIG_DIR/lib/vim-mode.zsh" ]]; then
   source "$ZSH_CONFIG_DIR/lib/vim-mode.zsh"
 fi
 
-# Initialize completions (must be after all fpath modifications)
-autoload -Uz compinit
-local compdump_file="${ZSH_COMPDUMP:-${ZDOTDIR:-$HOME}/.zcompdump}.v2"
-compinit -C -i -d "$compdump_file"
+# Run compinit at the very end after all fpath setup is complete
+if [[ -r "$ZSH_CONFIG_DIR/lib/compinit.zsh" ]]; then
+  source "$ZSH_CONFIG_DIR/lib/compinit.zsh"
+fi
