@@ -7,6 +7,7 @@ brew "zsh-fast-syntax-highlighting"
 brew "tmux"
 brew "neovim"
 brew "git"
+brew "gh"  # GitHub CLI
 brew "ripgrep"
 brew "gnupg"  # Required for GPG commit signing
 brew "deno"  # Required for markdown-preview.nvim
