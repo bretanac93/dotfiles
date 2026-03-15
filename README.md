@@ -29,16 +29,23 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 - 60+ aliases (git, navigation)
 - Completions for custom tools
 
-**Tools**
+**Tools** (in `~/.local/bin/`)
 - `wb` - Launch editor + terminal + AI assistant in tmux
+- `check-deps` - Verify Brewfile dependencies
+- `setup-git-local` - Configure git with GPG signing from 1Password
+- `setup-ssh` - Export SSH keys from 1Password
+
+**Zsh Functions** (auto-loaded)
 - `install-bin` - Install binaries to `~/.local/bin`
 - `gen-completion` - Generate zsh completions
-- `check-deps` - Verify Brewfile dependencies
 
 **Configs**
+- zsh with syntax highlighting and git prompt
 - tmux with macOS clipboard
 - Ghostty with key repeat tuning
 - nvim with LSP
+- Git with GPG signing
+- SSH with local keys (no 1Password agent)
 
 ## Structure
 
@@ -70,6 +77,10 @@ scripts/
   setup-ssh       # SSH keys from 1Password
   check-deps      # Dependency checker
   macos-defaults  # System tuning
+
+zsh/functions/  (auto-loaded by zsh)
+  install-bin    # Install binaries to ~/.local/bin
+  gen-completion # Generate zsh completions
 
 ~/.config/zsh.local/
   alias/          # Your local aliases (untracked)
