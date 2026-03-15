@@ -1,11 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 #
 # mdf - My Dotfiles Manager
 # Usage: mdf <command> [options]
 
 set -e
 
-SCRIPT_DIR="${0:A:h}"
+# Find the actual script location (resolve symlinks)
+SCRIPT_PATH="${0:A}"
+SCRIPT_DIR="${SCRIPT_PATH:h}"
 DOTFILES_DIR="${SCRIPT_DIR:h}"  # Go up one level from bin/
 
 VERSION="1.0.0"
