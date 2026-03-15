@@ -85,7 +85,7 @@ if [[ -r "$PWD/git/gpg.conf" ]]; then
 fi
 
 # Link helper scripts
-link_file "$PWD/scripts/wb" "$HOME/.local/bin/wb" "wb"
+link_file "$PWD/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_file "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles" "zsh-dotfiles"
 link_file "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps" "check-deps"
 link_file "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"

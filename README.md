@@ -71,12 +71,16 @@ tmux/
 ssh/
   config          # SSH configuration
 
-scripts/
+bin/            # User tools (linked to ~/.local/bin)
   wb              # Tmux workbench
+  tmux-code-layout # Tmux layout implementation
+
+scripts/        # Init dependencies and setup scripts
   setup-git-local # Git config with GPG signing
   setup-ssh       # SSH keys from 1Password
   check-deps      # Dependency checker
   macos-defaults  # System tuning
+  zsh-dotfiles    # Isolated zsh testing
 
 zsh/functions/  (auto-loaded by zsh)
   install-bin    # Install binaries to ~/.local/bin
