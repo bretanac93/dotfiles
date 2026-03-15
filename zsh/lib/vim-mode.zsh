@@ -29,6 +29,16 @@ function zle-line-init {
 }
 zle -N zle-line-init
 
+# Vim navigation in normal mode (vicmd)
+bindkey -M vicmd 'h' backward-char
+bindkey -M vicmd 'j' down-line-or-history
+bindkey -M vicmd 'k' up-line-or-history
+bindkey -M vicmd 'l' forward-char
+
+# Fix run-help conflicting with 'h'
+unalias run-help 2>/dev/null
+bindkey -M vicmd '\eh' run-help 2>/dev/null || true
+
 # Vim-style keybindings in insert mode
 bindkey "^A" beginning-of-line          # Ctrl+a: beginning
 bindkey "^E" end-of-line                # Ctrl+e: end
