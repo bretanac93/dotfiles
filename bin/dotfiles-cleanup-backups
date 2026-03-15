@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#
+# Clean up old dotfiles backups, keeping only the last N
+# Usage: dotfiles-cleanup-backups [--keep N] [--dry-run]
+
+set -e
+
+BACKUP_DIR="$HOME/.dotfiles-backups"
+KEEP_COUNT=10
+DRY_RUN=0
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --keep)
+            KEEP_COUNT="$2"
+            shift 2
+            ;;
+        --dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: dotfiles-cleanup-backups [--keep N] [--dry-run]"
+            echo ""
+            echo "Options:"
+            echo "  --keep N     Keep N most recent backups (default: 10)"
+            echo "  --dry-run    Show what would be removed without deleting"
+            echo "  --help       Show this help"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Run with --help for usage"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if backup directory exists
+if [[ ! -d "$BACKUP_DIR" ]]; then
+    echo "No backup directory found at $BACKUP_DIR"
+    exit 0
+fi
+
+# Count total backups
+TOTAL_BACKUPS=$(find "$BACKUP_DIR" -maxdepth 1 -type d -name "[0-9]*" | wc -l)
+
+if [[ $TOTAL_BACKUPS -le $KEEP_COUNT ]]; then
+    echo "✅ Found $TOTAL_BACKUPS backup(s), keeping all (threshold: $KEEP_COUNT)"
+    exit 0
+fi
+
+TO_REMOVE=$((TOTAL_BACKUPS - KEEP_COUNT))
+
+echo "Found $TOTAL_BACKUPS backups, keeping $KEEP_COUNT most recent"
+echo "Will remove $TO_REMOVE old backup(s)"
+echo ""
+
+# List backups sorted by date (oldest first)
+OLD_BACKUPS=$(find "$BACKUP_DIR" -maxdepth 1 -type d -name "[0-9]*" | sort | head -n $TO_REMOVE)
+
+for backup in $OLD_BACKUPS; do
+    BACKUP_NAME=$(basename "$backup")
+    if [[ $DRY_RUN -eq 1 ]]; then
+        echo "[DRY RUN] Would remove: $BACKUP_NAME"
+    else
+        echo "🗑️  Removing: $BACKUP_NAME"
+        rm -rf "$backup"
+    fi
+done
+
+echo ""
+if [[ $DRY_RUN -eq 1 ]]; then
+    echo "🔍 Dry run complete - no changes made"
+    echo "Run without --dry-run to actually remove backups"
+else
+    echo "✅ Cleanup complete!"
+    echo "Kept $KEEP_COUNT most recent backup(s)"
+fi

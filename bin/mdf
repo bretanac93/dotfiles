@@ -120,6 +120,11 @@ case "${1:-}" in
         run_script "dotfiles-doctor" "$@"
         ;;
         
+    cleanup|c)
+        shift
+        run_script "dotfiles-cleanup-backups" "$@"
+        ;;
+        
     uninstall|remove|rm)
         shift
         run_script "dotfiles-uninstall" "$@"

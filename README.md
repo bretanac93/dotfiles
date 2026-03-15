@@ -135,6 +135,8 @@ v           # nvim (if installed)
 ```bash
 mdf doctor               # Check everything is working
 mdf update               # Update to latest version
+mdf cleanup              # Remove old backups (keeps last 10)
+mdf cleanup --dry-run  # Preview what would be removed
 mdf uninstall --dry-run  # Preview uninstall
 mdf uninstall            # Actually remove
 ```

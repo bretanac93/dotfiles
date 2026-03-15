@@ -1,6 +1,9 @@
 # Zsh completion cache
 .zcompdump*
 
+# Homebrew
+Brewfile.lock.json
+
 # OS files
 .DS_Store
 .AppleDouble
