@@ -61,25 +61,14 @@ function zsh-vi-yank-whole-line-to-clipboard {
 }
 zle -N zsh-vi-yank-whole-line-to-clipboard
 
-# Copy visual selection to system clipboard  
-function zsh-vi-visual-yank-to-clipboard {
-  # Copy selected text to clipboard
-  local visual_text="${CUTBUFFER:-$REGION_ACTIVE}"
-  if [[ -n "$CUTBUFFER" ]]; then
-    echo -n "$CUTBUFFER" | pbcopy 2>/dev/null
-  fi
-  
-  # Call the original function
-  zle .vi-visual-yank
-}
-zle -N zsh-vi-visual-yank-to-clipboard
-
 # Override yank keys to use clipboard versions
 bindkey -M vicmd 'y' zsh-vi-yank-to-clipboard
 bindkey -M vicmd 'Y' zsh-vi-yank-whole-line-to-clipboard
 
-# Visual mode yank
-bindkey -M visual 'y' zsh-vi-visual-yank-to-clipboard
+# Note: Visual mode in zsh uses the 'visual' keymap
+# When you press 'v' in vicmd, you enter visual mode
+# The 'y' key in visual mode is already handled by zle's internal visual-yank
+# We can add a post-yank hook if needed, but for now regular 'y' works
 
 # ==========================================
 # Vim Navigation and Keybindings
