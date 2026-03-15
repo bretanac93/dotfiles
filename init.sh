@@ -113,14 +113,23 @@ local setup_needed=()
 # Check if 1Password CLI is installed
 if ! command -v op &> /dev/null; then
   print "⚠️  1Password CLI not found"
-  print "   Install it: brew install --cask 1password-cli"
-  print "   Or download from: https://1password.com/downloads/command-line/"
+  print "   Run: brew install --cask 1password 1password-cli"
+  print ""
+  print "   Then:"
+  print "   1. Open 1Password app"
+  print "   2. Unlock with your password/biometrics"
+  print "   3. Run setup-ssh and setup-git-local"
   print ""
 else
-  # Check if signed in
+  # Check if signed in (requires 1Password app to be unlocked)
   if ! op account list &> /dev/null; then
-    print "⚠️  1Password CLI installed but not signed in"
-    print "   Run: op signin"
+    print "⚠️  1Password CLI installed but not authenticated"
+    print ""
+    print "   To use secrets from 1Password:"
+    print "   1. Open 1Password app"
+    print "   2. Unlock with your password/biometrics"
+    print "   3. Run: op signin"
+    print "   4. Then run: setup-ssh and setup-git-local"
     print ""
   else
     print "✓ 1Password CLI ready"
@@ -140,11 +149,34 @@ if [[ $op_ready -eq 1 ]]; then
   
   if [[ ${#setup_needed[@]} -gt 0 ]]; then
     print ""
-    print "🔐 Next steps - export secrets from 1Password:"
+    print "🔐 Secrets need to be exported from 1Password:"
     for script in $setup_needed; do
-      print "   $script"
+      print "   - $script"
     done
+    print ""
+    
+    # Ask if user wants to run them now
+    printf "Run these now? (requires 1Password to be unlocked) [Y/n]: "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]] || [[ -z "$response" ]]; then
+      for script in $setup_needed; do
+        print ""
+        print "▶️  Running $script..."
+        $script || print "   ⚠️  $script failed or was cancelled"
+      done
+    else
+      print ""
+      print "   You can run these later:"
+      for script in $setup_needed; do
+        print "     $script"
+      done
+    fi
   fi
+else
+  print ""
+  print "💡 After setting up 1Password, run:"
+  [[ ! -f "$HOME/.ssh/id_rsa" ]] && print "   setup-ssh"
+  [[ ! -f "$HOME/.config/git/config.local" ]] && print "   setup-git-local"
 fi
 
 print ""
