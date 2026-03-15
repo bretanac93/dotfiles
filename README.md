@@ -36,6 +36,7 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 - `setup-ssh` - Export SSH keys from 1Password
 - `dotfiles-doctor` - Health check - verify everything works
 - `dotfiles-uninstall` - Clean removal with backup restoration
+- `dotfiles-update` - Pull latest changes and re-run init
 
 **Zsh Functions** (auto-loaded)
 - `install-bin` - Install binaries to `~/.local/bin`
@@ -56,6 +57,11 @@ Check if everything is working:
 dotfiles-doctor
 ```
 
+Update to latest version:
+```bash
+dotfiles-update
+```
+
 Remove dotfiles (restores from backup):
 ```bash
 # Preview what would be removed
@@ -66,6 +72,38 @@ dotfiles-uninstall
 ```
 
 All existing configs are backed up to `~/.dotfiles-backups/YYYYMMDD-HHMMSS/` before being replaced.
+
+## Customization
+
+Add your own aliases, environment variables, and completions without touching the repo:
+
+```bash
+# Create local config directory structure
+mkdir -p ~/.config/zsh.local/alias
+mkdir -p ~/.config/zsh.local/completions
+```
+
+**Aliases** (`~/.config/zsh.local/alias/local.zsh`):
+```zsh
+# Example: add work-specific shortcuts
+alias work='cd ~/Work/myproject'
+alias aws-prod='aws --profile production'
+```
+See `zsh/examples/alias.example.zsh` for more examples.
+
+**Environment Variables** (`~/.config/zsh.local/env.zsh`):
+```zsh
+# Example: add API keys or custom paths
+export PATH="$HOME/custom-tools:$PATH"
+export OPENAI_API_KEY="sk-..."
+```
+See `zsh/examples/env.example.zsh` for more examples.
+
+**Completions** (auto-generated):
+```bash
+# When you install a new binary with 'install-bin', completions are
+# automatically generated and saved to ~/.config/zsh.local/completions/
+```
 
 ## Structure
 
@@ -79,6 +117,11 @@ zsh/
   completions/    # Custom completions
   lib/            # Core setup
   plugins/        # Plugin loading
+  examples/       # Example local configs
+
+~/.config/zsh.local/  (not in repo, auto-created)
+  alias/          # Your local aliases
+  completions/    # Generated completions
 
 git/
   gitconfig       # Shared git config
@@ -94,8 +137,9 @@ ssh/
 bin/            # User tools (linked to ~/.local/bin)
   wb              # Tmux workbench
   tmux-code-layout # Tmux layout implementation
-  dotfiles-doctor # Health check - verify everything works
-  dotfiles-uninstall # Clean removal with --dry-run support
+  dotfiles-doctor # Health check
+  dotfiles-uninstall # Clean removal
+  dotfiles-update # Update dotfiles
 
 scripts/        # Init dependencies and setup scripts
   setup-git-local # Git config with GPG signing
@@ -104,13 +148,9 @@ scripts/        # Init dependencies and setup scripts
   macos-defaults  # System tuning
   zsh-dotfiles    # Isolated zsh testing
 
-zsh/functions/  (auto-loaded by zsh)
-  install-bin    # Install binaries to ~/.local/bin
-  gen-completion # Generate zsh completions
-
-~/.config/zsh.local/
-  alias/          # Your local aliases (untracked)
-  completions/    # Generated completions (untracked)
+~/.config/zsh.local/  (not in repo, auto-created)
+  alias/          # Your local aliases
+  completions/    # Generated completions
 ```
 
 ## Customization

@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+#
+# Update dotfiles - pull latest changes and re-run init
+# Usage: dotfiles-update [--check]
+
+set -e
+
+DOTFILES_DIR="${0:A:h:h}"  # Go up one level from bin/ to find dotfiles root
+cd "$DOTFILES_DIR"
+
+echo "🔄 Updating dotfiles..."
+echo ""
+
+# Check for updates
+echo "📥 Fetching latest changes..."
+if ! git fetch origin master --quiet 2>/dev/null; then
+    echo "❌ Failed to fetch updates"
+    exit 1
+fi
+
+# Check if there are updates
+LOCAL_COMMIT=$(git rev-parse HEAD)
+REMOTE_COMMIT=$(git rev-parse origin/master)
+
+if [[ "$LOCAL_COMMIT" == "$REMOTE_COMMIT" ]]; then
+    echo "✅ Already up to date!"
+    echo ""
+    echo "Running init.sh to ensure everything is linked..."
+    echo ""
+    ./init.sh
+    exit 0
+fi
+
+echo "📦 Updates available:"
+git log --oneline HEAD..origin/master | sed 's/^/  /'
+echo ""
+
+# Pull updates
+echo "⬇️  Pulling updates..."
+if ! git pull origin master --quiet; then
+    echo "❌ Failed to pull updates"
+    echo ""
+    echo "You may have local changes. Resolve them first:"
+    echo "  cd $DOTFILES_DIR"
+    echo "  git status"
+    exit 1
+fi
+
+echo "✅ Updates pulled successfully"
+echo ""
+
+# Re-run init.sh
+echo "🔧 Running init.sh to apply changes..."
+echo ""
+./init.sh
