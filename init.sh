@@ -20,7 +20,7 @@ ln -sf "$PWD/nvim" "$HOME/.config/nvim"
 print "  ✓ nvim"
 
 # Link tmux configuration
-ln -sf "$PWD/tmux.conf" "$HOME/.tmux.conf"
+ln -sf "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf"
 print "  ✓ tmux"
 
 # Link ghostty configuration
@@ -29,16 +29,16 @@ ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
 print "  ✓ ghostty"
 
 # Link zsh configuration (map friendly repo names to standard dotfile names)
-ln -sf "$PWD/env.zsh" "$HOME/.zshenv"
-ln -sf "$PWD/profile.zsh" "$HOME/.zprofile"
-ln -sf "$PWD/rc.zsh" "$HOME/.zshrc"
+ln -sf "$PWD/zsh/env.zsh" "$HOME/.zshenv"
+ln -sf "$PWD/zsh/profile.zsh" "$HOME/.zprofile"
+ln -sf "$PWD/zsh/rc.zsh" "$HOME/.zshrc"
 rm -rf "$HOME/.config/zsh"
 ln -sf "$PWD/zsh" "$HOME/.config/zsh"
 print "  ✓ zsh"
 
 # Link git configuration
-if [[ -r "$PWD/gitconfig" ]]; then
-  ln -sf "$PWD/gitconfig" "$HOME/.gitconfig"
+if [[ -r "$PWD/git/gitconfig" ]]; then
+  ln -sf "$PWD/git/gitconfig" "$HOME/.gitconfig"
   print "  ✓ git"
   
   # Check if local gitconfig exists
@@ -53,8 +53,8 @@ fi
 # Link gpg configuration
 mkdir -p "$HOME/.gnupg"
 chmod 700 "$HOME/.gnupg"
-if [[ -r "$PWD/gpg.conf" ]]; then
-  ln -sf "$PWD/gpg.conf" "$HOME/.gnupg/gpg.conf"
+if [[ -r "$PWD/git/gpg.conf" ]]; then
+  ln -sf "$PWD/git/gpg.conf" "$HOME/.gnupg/gpg.conf"
   print "  ✓ gpg"
 fi
 

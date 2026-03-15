@@ -8,7 +8,7 @@ set -e
 
 LOCAL_CONFIG_DIR="$HOME/.config/git"
 LOCAL_CONFIG_FILE="$LOCAL_CONFIG_DIR/config.local"
-TEMPLATE_FILE="$PWD/gitconfig.local.tpl"
+TEMPLATE_FILE="$PWD/git/gitconfig.local.tpl"
 GPG_DIR="$HOME/.gnupg"
 
 echo "Setting up local git configuration with GPG signing..."
@@ -75,9 +75,9 @@ EOF
     echo ""
     
     # Ensure gpg.conf is in place for terminal signing
-    if [[ -f "$PWD/gpg.conf" ]] && [[ ! -L "$HOME/.gnupg/gpg.conf" ]]; then
+    if [[ -f "$PWD/git/gpg.conf" ]] && [[ ! -L "$HOME/.gnupg/gpg.conf" ]]; then
         echo "Linking gpg.conf for terminal-based signing..."
-        ln -sf "$PWD/gpg.conf" "$HOME/.gnupg/gpg.conf"
+        ln -sf "$PWD/git/gpg.conf" "$HOME/.gnupg/gpg.conf"
     fi
     else
         echo "❌ Failed to export GPG keys from 1Password"

@@ -44,14 +44,26 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 
 ```
 zsh/
+  rc.zsh          # Main zsh config (~/.zshrc)
+  env.zsh         # Environment vars (~/.zshenv)
+  profile.zsh     # Login shell config (~/.zprofile)
   alias/          # Tracked aliases
-  functions/      # Shell functions (install-bin, gen-completion)
+  functions/      # Shell functions
   completions/    # Custom completions
-  lib/            # Core setup (prompt, completion, keybindings)
+  lib/            # Core setup
   plugins/        # Plugin loading
+
+git/
+  gitconfig       # Shared git config
+  gitconfig.local.tpl  # Template for local config
+  gpg.conf        # GPG terminal signing config
+
+tmux/
+  tmux.conf       # Tmux configuration
 
 scripts/
   wb              # Tmux workbench
+  setup-git-local # Git config with GPG signing
   check-deps      # Dependency checker
   macos-defaults  # System tuning
 
@@ -80,12 +92,12 @@ Personal git info (name, email, signing key) is stored separately from the share
 setup-git-local
 ```
 
-This uses `op inject` to populate `~/.config/git/config.local` from `gitconfig.local.tpl`, which contains:
+This uses `op inject` to populate `~/.config/git/config.local` from `git/gitconfig.local.tpl`, which contains:
 - Your name and email (from 1Password "git-signing-config" item)
 - GPG key ID for signing (from 1Password "git-signing-config" item)
 - GPG program path (portable across macOS/Linux)
 
-The setup script also exports your GPG keys from 1Password and imports them into your local keyring. A `gpg.conf` is included to enable terminal-based signing (no GUI prompts).
+The setup script also exports your GPG keys from 1Password and imports them into your local keyring. A `git/gpg.conf` is included to enable terminal-based signing (no GUI prompts).
 
 The shared `gitconfig` includes this file automatically.
 
