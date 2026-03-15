@@ -68,10 +68,10 @@ ln -sf "$PWD/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh"
 print "  ✓ scripts"
 
 # Check if SSH keys are set up
-if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
+if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
   print ""
   print "⚠️  SSH keys not found. Run this to set them up:"
-  print "  $PWD/scripts/setup-ssh"
+  print "  setup-ssh"
   print ""
 fi
 
@@ -101,6 +101,52 @@ fi
 
 print ""
 print "✓ Setup complete!"
+print ""
+
+# Check 1Password status and show next steps
+print "Checking 1Password integration..."
+print ""
+
+local op_ready=0
+local setup_needed=()
+
+# Check if 1Password CLI is installed
+if ! command -v op &> /dev/null; then
+  print "⚠️  1Password CLI not found"
+  print "   Install it: brew install --cask 1password-cli"
+  print "   Or download from: https://1password.com/downloads/command-line/"
+  print ""
+else
+  # Check if signed in
+  if ! op account list &> /dev/null; then
+    print "⚠️  1Password CLI installed but not signed in"
+    print "   Run: op signin"
+    print ""
+  else
+    print "✓ 1Password CLI ready"
+    op_ready=1
+  fi
+fi
+
+# Check if secrets need to be set up
+if [[ $op_ready -eq 1 ]]; then
+  if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
+    setup_needed+=("setup-ssh")
+  fi
+  
+  if [[ ! -f "$HOME/.config/git/config.local" ]]; then
+    setup_needed+=("setup-git-local")
+  fi
+  
+  if [[ ${#setup_needed[@]} -gt 0 ]]; then
+    print ""
+    print "🔐 Next steps - export secrets from 1Password:"
+    for script in $setup_needed; do
+      print "   $script"
+    done
+  fi
+fi
+
 print ""
 print "Reloading shell with new configuration..."
 print ""
