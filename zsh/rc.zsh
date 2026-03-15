@@ -22,9 +22,6 @@ if [[ -d "$ZSH_CONFIG_DIR/functions" ]]; then
     fi
   done
 fi
-else
-  export EDITOR="nvim"
-fi
 
 for lib_file in \
   "$ZSH_CONFIG_DIR/lib/options.zsh" \
