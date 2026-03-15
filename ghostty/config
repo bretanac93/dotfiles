@@ -9,20 +9,19 @@ background = #1e2127
 foreground = #abb2bf
 
 # Cursor style
-# Zsh vim mode will control this dynamically:
-# - Block cursor in normal mode
-# - Beam cursor in insert mode
+# Zsh vim mode controls this dynamically:
+# - Block cursor, blinking in insert mode (via \e[1 q)
+# - Block cursor, solid in normal mode (via \e[2 q)
 cursor-style = block
 cursor-color = #56b6c2
 cursor-text = #1e2127
 cursor-opacity = 0.8
 
-# Allow shell integration to change cursor
-cursor-style-blink = false
+# Enable cursor blinking
+cursor-style-blink = true
 
-# Shell integration features
-shell-integration = zsh
-shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,path
+# Allow shell integration to change cursor
+cursor-invert-fg-bg = false
 
 # Key remappings
 macos-option-as-alt = true

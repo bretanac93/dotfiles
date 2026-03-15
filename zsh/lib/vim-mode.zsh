@@ -14,18 +14,18 @@ export KEYTIMEOUT=10
 # Better cursor indicators for different modes
 function zle-keymap-select {
   if [[ ${KEYMAP} == vicmd ]]; then
-    # Block cursor in normal mode
+    # Normal mode: Block cursor, NOT blinking (steady)
     echo -ne '\e[2 q'
   else
-    # Beam cursor in insert mode
-    echo -ne '\e[5 q'
+    # Insert mode: Block cursor, BLINKING
+    echo -ne '\e[1 q'
   fi
 }
 zle -N zle-keymap-select
 
-# Initialize with beam cursor
+# Initialize with blinking block cursor (insert mode)
 function zle-line-init {
-  echo -ne '\e[5 q'
+  echo -ne '\e[1 q'
 }
 zle -N zle-line-init
 
