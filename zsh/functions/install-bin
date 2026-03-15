@@ -1,0 +1,116 @@
+#!/bin/zsh
+# Function: install-bin
+# Usage: install-bin [-o output_name] <binary_file>
+# Description: Install a binary to ~/.local/bin
+
+emulate -L zsh
+setopt extended_glob
+
+local output_name=""
+local binary_file=""
+local target_dir="${HOME}/.local/bin"
+
+usage() {
+  local fd="${1:-2}"
+  print -u"$fd" "Usage: install-bin [-o output_name] <binary_file>"
+  print -u"$fd" ""
+  print -u"$fd" "Install a binary to ~/.local/bin"
+  print -u"$fd" ""
+  print -u"$fd" "Options:"
+  print -u"$fd" "  -o, --output    Name for the installed binary (default: original filename)"
+  print -u"$fd" "  -h, --help      Show this help"
+  print -u"$fd" ""
+  print -u"$fd" "Examples:"
+  print -u"$fd" "  install-bin go1.26"
+  print -u"$fd" "  install-bin -o go go1.26"
+  print -u"$fd" "  install-bin --output kubectl kubectl-v1.28"
+}
+
+while (( $# > 0 )); do
+  case "$1" in
+    -o|--output)
+      if [[ -z "${2:-}" ]]; then
+        print -u2 "Error: -o requires an argument"
+        usage
+        return 1
+      fi
+      output_name="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage 1
+      return 0
+      ;;
+    -*)
+      print -u2 "Unknown option: $1"
+      usage
+      return 1
+      ;;
+    *)
+      if [[ -n "$binary_file" ]]; then
+        print -u2 "Error: Multiple binary files specified"
+        usage
+        return 1
+      fi
+      binary_file="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$binary_file" ]]; then
+  print -u2 "Error: No binary file specified"
+  usage
+  return 1
+fi
+
+if [[ ! -f "$binary_file" ]]; then
+  print -u2 "Error: File not found: $binary_file"
+  return 1
+fi
+
+# Resolve full path
+local binary_dir="$(dirname "$binary_file")"
+local binary_name="$(basename "$binary_file")"
+if [[ ! -d "$binary_dir" ]]; then
+  print -u2 "Error: Directory not found: $binary_dir"
+  return 1
+fi
+binary_file="$(cd "$binary_dir" && pwd)/$binary_name"
+
+# Use original filename if no output name specified
+output_name="${output_name:-$binary_name}"
+
+# Ensure target directory exists
+if [[ ! -d "$target_dir" ]]; then
+  print "Creating directory: $target_dir"
+  mkdir -p "$target_dir" || {
+    print -u2 "Error: Failed to create directory: $target_dir"
+    return 1
+  }
+fi
+
+local target_path="$target_dir/$output_name"
+
+# Check if target already exists
+if [[ -e "$target_path" ]]; then
+  print "Warning: $target_path already exists. Overwriting..."
+fi
+
+# Move the binary
+if ! mv -f "$binary_file" "$target_path"; then
+  print -u2 "Error: Failed to move binary to $target_path"
+  return 1
+fi
+
+# Make executable
+if ! chmod +x "$target_path"; then
+  print -u2 "Error: Failed to make $target_path executable"
+  return 1
+fi
+
+print "Installed: $target_path"
+local ls_output
+ls_output=$(ls -la "$target_path" 2>/dev/null) && print "  -> $ls_output"
+
+return 0

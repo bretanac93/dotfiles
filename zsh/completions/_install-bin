@@ -1,0 +1,7 @@
+#compdef install-bin
+
+_arguments -s -S \
+  '(-o --output)'{-o,--output}'[output name for the installed binary]:name:' \
+  '(-h --help)'{-h,--help}'[show help]' \
+  '1:binary file:_files' \
+  '*:: :_guard "\"\"" "no more arguments expected"'

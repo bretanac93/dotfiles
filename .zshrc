@@ -2,6 +2,16 @@
 
 typeset -gU path PATH fpath FPATH
 
+# Load custom functions
+if [[ -d "$ZSH_CONFIG_DIR/functions" ]]; then
+  fpath=("$ZSH_CONFIG_DIR/functions" $fpath)
+  for func_file in "$ZSH_CONFIG_DIR"/functions/*(N); do
+    if [[ -f "$func_file" && -x "$func_file" ]]; then
+      autoload -Uz "${func_file:t}"
+    fi
+  done
+fi
+
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 export ZSH_THEME="${ZSH_THEME:-mine}"
 export HISTFILE="${ZSH_HISTORY_FILE:-$HISTFILE}"
