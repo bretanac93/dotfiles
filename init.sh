@@ -71,4 +71,4 @@ fi
 print ""
 print "✓ Setup complete!"
 print ""
-print "Open a new terminal to start using your new configuration."
+print "Run 'zsh -l' or open a new terminal to start using your configuration."
