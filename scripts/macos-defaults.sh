@@ -1,16 +1,89 @@
-#!/bin/zsh 
+#!/bin/zsh
+# Apply macOS system defaults for better developer experience
+# Usage: ./macos-defaults.sh [--check]
 
-defaults write com.apple.dock tilesize -int 30 # shrink dock size
-defaults write com.apple.dock size-immutable -bool yes # lock current size
-defaults write com.apple.dock magnification -bool false # disable magnification
-defaults write com.apple.dock orientation left # move dock to left
-defaults write com.apple.dock autohide -bool true # autohide dock
-defaults write -g AppleShowScrollBars -string WhenScrolling # show scrollbars only when scrolling
-defaults write com.apple.dock workspaces-edge-delay -float 0 # remove delay for switching spaces
-defaults write com.apple.dock autohide-time-modifier -float 0.5 # speed up autohide animation
-defaults write com.mitchellh.ghostty InitialKeyRepeat -int 8 # shorten repeat delay in Ghostty
-defaults write com.mitchellh.ghostty KeyRepeat -int 0 # maximize repeat rate in Ghostty
-defaults write com.mitchellh.ghostty ApplePressAndHoldEnabled -bool false # allow key repeat in Ghostty
+set -euo pipefail
 
-killall cfprefsd
-killall Dock
+script_name="${0:t}"
+
+usage() {
+  print "Usage: $script_name [--check]"
+  print ""
+  print "Apply macOS system defaults for dock, scrolling, and Ghostty keyboard."
+  print ""
+  print "Options:"
+  print "  --check    Show current values without changing them"
+  print ""
+  print "This script will:"
+  print "  - Configure dock (left side, small, auto-hide)"
+  print "  - Set scrollbar behavior"
+  print "  - Optimize Ghostty key repeat rate"
+  print ""
+  print "Note: You must log out and back in for some changes to take effect."
+}
+
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ "$1" == "--check" ]]; then
+  print "Current macOS defaults:"
+  print ""
+  print "Dock settings:"
+  defaults read com.apple.dock tilesize 2>/dev/null || print "  tilesize: not set"
+  defaults read com.apple.dock size-immutable 2>/dev/null || print "  size-immutable: not set"
+  defaults read com.apple.dock magnification 2>/dev/null || print "  magnification: not set"
+  defaults read com.apple.dock orientation 2>/dev/null || print "  orientation: not set"
+  defaults read com.apple.dock autohide 2>/dev/null || print "  autohide: not set"
+  defaults read com.apple.dock autohide-time-modifier 2>/dev/null || print "  autohide-time-modifier: not set"
+  defaults read com.apple.dock workspaces-edge-delay 2>/dev/null || print "  workspaces-edge-delay: not set"
+  print ""
+  print "Global settings:"
+  defaults read -g AppleShowScrollBars 2>/dev/null || print "  AppleShowScrollBars: not set"
+  print ""
+  print "Ghostty settings:"
+  defaults read com.mitchellh.ghostty InitialKeyRepeat 2>/dev/null || print "  InitialKeyRepeat: not set"
+  defaults read com.mitchellh.ghostty KeyRepeat 2>/dev/null || print "  KeyRepeat: not set"
+  defaults read com.mitchellh.ghostty ApplePressAndHoldEnabled 2>/dev/null || print "  ApplePressAndHoldEnabled: not set"
+  exit 0
+fi
+
+# Check if running on macOS
+if [[ "$(uname)" != "Darwin" ]]; then
+  print "Error: This script only works on macOS."
+  exit 1
+fi
+
+print "Applying macOS defaults..."
+print ""
+
+# Dock settings
+print "Configuring Dock..."
+defaults write com.apple.dock tilesize -int 30
+defaults write com.apple.dock size-immutable -bool yes
+defaults write com.apple.dock magnification -bool false
+defaults write com.apple.dock orientation left
+defaults write com.apple.dock autohide -bool true
+defaults write com.apple.dock workspaces-edge-delay -float 0
+defaults write com.apple.dock autohide-time-modifier -float 0.5
+
+# Global settings  
+print "Configuring system defaults..."
+defaults write -g AppleShowScrollBars -string WhenScrolling
+
+# Ghostty settings
+print "Configuring Ghostty..."
+defaults write com.mitchellh.ghostty InitialKeyRepeat -int 8
+defaults write com.mitchellh.ghostty KeyRepeat -int 0
+defaults write com.mitchellh.ghostty ApplePressAndHoldEnabled -bool false
+
+print ""
+print "Restarting affected services..."
+killall cfprefsd 2>/dev/null || true
+killall Dock 2>/dev/null || true
+
+print ""
+print "✅ macOS defaults applied successfully!"
+print ""
+print "Note: Some changes require logging out and back in to take full effect."

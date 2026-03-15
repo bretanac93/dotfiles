@@ -50,3 +50,13 @@ fi
 
 print ""
 print "Setup complete! Open a new terminal to use the new configuration."
+
+# macOS-specific reminder
+if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults.sh" ]]; then
+  print ""
+  print "💡 macOS detected. To apply system defaults (dock, keyboard speed, etc.):"
+  print "   $PWD/scripts/macos-defaults.sh"
+  print ""
+  print "   Preview changes first with:"
+  print "   $PWD/scripts/macos-defaults.sh --check"
+fi
