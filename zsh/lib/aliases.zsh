@@ -10,9 +10,11 @@ load_zsh_alias_dir() {
 load_zsh_aliases() {
   local aliases_dir local_aliases_dir
 
+  # Load tracked aliases from repo
   aliases_dir="$ZSH_CONFIG_DIR/aliases"
-  load_zsh_alias_dir "$aliases_dir/personal"
+  load_zsh_alias_dir "$aliases_dir"
 
+  # Load local aliases (work-specific, machine-specific, etc)
   if [[ "${ZSH_LOAD_LOCAL_CONFIG:-1}" != "0" ]]; then
     local_aliases_dir="${ZSH_LOCAL_CONFIG_DIR:-$HOME/.config/zsh.local}/aliases"
     load_zsh_alias_dir "$local_aliases_dir"
