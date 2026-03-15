@@ -4,7 +4,9 @@ autoload -Uz up-line-or-beginning-search
 autoload -Uz down-line-or-beginning-search
 zmodload zsh/terminfo 2>/dev/null || true
 
-bindkey -e
+# Note: bindkey is handled by vim-mode.zsh (vim mode)
+# Do not set bindkey here as it would override vim-mode
+
 zle -N edit-command-line
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
