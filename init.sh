@@ -23,6 +23,12 @@ link_file() {
 print "Setting up dotfiles..."
 print ""
 
+# Create backup directory with timestamp
+local BACKUP_DIR="$HOME/.dotfiles-backups/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+print "📁 Backup directory: $BACKUP_DIR"
+print ""
+
 # Create necessary directories
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
@@ -32,8 +38,7 @@ mkdir -p "$HOME/.config/zsh.local/completions"
 
 # Link neovim configuration
 if [[ -d "$HOME/.config/nvim" ]] && [[ ! -L "$HOME/.config/nvim" ]]; then
-  rm -rf "$HOME/.config/nvim.backup"
-  mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup"
+  mv "$HOME/.config/nvim" "$BACKUP_DIR/nvim"
   print "  📦 Backed up existing nvim config"
 fi
 rm -rf "$HOME/.config/nvim"
@@ -44,8 +49,7 @@ link_file "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
 
 # Link ghostty configuration
 if [[ -d "$HOME/.config/ghostty" ]] && [[ ! -L "$HOME/.config/ghostty" ]]; then
-  rm -rf "$HOME/.config/ghostty.backup"
-  mv "$HOME/.config/ghostty" "$HOME/.config/ghostty.backup"
+  mv "$HOME/.config/ghostty" "$BACKUP_DIR/ghostty"
   print "  📦 Backed up existing ghostty config"
 fi
 rm -rf "$HOME/.config/ghostty"
@@ -57,8 +61,7 @@ link_file "$PWD/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
 link_file "$PWD/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
 
 if [[ -d "$HOME/.config/zsh" ]] && [[ ! -L "$HOME/.config/zsh" ]]; then
-  rm -rf "$HOME/.config/zsh.backup"
-  mv "$HOME/.config/zsh" "$HOME/.config/zsh.backup"
+  mv "$HOME/.config/zsh" "$BACKUP_DIR/zsh"
   print "  📦 Backed up existing zsh config"
 fi
 rm -rf "$HOME/.config/zsh"
