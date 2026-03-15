@@ -28,10 +28,10 @@ rm -rf "$HOME/.config/ghostty"
 ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
 print "  ✓ ghostty"
 
-# Link zsh configuration
-ln -sf "$PWD/.zshenv" "$HOME/.zshenv"
-ln -sf "$PWD/.zprofile" "$HOME/.zprofile"
-ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
+# Link zsh configuration (map friendly repo names to standard dotfile names)
+ln -sf "$PWD/env.zsh" "$HOME/.zshenv"
+ln -sf "$PWD/profile.zsh" "$HOME/.zprofile"
+ln -sf "$PWD/rc.zsh" "$HOME/.zshrc"
 rm -rf "$HOME/.config/zsh"
 ln -sf "$PWD/zsh" "$HOME/.config/zsh"
 print "  ✓ zsh"
