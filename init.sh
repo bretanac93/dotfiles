@@ -51,45 +51,18 @@ fi
 print ""
 print "Setup complete! Open a new terminal to use the new configuration."
 
-# macOS-specific: optionally apply system defaults
+# macOS-specific: check system defaults status
 if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults.sh" ]]; then
   print ""
-  print "💡 macOS detected."
-  print ""
   
-  # Check current settings first
-  print "Current macOS defaults status:"
+  # Check current settings
   local dock_size=$(defaults read com.apple.dock tilesize 2>/dev/null || echo "unset")
   local ghostty_keyrepeat=$(defaults read com.mitchellh.ghostty KeyRepeat 2>/dev/null || echo "unset")
   
   if [[ "$dock_size" == "30" ]] && [[ "$ghostty_keyrepeat" == "0" ]]; then
-    print "  ✅ macOS defaults already applied"
+    print "✓ macOS defaults applied"
   else
-    print "  ⚠️  macOS defaults not fully applied"
-    print ""
-    print "Apply recommended macOS settings (dock, keyboard speed, etc.)?"
-    print "  [Y]es - Apply now"
-    print "  [N]o - Skip"
-    print "  [C]heck - Show what would change"
-    print ""
-    printf "Choice [y/n/c]: "
-    read -r choice
-    
-    case "${choice:l}" in
-      y|yes)
-        print ""
-        zsh "$PWD/scripts/macos-defaults.sh"
-        ;;
-      c|check)
-        print ""
-        zsh "$PWD/scripts/macos-defaults.sh" --check
-        print ""
-        print "Run '$PWD/scripts/macos-defaults.sh' to apply these settings."
-        ;;
-      *)
-        print "Skipped. Run later with:"
-        print "  $PWD/scripts/macos-defaults.sh"
-        ;;
-    esac
+    print "⚠️  macOS defaults not applied"
+    print "   Run: $PWD/scripts/macos-defaults.sh"
   fi
 fi
