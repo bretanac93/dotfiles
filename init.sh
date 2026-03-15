@@ -91,8 +91,6 @@ link_file "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps" "check-deps"
 link_file "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"
 link_file "$PWD/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local" "setup-git-local"
 link_file "$PWD/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh" "setup-ssh"
-link_file "$PWD/scripts/install-bin" "$HOME/.local/bin/install-bin" "install-bin"
-link_file "$PWD/scripts/gen-completion" "$HOME/.local/bin/gen-completion" "gen-completion"
 
 # Check if SSH keys are set up
 if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then

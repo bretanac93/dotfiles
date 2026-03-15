@@ -68,8 +68,6 @@ scripts/
   wb              # Tmux workbench
   setup-git-local # Git config with GPG signing
   setup-ssh       # SSH keys from 1Password
-  install-bin     # Install binaries to ~/.local/bin
-  gen-completion  # Generate zsh completions
   check-deps      # Dependency checker
   macos-defaults  # System tuning
 
