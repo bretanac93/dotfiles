@@ -40,6 +40,7 @@ echo "scripts configured"
 print ""
 print "Checking dependencies..."
 local missing_deps=()
+local missing_nvim_deps=()
 
 for dep in fzf fd zsh-fast-syntax-highlighting tmux nvim git rg; do
   if ! command -v "$dep" &>/dev/null; then
@@ -47,9 +48,14 @@ for dep in fzf fd zsh-fast-syntax-highlighting tmux nvim git rg; do
   fi
 done
 
+# Check for nvim-specific dependencies
+if ! command -v deno &>/dev/null; then
+  missing_nvim_deps+=("deno")
+fi
+
 if (( ${#missing_deps} > 0 )); then
   print ""
-  print "⚠️  Missing dependencies: ${missing_deps[*]}"
+  print "⚠️  Missing shell dependencies: ${missing_deps[*]}"
   print "Install them with:"
   print "  brew bundle install --file=$PWD/Brewfile"
   print ""
@@ -66,5 +72,20 @@ if (( ${#missing_deps} > 0 )); then
     esac
   done
 else
-  print "✅ All essential dependencies installed"
+  print "✅ All shell dependencies installed"
+fi
+
+if (( ${#missing_nvim_deps} > 0 )); then
+  print ""
+  print "⚠️  Missing nvim plugin dependencies: ${missing_nvim_deps[*]}"
+  print "Install them with:"
+  for dep in $missing_nvim_deps; do
+    case "$dep" in
+      deno) print "  brew install deno  # required for markdown-preview.nvim" ;;
+    esac
+  done
+  print ""
+  print "Note: LSP servers are installed automatically via Mason inside nvim"
+else
+  print "✅ All nvim plugin dependencies installed"
 fi
