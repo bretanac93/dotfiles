@@ -1,7 +1,5 @@
 typeset -gU fpath FPATH
 
-local compdump_file
-
 # Add repo completions (tracked functions)
 if [[ -d "$ZSH_CONFIG_DIR/completions" ]]; then
   fpath=("$ZSH_CONFIG_DIR/completions" $fpath)
@@ -19,6 +17,4 @@ if [[ -n "${HOMEBREW_PREFIX:-}" && -d "$HOMEBREW_PREFIX/share/zsh/site-functions
   fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
 fi
 
-autoload -Uz compinit
-compdump_file="${ZSH_COMPDUMP:-${ZDOTDIR:-$HOME}/.zcompdump}.v2"
-compinit -C -i -d "$compdump_file"
+# Note: compinit will be called at the end of rc.zsh after all fpath setup is complete
