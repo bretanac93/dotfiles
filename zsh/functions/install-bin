@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Function: install-bin
-# Usage: install-bin [-o output_name] <binary_file>
-# Description: Install a binary to ~/.local/bin
+# Usage: install-bin [-o output_name] [--no-completion] <binary_file>
+# Description: Install a binary to ~/.local/bin and optionally generate completions
 
 emulate -L zsh
 setopt extended_glob
@@ -9,20 +9,25 @@ setopt extended_glob
 local output_name=""
 local binary_file=""
 local target_dir="${HOME}/.local/bin"
+local generate_completion=1
 
 usage() {
   local fd="${1:-2}"
-  print -u"$fd" "Usage: install-bin [-o output_name] <binary_file>"
+  print -u"$fd" "Usage: install-bin [-o output_name] [--no-completion] <binary_file>"
   print -u"$fd" ""
   print -u"$fd" "Install a binary to ~/.local/bin"
   print -u"$fd" ""
+  print -u"$fd" "Automatically generates zsh completions if the binary supports 'completion zsh'"
+  print -u"$fd" ""
   print -u"$fd" "Options:"
-  print -u"$fd" "  -o, --output    Name for the installed binary (default: original filename)"
-  print -u"$fd" "  -h, --help      Show this help"
+  print -u"$fd" "  -o, --output       Name for the installed binary (default: original filename)"
+  print -u"$fd" "  -n, --no-completion  Skip automatic completion generation"
+  print -u"$fd" "  -h, --help         Show this help"
   print -u"$fd" ""
   print -u"$fd" "Examples:"
   print -u"$fd" "  install-bin go1.26"
   print -u"$fd" "  install-bin -o go go1.26"
+  print -u"$fd" "  install-bin -n mytool"
   print -u"$fd" "  install-bin --output kubectl kubectl-v1.28"
 }
 
@@ -36,6 +41,10 @@ while (( $# > 0 )); do
       fi
       output_name="$2"
       shift 2
+      ;;
+    -n|--no-completion)
+      generate_completion=0
+      shift
       ;;
     -h|--help)
       usage 1
@@ -112,5 +121,26 @@ fi
 print "Installed: $target_path"
 local ls_output
 ls_output=$(ls -la "$target_path" 2>/dev/null) && print "  -> $ls_output"
+
+# Generate completion if supported and not disabled
+if (( generate_completion )); then
+  if "$target_path" completion zsh &>/dev/null; then
+    print ""
+    print "Generating zsh completions..."
+    if (( $+functions[gen-completion] )); then
+      gen-completion "$target_path"
+    else
+      # Fallback if gen-completion function not loaded yet
+      local completion_output
+      local completions_dir="${ZSH_LOCAL_CONFIG_DIR:-$HOME/.config/zsh.local}/completions"
+      if completion_output=$("$target_path" completion zsh 2>/dev/null) && [[ -n "$completion_output" ]]; then
+        [[ -d "$completions_dir" ]] || mkdir -p "$completions_dir"
+        print -r -- "$completion_output" > "$completions_dir/_$output_name"
+        print "Generated: $completions_dir/_$output_name"
+        print "Run 'compinit' to activate immediately"
+      fi
+    fi
+  fi
+fi
 
 return 0
