@@ -89,6 +89,8 @@ fi
 
 # Link helper scripts
 link_file "$PWD/bin/wb" "$HOME/.local/bin/wb" "wb"
+link_file "$PWD/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
+link_file "$PWD/bin/dotfiles-uninstall" "$HOME/.local/bin/dotfiles-uninstall" "dotfiles-uninstall"
 link_file "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles" "zsh-dotfiles"
 link_file "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps" "check-deps"
 link_file "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"

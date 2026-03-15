@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+#
+# Uninstall dotfiles - remove all symlinks and restore from backup
+# Usage: dotfiles-uninstall [--dry-run]
+
+set -e
+
+DRY_RUN=0
+BACKUP_DIR=""
+
+if [[ "$1" == "--dry-run" ]]; then
+    DRY_RUN=1
+    echo "🔍 DRY RUN - No changes will be made"
+    echo ""
+fi
+
+echo "⚠️  This will remove all dotfiles symlinks and restore from backup"
+echo ""
+
+# Find the most recent backup
+if [[ -d "$HOME/.dotfiles-backups" ]]; then
+    BACKUP_DIR=$(ls -td "$HOME/.dotfiles-backups"/* 2>/dev/null | head -1)
+fi
+
+if [[ -n "$BACKUP_DIR" ]]; then
+    echo "📁 Latest backup found: $BACKUP_DIR"
+else
+    echo "⚠️  No backups found in ~/.dotfiles-backups/"
+fi
+
+echo ""
+read -p "Continue with uninstall? [y/N]: " confirm
+
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Cancelled."
+    exit 0
+fi
+
+echo ""
+echo "Removing symlinks..."
+echo ""
+
+remove_symlink() {
+    local target="$1"
+    local name="$2"
+    
+    if [[ -L "$target" ]]; then
+        if [[ $DRY_RUN -eq 0 ]]; then
+            rm -f "$target"
+            echo "  🗑️  Removed: $name"
+        else
+            echo "  [DRY RUN] Would remove: $name"
+        fi
+    elif [[ -e "$target" ]]; then
+        echo "  ⚠️  Skipped (not a symlink): $name"
+    fi
+}
+
+# Remove all symlinks
+remove_symlink "$HOME/.zshenv" "zshenv"
+remove_symlink "$HOME/.zprofile" "zprofile"
+remove_symlink "$HOME/.zshrc" "zshrc"
+remove_symlink "$HOME/.config/zsh" "zsh config"
+remove_symlink "$HOME/.config/nvim" "nvim"
+remove_symlink "$HOME/.tmux.conf" "tmux"
+remove_symlink "$HOME/.config/ghostty" "ghostty"
+remove_symlink "$HOME/.gitconfig" "gitconfig"
+remove_symlink "$HOME/.gnupg/gpg.conf" "gpg"
+
+echo ""
+
+# Restore from backup if available
+if [[ -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
+    echo "Restoring from backup..."
+    echo ""
+    
+    restore_backup() {
+        local backup_path="$BACKUP_DIR/$1"
+        local target_path="$2"
+        local name="$3"
+        
+        if [[ -e "$backup_path" ]]; then
+            if [[ $DRY_RUN -eq 0 ]]; then
+                # Remove any existing file/symlink first
+                rm -rf "$target_path"
+                mv "$backup_path" "$target_path"
+                echo "  📦 Restored: $name"
+            else
+                echo "  [DRY RUN] Would restore: $name"
+            fi
+        fi
+    }
+    
+    restore_backup "nvim" "$HOME/.config/nvim" "nvim"
+    restore_backup "ghostty" "$HOME/.config/ghostty" "ghostty"
+    restore_backup "zsh" "$HOME/.config/zsh" "zsh"
+    
+    if [[ $DRY_RUN -eq 0 ]]; then
+        echo ""
+        echo "🗑️  Removing backup directory..."
+        rm -rf "$BACKUP_DIR"
+    fi
+else
+    echo "⚠️  No backups to restore"
+fi
+
+echo ""
+
+# Ask about removing ~/.local/bin tools
+read -p "Remove dotfiles tools from ~/.local/bin? [y/N]: " remove_tools
+
+if [[ "$remove_tools" =~ ^[Yy]$ ]]; then
+    echo ""
+    echo "Removing tools..."
+    for tool in wb zsh-dotfiles check-deps macos-defaults setup-git-local setup-ssh dotfiles-doctor; do
+        if [[ -L "$HOME/.local/bin/$tool" ]]; then
+            if [[ $DRY_RUN -eq 0 ]]; then
+                rm -f "$HOME/.local/bin/$tool"
+                echo "  🗑️  Removed: $tool"
+            else
+                echo "  [DRY RUN] Would remove: $tool"
+            fi
+        fi
+    done
+fi
+
+echo ""
+
+if [[ $DRY_RUN -eq 0 ]]; then
+    echo "✅ Uninstall complete!"
+    echo ""
+    echo "Note: SSH keys in ~/.ssh/ and GPG keys were not removed"
+    echo "To completely remove everything, also delete:"
+    echo "  - ~/.ssh/id_rsa and id_rsa.pub"
+    echo "  - ~/.gnupg/ directory"
+    echo "  - ~/.dotfiles-backups/ directory"
+else
+    echo "🔍 Dry run complete - no changes made"
+fi
+
+echo ""
+echo "To restore dotfiles later, run:"
+echo "  cd ~/Code/dotfiles && ./init.sh"
