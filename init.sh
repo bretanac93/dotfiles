@@ -6,6 +6,7 @@ mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
 mkdir -p "$HOME/.config/zsh.local"
 mkdir -p "$HOME/.config/zsh.local/aliases"
+mkdir -p "$HOME/.config/zsh.local/completions"
 
 # Link neovim configuration to `$HOME/.config`
 rm -rf "$HOME/.config/nvim"

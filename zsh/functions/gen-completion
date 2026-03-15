@@ -7,7 +7,19 @@ emulate -L zsh
 setopt extended_glob
 
 local binary="$1"
-local completions_dir="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}/completions"
+
+# Use local completions dir for external binaries (outside the repo)
+# This keeps generated completions separate from tracked repo completions
+local repo_completions="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}/completions"
+local local_completions="${ZSH_LOCAL_CONFIG_DIR:-$HOME/.config/zsh.local}/completions"
+
+# Default to local dir, but allow override via environment
+local completions_dir="${ZSH_COMPLETIONS_DIR:-$local_completions}"
+
+# If local dir doesn't exist and repo one does, use repo
+if [[ ! -d "$completions_dir" && -d "$repo_completions" ]]; then
+  completions_dir="$repo_completions"
+fi
 
 usage() {
   local fd="${1:-2}"
