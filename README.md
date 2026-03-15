@@ -124,6 +124,8 @@ This exports your "Legacy SSH key" from 1Password to:
 
 The SSH config is automatically linked and configured for GitHub authentication.
 
+**Note:** The 1Password SSH agent is automatically disabled in this setup. SSH will use your local `~/.ssh/id_ed25519` key directly without agent prompts. This is configured in both `ssh/config` (IdentityAgent none) and `zsh/env.zsh` (unsets 1Password's SSH_AUTH_SOCK).
+
 **Note:** You'll need to add the public key to your GitHub account if not already done:
 ```bash
 cat ~/.ssh/id_ed25519.pub

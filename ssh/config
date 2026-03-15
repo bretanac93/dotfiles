@@ -1,6 +1,12 @@
 # SSH configuration
 # This file is managed by dotfiles - edit ssh/config instead
 # Keys are exported from 1Password by setup-ssh script
+# NOTE: 1Password SSH agent is disabled - using local keys only
+
+# Disable any SSH agent (including 1Password agent)
+Host *
+  IdentityAgent none
+  IdentitiesOnly yes
 
 # GitHub authentication (using Legacy SSH Key from 1Password)
 Host github.com
@@ -8,10 +14,3 @@ Host github.com
   User git
   IdentityFile ~/.ssh/id_ed25519
   IdentitiesOnly yes
-  AddKeysToAgent yes
-  UseKeychain yes
-
-# Default settings
-Host *
-  AddKeysToAgent yes
-  UseKeychain yes
