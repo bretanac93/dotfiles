@@ -34,6 +34,8 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 - `check-deps` - Verify Brewfile dependencies
 - `setup-git-local` - Configure git with GPG signing from 1Password
 - `setup-ssh` - Export SSH keys from 1Password
+- `dotfiles-doctor` - Health check - verify everything works
+- `dotfiles-uninstall` - Clean removal with backup restoration
 
 **Zsh Functions** (auto-loaded)
 - `install-bin` - Install binaries to `~/.local/bin`
@@ -46,6 +48,24 @@ That's it. Your shell, tmux, nvim, and ghostty are configured.
 - nvim with LSP
 - Git with GPG signing
 - SSH with local keys (no 1Password agent)
+
+## Maintenance
+
+Check if everything is working:
+```bash
+dotfiles-doctor
+```
+
+Remove dotfiles (restores from backup):
+```bash
+# Preview what would be removed
+dotfiles-uninstall --dry-run
+
+# Actually remove
+dotfiles-uninstall
+```
+
+All existing configs are backed up to `~/.dotfiles-backups/YYYYMMDD-HHMMSS/` before being replaced.
 
 ## Structure
 
@@ -74,6 +94,8 @@ ssh/
 bin/            # User tools (linked to ~/.local/bin)
   wb              # Tmux workbench
   tmux-code-layout # Tmux layout implementation
+  dotfiles-doctor # Health check - verify everything works
+  dotfiles-uninstall # Clean removal with --dry-run support
 
 scripts/        # Init dependencies and setup scripts
   setup-git-local # Git config with GPG signing
