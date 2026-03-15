@@ -8,4 +8,9 @@ brew "tmux"
 brew "neovim"
 brew "git"
 brew "ripgrep"
+brew "gnupg"  # Required for GPG commit signing
 brew "deno"  # Required for markdown-preview.nvim
+
+# 1Password for secure secret storage and GPG key management
+cask "1password"
+cask "1password-cli"
