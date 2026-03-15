@@ -11,7 +11,7 @@ theme = Nord
 # - Block cursor, blinking in insert mode (via \e[1 q)
 # - Block cursor, solid in normal mode (via \e[2 q)
 cursor-style = block
-cursor-color = #56b6c2
+cursor-color = #d8dee9
 cursor-text = #1e2127
 cursor-opacity = 0.8
 
