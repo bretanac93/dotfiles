@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+#
+# Setup SSH keys from 1Password
+# Exports SSH keys to ~/.ssh/ with proper permissions
+#
+
+set -e
+
+SSH_DIR="$HOME/.ssh"
+SSH_CONFIG_FILE="$SSH_DIR/config"
+
+echo "Setting up SSH keys from 1Password..."
+
+# Create SSH directory with proper permissions
+mkdir -p "$SSH_DIR"
+chmod 700 "$SSH_DIR"
+
+# Check if 1Password CLI is available and signed in
+if ! command -v op &> /dev/null || ! op account list &> /dev/null; then
+    echo "❌ 1Password CLI not available or not signed in."
+    echo "   Run 'op signin' first or install 1Password CLI."
+    exit 1
+fi
+
+echo "1Password CLI detected and signed in."
+echo ""
+
+# Export the Legacy SSH key specifically
+KEY_TITLE="Legacy SSH key"
+KEY_ID=$(op item list --categories SSHKEY 2>/dev/null | grep "$KEY_TITLE" | awk '{print $1}')
+
+if [[ -z "$KEY_ID" ]]; then
+    echo "❌ Could not find '$KEY_TITLE' in 1Password."
+    echo ""
+    echo "Available SSH keys:"
+    op item list --categories SSHKEY 2>/dev/null || echo "  No SSH keys found"
+    exit 1
+fi
+
+echo "Found: $KEY_TITLE"
+echo ""
+
+# Export private key to id_ed25519 (standard name)
+PRIVATE_KEY_FILE="$SSH_DIR/id_ed25519"
+echo "Exporting private key to $PRIVATE_KEY_FILE..."
+if op item get "$KEY_ID" --field "private key" --reveal > "$PRIVATE_KEY_FILE" 2>/dev/null; then
+    chmod 600 "$PRIVATE_KEY_FILE"
+    echo "  ✅ Private key saved"
+else
+    echo "  ❌ Failed to export private key"
+    exit 1
+fi
+
+# Export public key
+PUBLIC_KEY_FILE="$SSH_DIR/id_ed25519.pub"
+echo "Exporting public key to $PUBLIC_KEY_FILE..."
+if op item get "$KEY_ID" --field "public key" > "$PUBLIC_KEY_FILE" 2>/dev/null; then
+    chmod 644 "$PUBLIC_KEY_FILE"
+    echo "  ✅ Public key saved"
+else
+    echo "  ❌ Failed to export public key"
+    exit 1
+fi
+
+# Link SSH config if it doesn't exist
+if [[ -f "$PWD/ssh/config" ]]; then
+    if [[ ! -f "$SSH_CONFIG_FILE" ]] || [[ ! -L "$SSH_CONFIG_FILE" ]]; then
+        echo ""
+        echo "Linking SSH config..."
+        # Backup existing config if present
+        if [[ -f "$SSH_CONFIG_FILE" ]] && [[ ! -L "$SSH_CONFIG_FILE" ]]; then
+            mv "$SSH_CONFIG_FILE" "$SSH_CONFIG_FILE.backup.$(date +%Y%m%d)"
+            echo "  📦 Backed up existing config"
+        fi
+        ln -sf "$PWD/ssh/config" "$SSH_CONFIG_FILE"
+        chmod 644 "$SSH_CONFIG_FILE"
+        echo "  ✅ SSH config linked to $SSH_CONFIG_FILE"
+    else
+        echo ""
+        echo "ℹ️  SSH config already linked"
+    fi
+fi
+
+echo ""
+echo "✅ SSH setup complete!"
+echo ""
+echo "Your SSH key: $PRIVATE_KEY_FILE"
+echo ""
+echo "To test GitHub authentication:"
+echo "  ssh -T git@github.com"
+echo ""
+echo "To add this key to your SSH agent:"
+echo "  ssh-add $PRIVATE_KEY_FILE"
+echo ""
+echo "Note: Make sure this public key is added to your GitHub account:"
+echo "  cat $PUBLIC_KEY_FILE"

@@ -64,7 +64,16 @@ ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 ln -sf "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps"
 ln -sf "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults"
 ln -sf "$PWD/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local"
+ln -sf "$PWD/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh"
 print "  ✓ scripts"
+
+# Check if SSH keys are set up
+if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
+  print ""
+  print "⚠️  SSH keys not found. Run this to set them up:"
+  print "  $PWD/scripts/setup-ssh"
+  print ""
+fi
 
 # Check and install dependencies
 print ""

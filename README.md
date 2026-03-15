@@ -61,9 +61,13 @@ git/
 tmux/
   tmux.conf       # Tmux configuration
 
+ssh/
+  config          # SSH configuration
+
 scripts/
   wb              # Tmux workbench
   setup-git-local # Git config with GPG signing
+  setup-ssh       # SSH keys from 1Password
   check-deps      # Dependency checker
   macos-defaults  # System tuning
 
@@ -104,6 +108,27 @@ The shared `gitconfig` includes this file automatically.
 **Note:** GPG must be installed (usually comes with macOS or Linux). The setup script exports keys from 1Password and configures git to use them.
 
 **Passphrase:** Your GPG key has a passphrase. When signing commits, GPG will prompt for it in the terminal (no GUI). This happens once per session or you can configure GPG to cache it.
+
+### SSH Configuration
+
+SSH keys are stored in 1Password and exported to `~/.ssh/` during setup:
+
+```bash
+# Run this after init.sh to export your SSH keys
+setup-ssh
+```
+
+This exports your "Legacy SSH key" from 1Password to:
+- `~/.ssh/id_ed25519` (private key)
+- `~/.ssh/id_ed25519.pub` (public key)
+
+The SSH config is automatically linked and configured for GitHub authentication.
+
+**Note:** You'll need to add the public key to your GitHub account if not already done:
+```bash
+cat ~/.ssh/id_ed25519.pub
+# Copy and paste into GitHub → Settings → SSH and GPG keys
+```
 
 ## Requirements
 
