@@ -40,6 +40,23 @@ print "  ✓ zsh"
 if [[ -r "$PWD/gitconfig" ]]; then
   ln -sf "$PWD/gitconfig" "$HOME/.gitconfig"
   print "  ✓ git"
+  
+  # Check for encrypted personal gitconfig
+  if [[ -r "$PWD/gitconfig.personal.enc" ]]; then
+    print ""
+    print "🔐 Encrypted personal gitconfig found."
+    printf "Enter password to decrypt: "
+    read -s password
+    print ""
+    
+    if echo "$password" | openssl enc -aes-256-cbc -salt -pbkdf2 -d -in "$PWD/gitconfig.personal.enc" -out "$HOME/.gitconfig.personal" -pass stdin 2>/dev/null; then
+      cat "$HOME/.gitconfig.personal" >> "$HOME/.gitconfig"
+      rm "$HOME/.gitconfig.personal"
+      print "  ✓ personal gitconfig added"
+    else
+      print "  ⚠️  Failed to decrypt personal gitconfig (wrong password?)"
+    fi
+  fi
 fi
 
 # Link helper scripts
