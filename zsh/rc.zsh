@@ -24,14 +24,14 @@ fi
 
 for lib_file in \
   "$ZSH_CONFIG_DIR/lib/options.zsh" \
-  "$ZSH_CONFIG_DIR/lib/vim-mode.zsh" \
   "$ZSH_CONFIG_DIR/lib/completion.zsh" \
   "$ZSH_CONFIG_DIR/lib/completion-styles.zsh" \
   "$ZSH_CONFIG_DIR/lib/prompt-git.zsh" \
   "$ZSH_CONFIG_DIR/lib/keybindings.zsh" \
-  "$ZSH_CONFIG_DIR/lib/local.zsh" \
   "$ZSH_CONFIG_DIR/lib/aliases.zsh" \
-  "$ZSH_CONFIG_DIR/lib/plugin-loader.zsh"; do
+  "$ZSH_CONFIG_DIR/lib/local.zsh" \
+  "$ZSH_CONFIG_DIR/lib/plugin-loader.zsh" \
+  "$ZSH_CONFIG_DIR/lib/vim-mode.zsh"; do
   if [[ -r "$lib_file" ]]; then
     source "$lib_file"
   fi
@@ -52,4 +52,9 @@ fi
 theme_file="$ZSH_CONFIG_DIR/themes/${ZSH_THEME}.zsh-theme"
 if [[ -r "$theme_file" ]]; then
   source "$theme_file"
+fi
+
+# Load vim-mode last to ensure it overrides any other keybindings
+if [[ -r "$ZSH_CONFIG_DIR/lib/vim-mode.zsh" ]]; then
+  source "$ZSH_CONFIG_DIR/lib/vim-mode.zsh"
 fi
