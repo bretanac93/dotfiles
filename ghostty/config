@@ -3,10 +3,8 @@ font-size=14
 font-thicken = true
 font-feature = -calt
 
-# Try One Dark theme for better contrast than Nord
-theme = one_dark
-background = #1e2127
-foreground = #abb2bf
+# Theme
+theme = Nord
 
 # Cursor style
 # Zsh vim mode controls this dynamically:
@@ -20,16 +18,21 @@ cursor-opacity = 0.8
 # Enable cursor blinking
 cursor-style-blink = true
 
-# Allow shell integration to change cursor
-cursor-invert-fg-bg = false
+# Shell integration
+shell-integration = zsh
+shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,path
 
 # Key remappings
 macos-option-as-alt = true
 
 # Performance
+window-vsync = false
 auto-update = check
 
-# Render settings for sharper text
-# If text looks blurry, try uncommenting:
-# font-thicken = true
-# font-thicken-strength = 0.5
+# Window padding for better readability
+window-padding-x = 8
+window-padding-y = 8
+
+# Scrollback
+scrollback-limit = 100000
+mouse-scroll-multiplier = 2
