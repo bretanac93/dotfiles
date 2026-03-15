@@ -44,6 +44,12 @@ while IFS= read -r line; do
           missing_deps+=("$pkg")
         fi
         ;;
+      gnupg)
+        # Command is 'gpg'
+        if ! command -v gpg &>/dev/null; then
+          missing_deps+=("$pkg")
+        fi
+        ;;
       ripgrep)
         # Command is 'rg'
         if ! command -v rg &>/dev/null; then
