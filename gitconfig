@@ -1,0 +1,106 @@
+# Git configuration
+# Personal info (name, email, signingkey) should be in ~/.config/git/config.local
+
+[core]
+  editor = nvim
+  excludesFile = ~/.gitignore
+  pager = diff-so-fancy | less --tabs=4 -RFX
+  autocrlf = false
+  safecrlf = true
+
+[init]
+  defaultBranch = master
+
+[url "ssh://git@github.com/"]
+  insteadOf = https://github.com/
+
+[url "ssh://git@gitlab.com/"]
+  insteadOf = https://gitlab.com/
+
+[pull]
+  rebase = true
+
+[push]
+  default = simple
+  autoSetupRemote = true
+
+[fetch]
+  prune = true
+
+[branch]
+  autosetuprebase = always
+
+[diff]
+  colorMoved = default
+  algorithm = histogram
+  tool = nvimdiff
+
+[difftool "nvimdiff"]
+  cmd = nvim -d "$LOCAL" "$REMOTE"
+
+[merge]
+  tool = nvimdiff
+  conflictstyle = diff3
+
+[mergetool "nvimdiff"]
+  cmd = nvim -d "$LOCAL" "$BASE" "$REMOTE" "$MERGED"
+  trustExitCode = true
+
+[status]
+  showUntrackedFiles = all
+
+[log]
+  decorate = short
+  abbrevCommit = true
+
+[alias]
+  # Quick aliases that complement the shell git aliases
+  s = status
+  co = checkout
+  cob = checkout -b
+  br = branch
+  ci = commit
+  cp = cherry-pick
+  st = stash
+  unstage = reset HEAD --
+  undo = reset --soft HEAD~1
+  last = log -1 HEAD
+  visual = !gitk
+
+[color]
+  ui = auto
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+
+[color "branch"]
+  current = yellow reverse
+  local = yellow
+  remote = green
+
+[color "diff"]
+  meta = yellow bold
+  frag = magenta bold
+  old = red bold
+  new = green bold
+
+[color "status"]
+  added = yellow
+  changed = green
+  untracked = cyan
+
+[gpg]
+  format = ssh
+
+[commit]
+  gpgsign = true
+  verbose = true
+
+[rerere]
+  enabled = true
+  autoUpdate = true
+
+[rebase]
+  autoSquash = true
+  autoStash = true

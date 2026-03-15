@@ -36,8 +36,13 @@ rm -rf "$HOME/.config/zsh"
 ln -sf "$PWD/zsh" "$HOME/.config/zsh"
 print "  ✓ zsh"
 
+# Link git configuration
+if [[ -r "$PWD/gitconfig" ]]; then
+  ln -sf "$PWD/gitconfig" "$HOME/.gitconfig"
+  print "  ✓ git"
+fi
+
 # Link helper scripts
-ln -sf "$PWD/scripts/tmux-code-layout" "$HOME/.local/bin/tmux-code-layout"
 ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
 ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 ln -sf "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps"
