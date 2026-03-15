@@ -24,6 +24,7 @@ fi
 
 for lib_file in \
   "$ZSH_CONFIG_DIR/lib/options.zsh" \
+  "$ZSH_CONFIG_DIR/lib/vim-mode.zsh" \
   "$ZSH_CONFIG_DIR/lib/completion.zsh" \
   "$ZSH_CONFIG_DIR/lib/completion-styles.zsh" \
   "$ZSH_CONFIG_DIR/lib/prompt-git.zsh" \

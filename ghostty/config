@@ -8,22 +8,19 @@ theme = one_dark
 background = #1e2127
 foreground = #abb2bf
 
-# Cursor - block style for better visibility
+# Cursor style
+# Zsh vim mode will control this dynamically:
+# - Block cursor in normal mode
+# - Beam cursor in insert mode
 cursor-style = block
 cursor-color = #56b6c2
 cursor-text = #1e2127
 cursor-opacity = 0.8
 
-# Improve readability
-window-padding-x = 8
-window-padding-y = 8
-window-vsync = false
+# Allow shell integration to change cursor
+cursor-style-blink = false
 
-# Better scrolling
-scrollback-limit = 100000
-mouse-scroll-multiplier = 2
-
-# Shell integration
+# Shell integration features
 shell-integration = zsh
 shell-integration-features = cursor,sudo,ssh-env,ssh-terminfo,path
 
