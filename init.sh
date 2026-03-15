@@ -4,6 +4,22 @@
 
 set -e
 
+# Helper function to create symlink idempotently
+# Usage: link_file <source> <target> <name>
+link_file() {
+  local src="$1"
+  local dst="$2"
+  local name="$3"
+  
+  if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
+    print "  ✓ $name (already linked)"
+    return 0
+  fi
+  
+  ln -sf "$src" "$dst"
+  print "  ✓ $name"
+}
+
 print "Setting up dotfiles..."
 print ""
 
@@ -15,37 +31,48 @@ mkdir -p "$HOME/.config/zsh.local/alias"
 mkdir -p "$HOME/.config/zsh.local/completions"
 
 # Link neovim configuration
+if [[ -d "$HOME/.config/nvim" ]] && [[ ! -L "$HOME/.config/nvim" ]]; then
+  rm -rf "$HOME/.config/nvim.backup"
+  mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup"
+  print "  📦 Backed up existing nvim config"
+fi
 rm -rf "$HOME/.config/nvim"
-ln -sf "$PWD/nvim" "$HOME/.config/nvim"
-print "  ✓ nvim"
+link_file "$PWD/nvim" "$HOME/.config/nvim" "nvim"
 
 # Link tmux configuration
-ln -sf "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf"
-print "  ✓ tmux"
+link_file "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
 
 # Link ghostty configuration
+if [[ -d "$HOME/.config/ghostty" ]] && [[ ! -L "$HOME/.config/ghostty" ]]; then
+  rm -rf "$HOME/.config/ghostty.backup"
+  mv "$HOME/.config/ghostty" "$HOME/.config/ghostty.backup"
+  print "  📦 Backed up existing ghostty config"
+fi
 rm -rf "$HOME/.config/ghostty"
-ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
-print "  ✓ ghostty"
+link_file "$PWD/ghostty" "$HOME/.config/ghostty" "ghostty"
 
 # Link zsh configuration (map friendly repo names to standard dotfile names)
-ln -sf "$PWD/zsh/env.zsh" "$HOME/.zshenv"
-ln -sf "$PWD/zsh/profile.zsh" "$HOME/.zprofile"
-ln -sf "$PWD/zsh/rc.zsh" "$HOME/.zshrc"
+link_file "$PWD/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
+link_file "$PWD/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
+link_file "$PWD/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
+
+if [[ -d "$HOME/.config/zsh" ]] && [[ ! -L "$HOME/.config/zsh" ]]; then
+  rm -rf "$HOME/.config/zsh.backup"
+  mv "$HOME/.config/zsh" "$HOME/.config/zsh.backup"
+  print "  📦 Backed up existing zsh config"
+fi
 rm -rf "$HOME/.config/zsh"
-ln -sf "$PWD/zsh" "$HOME/.config/zsh"
-print "  ✓ zsh"
+link_file "$PWD/zsh" "$HOME/.config/zsh" "zsh"
 
 # Link git configuration
 if [[ -r "$PWD/git/gitconfig" ]]; then
-  ln -sf "$PWD/git/gitconfig" "$HOME/.gitconfig"
-  print "  ✓ git"
+  link_file "$PWD/git/gitconfig" "$HOME/.gitconfig" "git"
   
   # Check if local gitconfig exists
   if [[ ! -r "$HOME/.config/git/config.local" ]]; then
     print ""
     print "⚠️  Local git config not found. Run this to set it up:"
-    print "  $PWD/scripts/setup-git-local"
+    print "  setup-git-local"
     print ""
   fi
 fi
@@ -54,18 +81,16 @@ fi
 mkdir -p "$HOME/.gnupg"
 chmod 700 "$HOME/.gnupg"
 if [[ -r "$PWD/git/gpg.conf" ]]; then
-  ln -sf "$PWD/git/gpg.conf" "$HOME/.gnupg/gpg.conf"
-  print "  ✓ gpg"
+  link_file "$PWD/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
 fi
 
 # Link helper scripts
-ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
-ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
-ln -sf "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps"
-ln -sf "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults"
-ln -sf "$PWD/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local"
-ln -sf "$PWD/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh"
-print "  ✓ scripts"
+link_file "$PWD/scripts/wb" "$HOME/.local/bin/wb" "wb"
+link_file "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles" "zsh-dotfiles"
+link_file "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps" "check-deps"
+link_file "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"
+link_file "$PWD/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local" "setup-git-local"
+link_file "$PWD/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh" "setup-ssh"
 
 # Check if SSH keys are set up
 if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
