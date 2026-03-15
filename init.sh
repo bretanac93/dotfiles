@@ -48,9 +48,6 @@ else
   print "Warning: check-deps script not found"
 fi
 
-print ""
-print "Setup complete! Open a new terminal to use the new configuration."
-
 # macOS-specific: check system defaults status
 if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults.sh" ]]; then
   print ""
@@ -66,3 +63,6 @@ if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults.sh" ]]; th
     print "   Run: $PWD/scripts/macos-defaults.sh"
   fi
 fi
+
+print ""
+print "Setup complete! Open a new terminal to use the new configuration."
