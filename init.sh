@@ -42,11 +42,29 @@ print "Checking dependencies..."
 local missing_deps=()
 local missing_nvim_deps=()
 
-for dep in fzf fd zsh-fast-syntax-highlighting tmux nvim git rg; do
+# Check for command-line tools
+for dep in fzf fd tmux nvim git rg; do
   if ! command -v "$dep" &>/dev/null; then
     missing_deps+=("$dep")
   fi
 done
+
+# Check for zsh-fast-syntax-highlighting (it's a plugin, not a command)
+local fsh_found=0
+local -a fsh_paths=(
+  "/opt/homebrew/share/zsh-fast-syntax-highlighting"
+  "/usr/local/share/zsh-fast-syntax-highlighting"
+  "${HOMEBREW_PREFIX:-}/share/zsh-fast-syntax-highlighting"
+)
+for fsh_path in $fsh_paths; do
+  if [[ -r "$fsh_path/fast-syntax-highlighting.plugin.zsh" ]]; then
+    fsh_found=1
+    break
+  fi
+done
+if (( ! fsh_found )); then
+  missing_deps+=("zsh-fast-syntax-highlighting")
+fi
 
 # Check for nvim-specific dependencies
 if ! command -v deno &>/dev/null; then
