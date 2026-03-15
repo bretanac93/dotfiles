@@ -71,4 +71,8 @@ fi
 print ""
 print "✓ Setup complete!"
 print ""
-print "Run 'zsh -l' or open a new terminal to start using your configuration."
+print "Reloading shell with new configuration..."
+print ""
+
+# Reload the shell to pick up new configuration
+exec zsh -l
