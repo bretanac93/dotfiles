@@ -4,6 +4,9 @@
 
 set -e
 
+print "Setting up dotfiles..."
+print ""
+
 # Create necessary directories
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
@@ -14,16 +17,16 @@ mkdir -p "$HOME/.config/zsh.local/completions"
 # Link neovim configuration
 rm -rf "$HOME/.config/nvim"
 ln -sf "$PWD/nvim" "$HOME/.config/nvim"
-echo "✓ nvim configured"
+print "  ✓ nvim"
 
 # Link tmux configuration
 ln -sf "$PWD/.tmux.conf" "$HOME/.tmux.conf"
-echo "✓ tmux configured"
+print "  ✓ tmux"
 
 # Link ghostty configuration
 rm -rf "$HOME/.config/ghostty"
 ln -sf "$PWD/ghostty" "$HOME/.config/ghostty"
-echo "✓ ghostty configured"
+print "  ✓ ghostty"
 
 # Link zsh configuration
 ln -sf "$PWD/.zshenv" "$HOME/.zshenv"
@@ -31,14 +34,15 @@ ln -sf "$PWD/.zprofile" "$HOME/.zprofile"
 ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
 rm -rf "$HOME/.config/zsh"
 ln -sf "$PWD/zsh" "$HOME/.config/zsh"
-echo "✓ zsh configured"
+print "  ✓ zsh"
 
 # Link helper scripts
 ln -sf "$PWD/scripts/tmux-code-layout" "$HOME/.local/bin/tmux-code-layout"
 ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
 ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 ln -sf "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps"
-echo "✓ scripts configured"
+ln -sf "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults"
+print "  ✓ scripts"
 
 # Check and install dependencies
 print ""
@@ -61,8 +65,10 @@ fi
 # macOS-specific: apply system defaults
 if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults" ]]; then
   print ""
-  zsh "$PWD/scripts/macos-defaults"
+  zsh "$PWD/scripts/macos-defaults" 2>/dev/null | grep -E "^✅|^Configuring" | sed 's/^/  /' | sed 's/✅/✓/' || true
 fi
 
 print ""
-print "Setup complete! Open a new terminal to use the new configuration."
+print "✓ Setup complete!"
+print ""
+print "Open a new terminal to start using your new configuration."
