@@ -41,22 +41,21 @@ if [[ -r "$PWD/gitconfig" ]]; then
   ln -sf "$PWD/gitconfig" "$HOME/.gitconfig"
   print "  ✓ git"
   
-  # Check for encrypted personal gitconfig
-  if [[ -r "$PWD/gitconfig.personal.enc" ]]; then
+  # Check if local gitconfig exists
+  if [[ ! -r "$HOME/.config/git/config.local" ]]; then
     print ""
-    print "🔐 Encrypted personal gitconfig found."
-    printf "Enter password to decrypt: "
-    read -s password
+    print "⚠️  Local git config not found. Run this to set it up:"
+    print "  $PWD/scripts/setup-git-local"
     print ""
-    
-    if echo "$password" | openssl enc -aes-256-cbc -salt -pbkdf2 -d -in "$PWD/gitconfig.personal.enc" -out "$HOME/.gitconfig.personal" -pass stdin 2>/dev/null; then
-      cat "$HOME/.gitconfig.personal" >> "$HOME/.gitconfig"
-      rm "$HOME/.gitconfig.personal"
-      print "  ✓ personal gitconfig added"
-    else
-      print "  ⚠️  Failed to decrypt personal gitconfig (wrong password?)"
-    fi
   fi
+fi
+
+# Link gpg configuration
+mkdir -p "$HOME/.gnupg"
+chmod 700 "$HOME/.gnupg"
+if [[ -r "$PWD/gpg.conf" ]]; then
+  ln -sf "$PWD/gpg.conf" "$HOME/.gnupg/gpg.conf"
+  print "  ✓ gpg"
 fi
 
 # Link helper scripts
@@ -64,6 +63,7 @@ ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
 ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 ln -sf "$PWD/scripts/check-deps" "$HOME/.local/bin/check-deps"
 ln -sf "$PWD/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults"
+ln -sf "$PWD/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local"
 print "  ✓ scripts"
 
 # Check and install dependencies

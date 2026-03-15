@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+#
+# Setup local git configuration with GPG signing
+# Exports GPG keys from 1Password for standard GPG signing
+#
+
+set -e
+
+LOCAL_CONFIG_DIR="$HOME/.config/git"
+LOCAL_CONFIG_FILE="$LOCAL_CONFIG_DIR/config.local"
+TEMPLATE_FILE="$PWD/gitconfig.local.tpl"
+GPG_DIR="$HOME/.gnupg"
+
+echo "Setting up local git configuration with GPG signing..."
+
+# Create directories
+mkdir -p "$LOCAL_CONFIG_DIR"
+mkdir -p "$GPG_DIR"
+chmod 700 "$GPG_DIR"
+
+# Check if template exists
+if [[ ! -f "$TEMPLATE_FILE" ]]; then
+    echo "❌ Error: Template file not found at $TEMPLATE_FILE"
+    exit 1
+fi
+
+# Check if 1Password CLI is available and signed in
+if command -v op &> /dev/null && op account list &> /dev/null; then
+    echo "1Password CLI detected and signed in."
+    echo ""
+    
+    # Export the GPG private key from 1Password
+    echo "Exporting GPG keys from 1Password..."
+    
+    PRIVATE_KEY_FILE=$(mktemp)
+    PUBLIC_KEY_FILE=$(mktemp)
+    
+    if op item get "git-signing-config" --field "private_key" --reveal > "$PRIVATE_KEY_FILE" 2>/dev/null && \
+       op item get "git-signing-config" --field "public_key" > "$PUBLIC_KEY_FILE" 2>/dev/null; then
+        
+        # Import keys into GPG
+        echo "Importing GPG private key..."
+        gpg --batch --import "$PRIVATE_KEY_FILE" 2>/dev/null || {
+            echo "⚠️  Warning: Failed to import private key (may already exist)"
+        }
+        
+        echo "Importing GPG public key..."
+        gpg --batch --import "$PUBLIC_KEY_FILE" 2>/dev/null || {
+            echo "⚠️  Warning: Failed to import public key (may already exist)"
+        }
+        
+        # Get the key ID
+        KEY_ID=$(op item get "git-signing-config" --field "key_id" 2>/dev/null || echo "")
+        
+        if [[ -n "$KEY_ID" ]]; then
+            # Set trust level to ultimate for the key (non-interactive)
+            echo "Setting trust level for key $KEY_ID..."
+            (gpg --batch --yes --command-fd 0 --status-fd 2 --edit-key "$KEY_ID" <<EOF
+trust
+5
+y
+quit
+EOF
+) 2>/dev/null || {
+                echo "⚠️  Warning: Could not set trust level automatically"
+                echo "   You may need to run: gpg --edit-key $KEY_ID"
+                echo "   Then: trust → 5 → y → quit"
+            }
+        fi
+        
+    # Clean up temp files
+    rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+    
+    echo "✅ GPG keys imported successfully"
+    echo ""
+    
+    # Ensure gpg.conf is in place for terminal signing
+    if [[ -f "$PWD/gpg.conf" ]] && [[ ! -L "$HOME/.gnupg/gpg.conf" ]]; then
+        echo "Linking gpg.conf for terminal-based signing..."
+        ln -sf "$PWD/gpg.conf" "$HOME/.gnupg/gpg.conf"
+    fi
+    else
+        echo "❌ Failed to export GPG keys from 1Password"
+        echo "   Make sure the 'git-signing-config' item exists with 'private_key' and 'public_key' fields"
+        rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+        exit 1
+    fi
+    
+    # Use op inject to generate the config file
+    echo "Generating git config from template..."
+    if op inject -f -i "$TEMPLATE_FILE" -o "$LOCAL_CONFIG_FILE"; then
+        echo ""
+        echo "✅ Local git config created at: $LOCAL_CONFIG_FILE"
+    else
+        echo "❌ Failed to generate config from template"
+        exit 1
+    fi
+    
+else
+    echo "1Password CLI not available or not signed in."
+    echo "Creating config file manually..."
+    echo ""
+    
+    # Get user info manually
+    read -rp "Enter your git user.name: " GIT_NAME
+    read -rp "Enter your git user.email: " GIT_EMAIL
+    read -rp "Enter your GPG key ID (e.g., F6BCB6B1): " GIT_SIGNINGKEY
+    
+    # Create the config file
+    cat > "$LOCAL_CONFIG_FILE" << EOF
+# Local git configuration - machine specific
+# This file is NOT shared across machines
+# Generated manually (1Password CLI not available)
+
+[user]
+	name = $GIT_NAME
+	email = $GIT_EMAIL
+	signingkey = $GIT_SIGNINGKEY
+
+[gpg]
+	program = gpg
+
+[commit]
+	gpgsign = true
+EOF
+    
+    echo ""
+    echo "✅ Local git config created at: $LOCAL_CONFIG_FILE"
+    echo ""
+    echo "⚠️  Note: You'll need to manually import your GPG keys:"
+    echo "   gpg --import private.key"
+    echo "   gpg --import public.key"
+fi
+
+echo ""
+echo "To verify your setup, run:"
+echo "  git config --get user.name"
+echo "  git config --get user.email"
+echo "  git config --get user.signingkey"
+echo ""
+echo "To list your GPG keys:"
+echo "  gpg --list-secret-keys --keyid-format=short"
+echo ""
+echo "To test signing, run:"
+echo "  git commit --allow-empty -m \"Test GPG signing\""
+echo "  git log --show-signature -1"

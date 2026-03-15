@@ -1,5 +1,9 @@
 # Git configuration
-# Personal info (name, email, signingkey) should be in ~/.config/git/config.local
+# Personal info (name, email, signingkey) and machine-specific paths 
+# should be in ~/.config/git/config.local or ~/.gitconfig.local
+
+[include]
+	path = ~/.config/git/config.local
 
 [core]
   editor = nvim
@@ -90,9 +94,6 @@
   changed = green
   untracked = cyan
 
-[gpg]
-  format = ssh
-
 [commit]
   gpgsign = true
   verbose = true
@@ -102,19 +103,5 @@
   autoUpdate = true
 
 [rebase]
-  autoSquash = true
-  autoStash = true
-
-[user]
-  name = Cesar Bretana
-  email = bretanac@gmail.com
-  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEm/sYGI5gLCkUcrxQ58P8ilga1Buuku9PSaWE0iDFdc
-
-[gpg]
-  format = ssh
-
-[gpg "ssh"]
-  program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
-
-[commit]
-  gpgsign = true
+	autoSquash = true
+	autoStash = true

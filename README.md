@@ -70,6 +70,27 @@ alias aws-sso='aws sso login'
 alias kctx-dev='kubectl config use-context dev'
 ```
 
+### Git Configuration
+
+Personal git info (name, email, signing key) is stored separately from the shared config using 1Password templates:
+
+```bash
+# Run this after init.sh to set up your local git config
+# Requires 1Password CLI (optional - can enter manually if not available)
+setup-git-local
+```
+
+This uses `op inject` to populate `~/.config/git/config.local` from `gitconfig.local.tpl`, which contains:
+- Your name and email (from 1Password "git-signing-config" item)
+- GPG key ID for signing (from 1Password "git-signing-config" item)
+- GPG program path (portable across macOS/Linux)
+
+The setup script also exports your GPG keys from 1Password and imports them into your local keyring. A `gpg.conf` is included to enable terminal-based signing (no GUI prompts).
+
+The shared `gitconfig` includes this file automatically.
+
+**Note:** GPG must be installed (usually comes with macOS or Linux). The setup script exports keys from 1Password and configures git to use them.
+
 ## Requirements
 
 - macOS (Apple Silicon)
