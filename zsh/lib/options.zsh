@@ -25,6 +25,10 @@ setopt share_history
 
 WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
+# Enable color support for ls and other tools
+export CLICOLOR=1
+export LSCOLORS=ExFxBxDxCxegedabagacad
+
 if [[ -t 0 ]]; then
   stty -ixon 2>/dev/null || true
 fi

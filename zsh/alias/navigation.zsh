@@ -15,6 +15,12 @@ elif (( $+commands[exa] )); then
   alias lla='exa -la'
   alias l.='exa -d .*'
 else
+  # Standard ls with color (macOS uses -G, GNU uses --color=auto)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    alias ls='ls -G'
+  else
+    alias ls='ls --color=auto'
+  fi
   alias l='ls -lFh'
   alias la='ls -lah'
   alias ll='ls -lAFh'
