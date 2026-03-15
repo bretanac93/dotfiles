@@ -1,5 +1,16 @@
 [[ $- != *i* ]] && return
 
+# Set up essential variables FIRST (before any lib files use them)
+export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+export ZSH_THEME="${ZSH_THEME:-mine}"
+export HISTFILE="${ZSH_HISTORY_FILE:-$HISTFILE}"
+
+if [[ -n "$SSH_CONNECTION" ]]; then
+  export EDITOR="vim"
+else
+  export EDITOR="nvim"
+fi
+
 typeset -gU path PATH fpath FPATH
 
 # Load custom functions
@@ -11,13 +22,6 @@ if [[ -d "$ZSH_CONFIG_DIR/functions" ]]; then
     fi
   done
 fi
-
-export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
-export ZSH_THEME="${ZSH_THEME:-mine}"
-export HISTFILE="${ZSH_HISTORY_FILE:-$HISTFILE}"
-
-if [[ -n "$SSH_CONNECTION" ]]; then
-  export EDITOR="vim"
 else
   export EDITOR="nvim"
 fi
