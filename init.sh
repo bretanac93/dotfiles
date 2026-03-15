@@ -36,74 +36,66 @@ ln -sf "$PWD/scripts/wb" "$HOME/.local/bin/wb"
 ln -sf "$PWD/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles"
 echo "scripts configured"
 
-# Check for essential Homebrew dependencies
+# Check for essential Homebrew dependencies from Brewfile
 print ""
 print "Checking dependencies..."
+
 local missing_deps=()
-local missing_nvim_deps=()
+local brewfile="$PWD/Brewfile"
 
-# Check for command-line tools
-for dep in fzf fd tmux nvim git rg; do
-  if ! command -v "$dep" &>/dev/null; then
-    missing_deps+=("$dep")
+# Parse Brewfile and check each dependency
+while IFS= read -r line; do
+  # Extract package name from brew "package" lines
+  if [[ "$line" =~ ^brew[[:space:]]+\"([^\"]+)\" ]]; then
+    local pkg="${match[1]}"
+    
+    # Skip comment lines
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    
+    # Check if package is installed
+    # Special case: zsh-fast-syntax-highlighting is a plugin, not a command
+    if [[ "$pkg" == "zsh-fast-syntax-highlighting" ]]; then
+      local fsh_found=0
+      local -a fsh_paths=(
+        "/opt/homebrew/share/zsh-fast-syntax-highlighting"
+        "/usr/local/share/zsh-fast-syntax-highlighting"
+        "${HOMEBREW_PREFIX:-}/share/zsh-fast-syntax-highlighting"
+      )
+      for fsh_path in $fsh_paths; do
+        if [[ -r "$fsh_path/fast-syntax-highlighting.plugin.zsh" ]]; then
+          fsh_found=1
+          break
+        fi
+      done
+      (( ! fsh_found )) && missing_deps+=("$pkg")
+    # Special case: neovim can be 'nvim' or 'vim' command
+    elif [[ "$pkg" == "neovim" ]]; then
+      if ! command -v nvim &>/dev/null; then
+        missing_deps+=("$pkg")
+      fi
+    # Special case: ripgrep is 'rg' command
+    elif [[ "$pkg" == "ripgrep" ]]; then
+      if ! command -v rg &>/dev/null; then
+        missing_deps+=("$pkg")
+      fi
+    # Standard case: package name matches command name
+    else
+      if ! command -v "$pkg" &>/dev/null; then
+        missing_deps+=("$pkg")
+      fi
+    fi
   fi
-done
-
-# Check for zsh-fast-syntax-highlighting (it's a plugin, not a command)
-local fsh_found=0
-local -a fsh_paths=(
-  "/opt/homebrew/share/zsh-fast-syntax-highlighting"
-  "/usr/local/share/zsh-fast-syntax-highlighting"
-  "${HOMEBREW_PREFIX:-}/share/zsh-fast-syntax-highlighting"
-)
-for fsh_path in $fsh_paths; do
-  if [[ -r "$fsh_path/fast-syntax-highlighting.plugin.zsh" ]]; then
-    fsh_found=1
-    break
-  fi
-done
-if (( ! fsh_found )); then
-  missing_deps+=("zsh-fast-syntax-highlighting")
-fi
-
-# Check for nvim-specific dependencies
-if ! command -v deno &>/dev/null; then
-  missing_nvim_deps+=("deno")
-fi
+done < "$brewfile"
 
 if (( ${#missing_deps} > 0 )); then
   print ""
-  print "⚠️  Missing shell dependencies: ${missing_deps[*]}"
-  print "Install them with:"
-  print "  brew bundle install --file=$PWD/Brewfile"
-  print ""
-  print "Or install individually:"
+  print "⚠️  Missing dependencies from Brewfile:"
   for dep in $missing_deps; do
-    case "$dep" in
-      fzf) print "  brew install fzf" ;;
-      fd) print "  brew install fd" ;;
-      zsh-fast-syntax-highlighting) print "  brew install zsh-fast-syntax-highlighting" ;;
-      tmux) print "  brew install tmux" ;;
-      nvim) print "  brew install neovim" ;;
-      git) print "  brew install git" ;;
-      rg) print "  brew install ripgrep" ;;
-    esac
+    print "  - $dep"
   done
-else
-  print "✅ All shell dependencies installed"
-fi
-
-if (( ${#missing_nvim_deps} > 0 )); then
   print ""
-  print "⚠️  Missing nvim plugin dependencies: ${missing_nvim_deps[*]}"
   print "Install them with:"
-  for dep in $missing_nvim_deps; do
-    case "$dep" in
-      deno) print "  brew install deno  # required for markdown-preview.nvim" ;;
-    esac
-  done
-  print ""
-  print "Note: LSP servers are installed automatically via Mason inside nvim"
+  print "  brew bundle install --file=$brewfile"
 else
-  print "✅ All nvim plugin dependencies installed"
+  print "✅ All dependencies from Brewfile installed"
 fi
