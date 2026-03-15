@@ -1,0 +1,78 @@
+#!/bin/zsh
+# Function: gen-completion
+# Usage: gen-completion <binary_name_or_path>
+# Description: Generate zsh completion file from binary's built-in completion generator
+
+emulate -L zsh
+setopt extended_glob
+
+local binary="$1"
+local completions_dir="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}/completions"
+
+usage() {
+  local fd="${1:-2}"
+  print -u"$fd" "Usage: gen-completion <binary_name_or_path>"
+  print -u"$fd" ""
+  print -u"$fd" "Generate zsh completion file from binary's built-in completion generator"
+  print -u"$fd" ""
+  print -u"$fd" "The binary must support '<binary> completion zsh' command"
+  print -u"$fd" ""
+  print -u"$fd" "Examples:"
+  print -u"$fd" "  gen-completion kubectl"
+  print -u"$fd" "  gen-completion ~/downloads/mycli"
+  print -u"$fd" "  gen-completion docker"
+}
+
+if [[ -z "$binary" ]] || [[ "$binary" == "-h" ]] || [[ "$binary" == "--help" ]]; then
+  usage 1
+  return 0
+fi
+
+# Resolve binary path
+local binary_path
+if [[ -f "$binary" && -x "$binary" ]]; then
+  binary_path="$binary"
+  binary="$(basename "$binary")"
+else
+  binary_path="$(command -v "$binary" 2>/dev/null)"
+  if [[ -z "$binary_path" ]]; then
+    print -u2 "Error: Binary not found: $binary"
+    return 1
+  fi
+fi
+
+# Check if binary supports completion command
+local completion_output
+if ! completion_output=$("$binary_path" completion zsh 2>/dev/null); then
+  print -u2 "Error: $binary does not support 'completion zsh' command"
+  return 1
+fi
+
+if [[ -z "$completion_output" ]]; then
+  print -u2 "Error: $binary 'completion zsh' produced no output"
+  return 1
+fi
+
+# Ensure completions directory exists
+if [[ ! -d "$completions_dir" ]]; then
+  print "Creating directory: $completions_dir"
+  mkdir -p "$completions_dir" || {
+    print -u2 "Error: Failed to create directory: $completions_dir"
+    return 1
+  }
+fi
+
+local target_file="$completions_dir/_$binary"
+
+# Write completion file
+if ! print -r -- "$completion_output" > "$target_file"; then
+  print -u2 "Error: Failed to write completion file: $target_file"
+  return 1
+fi
+
+print "Generated completion file: $target_file"
+print "  -> $(ls -la "$target_file" | awk '{print $5, $9}')"
+print ""
+print "To use immediately, run: compinit"
+
+return 0

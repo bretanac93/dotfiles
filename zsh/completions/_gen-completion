@@ -1,0 +1,6 @@
+#compdef gen-completion
+
+_arguments -s -S \
+  '(-h --help)'{-h,--help}'[show help]' \
+  '1:binary:_command_names -e' \
+  '*:: :_guard "\"\"" "no more arguments expected"'
