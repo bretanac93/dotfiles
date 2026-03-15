@@ -44,8 +44,8 @@ echo ""
 PRIVATE_KEY_FILE="$SSH_DIR/id_rsa"
 echo "Exporting private key to $PRIVATE_KEY_FILE..."
 if op item get "$KEY_ID" --field "private key" --reveal > "$PRIVATE_KEY_FILE.tmp" 2>/dev/null; then
-    # Remove leading/trailing quotes that 1Password may add
-    sed 's/^"//;s/"$//' "$PRIVATE_KEY_FILE.tmp" > "$PRIVATE_KEY_FILE"
+    # Clean up 1Password export: remove quotes, leading/trailing whitespace
+    sed 's/^"//;s/"$//' "$PRIVATE_KEY_FILE.tmp" | sed '/./,$!d' > "$PRIVATE_KEY_FILE"
     rm -f "$PRIVATE_KEY_FILE.tmp"
     chmod 600 "$PRIVATE_KEY_FILE"
     echo "  ✅ Private key saved"
