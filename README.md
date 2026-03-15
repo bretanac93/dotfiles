@@ -70,6 +70,65 @@ mdf help                 # Show all commands
 - Git with GPG signing
 - SSH with local keys (no 1Password agent)
 
+## Aliases
+
+### Git Aliases (67 total)
+
+Quick git workflow:
+```bash
+g           # git
+ga          # git add
+gaa         # git add --all
+gst         # git status
+gd          # git diff
+gds         # git diff --staged
+gco         # git checkout
+gcb         # git checkout -b
+gcm         # git commit -m
+gcam        # git commit -a -m
+gp          # git push
+gpf         # git push --force-with-lease
+gl          # git pull
+gupa        # git pull --rebase --autostash
+glo         # git log --oneline --decorate
+glog        # git log --oneline --decorate --graph
+gloga       # git log --oneline --decorate --graph --all
+gsw         # git switch
+gswm        # git switch main (or master)
+gst         # git stash
+gstp        # git stash pop
+```
+
+### Navigation Aliases
+
+Directory shortcuts:
+```bash
+..          # cd ..
+...         # cd ../..
+....        # cd ../../..
+.....       # cd ../../../..
+-           # cd -
+```
+
+File listing (uses lsd or exa if installed, falls back to ls):
+```bash
+ls          # lsd/exa/ls with color
+l           # ls -l (long format)
+la          # ls -a (all files)
+ll          # ls -la (all + long)
+lt          # ls --tree (tree view)
+l.          # ls -d .* (dotfiles only)
+```
+
+### Editor Aliases
+
+```bash
+vim         # nvim (if installed)
+v           # nvim (if installed)
+```
+
+**See all aliases:** Run `alias` in your terminal.
+
 ## Maintenance
 
 **Using `mdf` (recommended):**
