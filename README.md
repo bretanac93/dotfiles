@@ -78,6 +78,14 @@ alias kctx-dev='kubectl config use-context dev'
 
 Dependencies auto-install via Brewfile.
 
+## Contributing
+
+**Pull requests are not accepted.** This is an extremely opinionated personal setup tailored to my specific workflow and preferences.
+
+**Issues are welcome.** Feel free to open an issue if you have questions or suggestions. I will evaluate whether they align with my needs and may or may not implement them.
+
+**Forks and free use are encouraged.** Take anything you find useful. This comes without warranty or liability—use at your own risk.
+
 ## License
 
 MIT - Do whatever you want.
