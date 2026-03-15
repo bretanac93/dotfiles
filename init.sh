@@ -20,7 +20,7 @@ ln -sf "$PWD/nvim" "$HOME/.config/nvim"
 print "  ✓ nvim"
 
 # Link tmux configuration
-ln -sf "$PWD/.tmux.conf" "$HOME/.tmux.conf"
+ln -sf "$PWD/tmux.conf" "$HOME/.tmux.conf"
 print "  ✓ tmux"
 
 # Link ghostty configuration
