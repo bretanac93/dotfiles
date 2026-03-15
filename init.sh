@@ -49,7 +49,7 @@ else
 fi
 
 # macOS-specific: check system defaults status
-if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults.sh" ]]; then
+if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults" ]]; then
   print ""
   
   # Check current settings
@@ -60,7 +60,7 @@ if [[ "$(uname)" == "Darwin" ]] && [[ -x "$PWD/scripts/macos-defaults.sh" ]]; th
     print "✓ macOS defaults applied"
   else
     print "⚠️  macOS defaults not applied"
-    print "   Run: $PWD/scripts/macos-defaults.sh"
+    print "   Run: $PWD/scripts/macos-defaults"
   fi
 fi
 
