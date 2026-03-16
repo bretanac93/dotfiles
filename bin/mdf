@@ -46,48 +46,82 @@ EOF
 }
 
 show_aliases() {
-    echo "📋 Dotfiles Aliases"
-    echo "===================="
-    echo ""
-    echo "Git Aliases:"
-    echo "  g          → git"
-    echo "  ga         → git add"
-    echo "  gaa        → git add --all"
-    echo "  gst        → git status"
-    echo "  gd         → git diff"
-    echo "  gds        → git diff --staged"
-    echo "  gco        → git checkout"
-    echo "  gcb        → git checkout -b"
-    echo "  gcm        → git commit -m"
-    echo "  gcam       → git commit -a -m"
-    echo "  gp         → git push"
-    echo "  gpf        → git push --force-with-lease"
-    echo "  gl         → git pull"
-    echo "  gupa       → git pull --rebase --autostash"
-    echo "  glo        → git log --oneline --decorate"
-    echo "  glog       → git log --oneline --decorate --graph"
-    echo "  gsw        → git switch"
-    echo "  gstp       → git stash pop"
-    echo ""
-    echo "Navigation Aliases:"
-    echo "  ..         → cd .."
-    echo "  ...        → cd ../.."
-    echo "  ....       → cd ../../.."
-    echo "  .....      → cd ../../../.."
-    echo "  -          → cd -"
-    echo ""
-    echo "File Listing Aliases:"
-    echo "  l          → ls -l"
-    echo "  la         → ls -a"
-    echo "  ll         → ls -la"
-    echo "  lt         → ls --tree"
-    echo "  l.         → ls -d .*"
-    echo ""
-    echo "Editor Aliases:"
-    echo "  vim        → nvim"
-    echo "  v          → nvim"
-    echo ""
-    echo "Run 'alias | grep YOUR_TERM' to find specific aliases"
+    DOTFILES_DIR="$DOTFILES_DIR" ZSH_LOCAL_CONFIG_DIR="${ZSH_LOCAL_CONFIG_DIR:-$HOME/.config/zsh.local}" zsh -f <<'EOF'
+setopt localoptions extendedglob no_aliases
+
+group_title_for_file() {
+    local alias_file="$1"
+    local alias_name="${alias_file:t:r}"
+
+    case "$alias_name" in
+        git)
+            print "Git Aliases"
+            ;;
+        navigation)
+            print "Navigation Aliases"
+            ;;
+        editor)
+            print "Editor Aliases"
+            ;;
+        k8s)
+            print "Kubernetes Aliases"
+            ;;
+        *)
+            print "${alias_name} Aliases"
+            ;;
+    esac
+}
+
+print_alias_group() {
+    local title="$1"
+    shift
+
+    (( $# == 0 )) && return
+
+    print "$title:"
+    local alias_name
+    for alias_name in "$@"; do
+        printf '  %-10s -> %s\n' "$alias_name" "${aliases[$alias_name]}"
+    done
+    print ""
+}
+
+source_alias_file() {
+    local title="$1"
+    local alias_file="$2"
+    local -A before_aliases after_aliases
+    local -a changed_aliases
+    local alias_name
+
+    [[ -r "$alias_file" ]] || return 0
+
+    before_aliases=("${(@kv)aliases}")
+    source "$alias_file"
+    after_aliases=("${(@kv)aliases}")
+
+    for alias_name in ${(ok)after_aliases}; do
+        if [[ "${before_aliases[$alias_name]-__missing__}" != "${after_aliases[$alias_name]}" ]]; then
+            changed_aliases+=("$alias_name")
+        fi
+    done
+
+    print_alias_group "$title" ${(on)changed_aliases}
+}
+
+print "Dotfiles Aliases"
+print ""
+
+local alias_file
+for alias_file in "$DOTFILES_DIR"/zsh/alias/*.zsh(N); do
+    source_alias_file "$(group_title_for_file "$alias_file")" "$alias_file"
+done
+
+for alias_file in "$ZSH_LOCAL_CONFIG_DIR"/alias/*.zsh(N); do
+    source_alias_file "Local Aliases (${alias_file:t:r})" "$alias_file"
+done
+
+print "Run 'alias | grep TERM' to find specific aliases in your shell"
+EOF
 }
 
 run_script() {
