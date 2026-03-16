@@ -27,6 +27,7 @@ After the first install, use `mdf` for day-to-day management.
 mdf install              # Run init again
 mdf update               # Pull latest changes and re-run setup
 mdf doctor               # Check health
+mdf benchmark            # Measure zsh startup time
 mdf cleanup --dry-run    # Preview old-backup cleanup
 mdf cleanup              # Remove old backups
 mdf uninstall --dry-run  # Preview uninstall
@@ -57,6 +58,7 @@ Tools linked into `~/.local/bin/`:
 - `setup-git-local` - configure git with GPG signing
 - `setup-ssh` - export SSH keys from 1Password
 - `dotfiles-doctor` - health checks
+- `dotfiles-benchmark` - benchmark zsh startup time
 - `dotfiles-update` - pull latest changes and re-run setup
 - `dotfiles-uninstall` - remove dotfiles and restore backups
 - `dotfiles-cleanup-backups` - prune old backup directories
@@ -222,6 +224,7 @@ Useful commands:
 
 ```bash
 mdf doctor
+mdf benchmark
 mdf update
 mdf cleanup
 mdf uninstall --dry-run

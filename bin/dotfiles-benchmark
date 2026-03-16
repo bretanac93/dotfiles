@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import select
+import shutil
+import statistics
+import subprocess
+import sys
+import time
+
+
+MODES = [
+    ("env", "env (.zshenv + .zprofile)", ["-lc", "exit"]),
+    ("interactive", "interactive (.zshenv + .zshrc)", ["-ic", "exit"]),
+    ("full", "full login shell", ["-ilc", "exit"]),
+]
+MAX_RUN_SECONDS = 15
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="dotfiles-benchmark",
+        description="Benchmark zsh startup for the current dotfiles environment.",
+    )
+    parser.add_argument(
+        "--runs",
+        type=int,
+        default=10,
+        help="number of measured runs per mode (default: 10)",
+    )
+    parser.add_argument(
+        "--warmup",
+        type=int,
+        default=2,
+        help="number of warmup runs per mode (default: 2)",
+    )
+    parser.add_argument(
+        "--shell",
+        default="zsh",
+        help="shell executable to benchmark (default: zsh)",
+    )
+    parser.add_argument(
+        "--no-local",
+        action="store_true",
+        help="disable loading ~/.config/zsh.local during benchmark runs",
+    )
+
+    args = parser.parse_args()
+    if args.runs < 1:
+        parser.error("--runs must be at least 1")
+    if args.warmup < 0:
+        parser.error("--warmup cannot be negative")
+    return args
+
+
+def resolve_shell(shell_name: str) -> str:
+    resolved = shutil.which(shell_name)
+    if resolved:
+        return resolved
+
+    if os.path.isabs(shell_name) and os.access(shell_name, os.X_OK):
+        return shell_name
+
+    raise SystemExit(f"error: shell not found or not executable: {shell_name}")
+
+
+def run_shell(shell_path: str, shell_args: list[str], env: dict[str, str]) -> float:
+    if any(arg.startswith("-") and "i" in arg for arg in shell_args):
+        return run_interactive_shell(shell_path, shell_args, env)
+
+    return run_plain_shell(shell_path, shell_args, env)
+
+
+def run_plain_shell(shell_path: str, shell_args: list[str], env: dict[str, str]) -> float:
+    start = time.perf_counter()
+    try:
+        completed = subprocess.run(
+            [shell_path, *shell_args],
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+            timeout=MAX_RUN_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"timed out after {MAX_RUN_SECONDS}s") from exc
+    duration_ms = (time.perf_counter() - start) * 1000.0
+
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        if stderr:
+            raise RuntimeError(stderr)
+        raise RuntimeError(f"process exited with status {completed.returncode}")
+
+    return duration_ms
+
+
+def run_interactive_shell(shell_path: str, shell_args: list[str], env: dict[str, str]) -> float:
+    master_fd, slave_fd = os.openpty()
+    output = bytearray()
+
+    try:
+        start = time.perf_counter()
+        deadline = start + MAX_RUN_SECONDS
+        process = subprocess.Popen(
+            [shell_path, *shell_args],
+            env=env,
+            stdin=slave_fd,
+            stdout=slave_fd,
+            stderr=slave_fd,
+            close_fds=True,
+        )
+        os.close(slave_fd)
+        slave_fd = None
+
+        while True:
+            if process.poll() is not None:
+                break
+
+            if time.perf_counter() >= deadline:
+                process.kill()
+                process.wait()
+                raise RuntimeError(f"timed out after {MAX_RUN_SECONDS}s")
+
+            ready, _, _ = select.select([master_fd], [], [], 0.05)
+            if ready:
+                try:
+                    chunk = os.read(master_fd, 4096)
+                except OSError:
+                    chunk = b""
+                if not chunk:
+                    break
+                output.extend(chunk)
+
+        while True:
+            ready, _, _ = select.select([master_fd], [], [], 0)
+            if not ready:
+                break
+            try:
+                chunk = os.read(master_fd, 4096)
+            except OSError:
+                chunk = b""
+            if not chunk:
+                break
+            output.extend(chunk)
+
+        return_code = process.wait()
+        duration_ms = (time.perf_counter() - start) * 1000.0
+    finally:
+        os.close(master_fd)
+        if slave_fd is not None:
+            os.close(slave_fd)
+
+    if return_code != 0:
+        stderr = output.decode(errors="replace").strip()
+        if stderr:
+            raise RuntimeError(stderr)
+        raise RuntimeError(f"process exited with status {return_code}")
+
+    return duration_ms
+
+
+def benchmark_mode(
+    shell_path: str,
+    shell_args: list[str],
+    runs: int,
+    warmup: int,
+    disable_local: bool,
+) -> list[float]:
+    env = os.environ.copy()
+    if disable_local:
+        env["ZSH_LOAD_LOCAL_CONFIG"] = "0"
+    env.setdefault("TERM", "xterm-256color")
+
+    for _ in range(warmup):
+        run_shell(shell_path, shell_args, env)
+
+    return [run_shell(shell_path, shell_args, env) for _ in range(runs)]
+
+
+def print_results(results: list[tuple[str, str, list[float]]]) -> None:
+    print("Zsh Startup Benchmark")
+    print("")
+    print(f"{'mode':<28} {'mean':>10} {'median':>10} {'min':>10} {'max':>10}")
+    for _, label, samples in results:
+        print(
+            f"{label:<28}"
+            f" {statistics.mean(samples):>9.1f}ms"
+            f" {statistics.median(samples):>9.1f}ms"
+            f" {min(samples):>9.1f}ms"
+            f" {max(samples):>9.1f}ms"
+        )
+
+
+def main() -> int:
+    args = parse_args()
+    shell_path = resolve_shell(args.shell)
+
+    print("Benchmarking current zsh startup...")
+    print(f"shell: {shell_path}")
+    print(f"runs: {args.runs}")
+    print(f"warmup: {args.warmup}")
+    print(f"local config: {'disabled' if args.no_local else 'enabled'}")
+    print("")
+
+    results = []
+    for mode_name, label, shell_args in MODES:
+        try:
+            samples = benchmark_mode(
+                shell_path,
+                shell_args,
+                args.runs,
+                args.warmup,
+                args.no_local,
+            )
+        except RuntimeError as exc:
+            print(f"error: {mode_name} benchmark failed: {exc}", file=sys.stderr)
+            return 1
+
+        results.append((mode_name, label, samples))
+
+    print_results(results)
+    print("")
+    print("Modes:")
+    print("  env         zsh -lc exit")
+    print("  interactive zsh -ic exit")
+    print("  full        zsh -ilc exit")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

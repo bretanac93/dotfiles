@@ -16,6 +16,7 @@ case "$state" in
             'install:Run init.sh to set up dotfiles'
             'update:Pull latest changes and re-run init'
             'doctor:Check if everything is working'
+            'benchmark:Benchmark zsh startup performance'
             'cleanup:Remove old backups'
             'uninstall:Remove dotfiles'
             'aliases:Show available aliases'
@@ -28,6 +29,13 @@ case "$state" in
         ;;
     args)
         case "$line[1]" in
+            benchmark)
+                _arguments \
+                    '--runs=[Number of measured runs per mode]:runs' \
+                    '--warmup=[Number of warmup runs per mode]:warmup' \
+                    '--shell=[Shell executable to benchmark]:shell:_command_names' \
+                    '--no-local[Disable loading ~/.config/zsh.local during benchmark runs]'
+                ;;
             uninstall|cleanup)
                 _arguments '--dry-run[Preview what would be removed]'
                 ;;

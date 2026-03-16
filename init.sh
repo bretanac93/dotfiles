@@ -71,6 +71,7 @@ fi
 link_path "$repo_root/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_path "$repo_root/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
 link_path "$repo_root/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
+link_path "$repo_root/bin/dotfiles-benchmark" "$HOME/.local/bin/dotfiles-benchmark" "dotfiles-benchmark"
 link_path "$repo_root/bin/dotfiles-uninstall" "$HOME/.local/bin/dotfiles-uninstall" "dotfiles-uninstall"
 link_path "$repo_root/bin/dotfiles-update" "$HOME/.local/bin/dotfiles-update" "dotfiles-update"
 link_path "$repo_root/bin/dotfiles-cleanup-backups" "$HOME/.local/bin/dotfiles-cleanup-backups" "dotfiles-cleanup-backups"

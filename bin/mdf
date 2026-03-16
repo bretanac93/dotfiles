@@ -22,6 +22,7 @@ Commands:
   install, i       Run init.sh to set up dotfiles
   update, u        Pull latest changes and re-run init
   doctor, d        Check if everything is working
+  benchmark, b     Benchmark zsh startup performance
   uninstall       Remove dotfiles (with --dry-run support)
   aliases, a      Show available aliases
   
@@ -37,6 +38,7 @@ Examples:
   mdf install              # First time setup
   mdf update               # Update to latest
   mdf doctor               # Check health
+  mdf benchmark            # Measure shell startup time
   mdf aliases              # Show all aliases
   mdf uninstall --dry-run  # Preview uninstall
 
@@ -119,7 +121,12 @@ case "${1:-}" in
         shift
         run_script "dotfiles-doctor" "$@"
         ;;
-        
+
+    benchmark|b)
+        shift
+        run_script "dotfiles-benchmark" "$@"
+        ;;
+         
     cleanup|c)
         shift
         run_script "dotfiles-cleanup-backups" "$@"
