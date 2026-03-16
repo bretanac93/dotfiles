@@ -4,25 +4,70 @@
 # Exports GPG keys from 1Password for standard GPG signing
 #
 
-set -e
+set -euo pipefail
+
+resolve_script_path() {
+    local source="${BASH_SOURCE[0]}"
+    local source_dir
+
+    if [[ "$source" != */* ]]; then
+        source="$(command -v -- "$source")"
+    fi
+
+    while [[ -L "$source" ]]; do
+        source_dir="$(cd -P -- "$(dirname -- "$source")" && pwd)"
+        source="$(readlink "$source")"
+        if [[ "$source" != /* ]]; then
+            source="$source_dir/$source"
+        fi
+    done
+
+    printf '%s\n' "$source"
+}
+
+SCRIPT_PATH="$(resolve_script_path)"
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "$SCRIPT_PATH")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 LOCAL_CONFIG_DIR="$HOME/.config/git"
 LOCAL_CONFIG_FILE="$LOCAL_CONFIG_DIR/config.local"
-TEMPLATE_FILE="$PWD/git/gitconfig.local.tpl"
+TEMPLATE_FILE="$REPO_ROOT/git/gitconfig.local.tpl"
 GPG_DIR="$HOME/.gnupg"
+GPG_CONFIG_FILE="$GPG_DIR/gpg.conf"
+GPG_CONFIG_SOURCE="$REPO_ROOT/git/gpg.conf"
 
-write_op_gpg_field() {
+TEMP_FILES=()
+
+cleanup() {
+    if ((${#TEMP_FILES[@]} > 0)); then
+        rm -f "${TEMP_FILES[@]}"
+    fi
+}
+
+trap cleanup EXIT INT TERM
+
+make_temp_file() {
+    local temp_file
+
+    temp_file=$(mktemp)
+    TEMP_FILES+=("$temp_file")
+    printf '%s\n' "$temp_file"
+}
+
+write_op_field() {
     local item_json_file="$1"
     local field_label="$2"
     local output_file="$3"
+    local mode="${4:-text}"
 
-    python3 - "$item_json_file" "$field_label" "$output_file" <<'PY'
+    python3 - "$item_json_file" "$field_label" "$output_file" "$mode" <<'PY'
 import json
 import pathlib
 import re
 import sys
 
-item_json_file, field_label, output_file = sys.argv[1:4]
+item_json_file, field_label, output_file, mode = sys.argv[1:5]
+
 with open(item_json_file, encoding="utf-8") as fh:
     data = json.load(fh)
 
@@ -36,16 +81,16 @@ if not value:
     sys.stderr.write(f"Missing 1Password field: {field_label}\n")
     sys.exit(1)
 
-value = value.rstrip("\n")
-match = re.fullmatch(
-    r"(-----BEGIN PGP (?:PRIVATE|PUBLIC) KEY BLOCK-----)\s+(.*)\s+(-----END PGP (?:PRIVATE|PUBLIC) KEY BLOCK-----)",
-    value,
-    re.S,
-)
-
-if match and value.count("\n") <= 1:
-    body = match.group(2).strip().replace(" ", "\n")
-    value = f"{match.group(1)}\n\n{body}\n{match.group(3)}\n"
+if mode == "armored-pgp":
+    value = value.rstrip("\n")
+    match = re.fullmatch(
+        r"(-----BEGIN PGP (?:PRIVATE|PUBLIC) KEY BLOCK-----)\s+(.*)\s+(-----END PGP (?:PRIVATE|PUBLIC) KEY BLOCK-----)",
+        value,
+        re.S,
+    )
+    if match and value.count("\n") <= 1:
+        body = match.group(2).strip().replace(" ", "\n")
+        value = f"{match.group(1)}\n\n{body}\n{match.group(3)}\n"
 elif not value.endswith("\n"):
     value += "\n"
 
@@ -62,6 +107,7 @@ import json
 import sys
 
 item_json_file, field_label = sys.argv[1:3]
+
 with open(item_json_file, encoding="utf-8") as fh:
     data = json.load(fh)
 
@@ -79,68 +125,54 @@ PY
 
 echo "Setting up local git configuration with GPG signing..."
 
-# Create directories
-mkdir -p "$LOCAL_CONFIG_DIR"
-mkdir -p "$GPG_DIR"
+mkdir -p "$LOCAL_CONFIG_DIR" "$GPG_DIR"
 chmod 700 "$GPG_DIR"
 
-# Check if template exists
 if [[ ! -f "$TEMPLATE_FILE" ]]; then
     echo "❌ Error: Template file not found at $TEMPLATE_FILE"
     exit 1
 fi
 
-# Check if 1Password CLI is available and signed in
-if command -v op &> /dev/null && op account list &> /dev/null; then
+if command -v op >/dev/null 2>&1 && op account list >/dev/null 2>&1; then
     echo "1Password CLI detected and signed in."
     echo ""
-    
-    # Export the GPG private key from 1Password
     echo "Exporting GPG keys from 1Password..."
-    
-    ITEM_JSON_FILE=$(mktemp)
-    PRIVATE_KEY_FILE=$(mktemp)
-    PUBLIC_KEY_FILE=$(mktemp)
-    
+
+    ITEM_JSON_FILE=$(make_temp_file)
+    PRIVATE_KEY_FILE=$(make_temp_file)
+    PUBLIC_KEY_FILE=$(make_temp_file)
+
     if op item get "git-signing-config" --format json > "$ITEM_JSON_FILE" 2>/dev/null && \
-       write_op_gpg_field "$ITEM_JSON_FILE" "private_key" "$PRIVATE_KEY_FILE" && \
-       write_op_gpg_field "$ITEM_JSON_FILE" "public_key" "$PUBLIC_KEY_FILE"; then
-        
-        # Import keys into GPG
+        write_op_field "$ITEM_JSON_FILE" "private_key" "$PRIVATE_KEY_FILE" "armored-pgp" && \
+        write_op_field "$ITEM_JSON_FILE" "public_key" "$PUBLIC_KEY_FILE" "armored-pgp"; then
         echo "Importing GPG private key..."
         if ! PRIVATE_IMPORT_OUTPUT=$(gpg --batch --import "$PRIVATE_KEY_FILE" 2>&1); then
             echo "❌ Failed to import private key from 1Password"
             echo "$PRIVATE_IMPORT_OUTPUT"
-            rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
             exit 1
         fi
-        
+
         echo "Importing GPG public key..."
         if ! PUBLIC_IMPORT_OUTPUT=$(gpg --batch --import "$PUBLIC_KEY_FILE" 2>&1); then
             echo "❌ Failed to import public key from 1Password"
             echo "$PUBLIC_IMPORT_OUTPUT"
-            rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
             exit 1
         fi
-        
-        # Get the key ID
-        KEY_ID=$(read_op_field "$ITEM_JSON_FILE" "key_id" 2>/dev/null || echo "")
+
+        KEY_ID=$(read_op_field "$ITEM_JSON_FILE" "key_id" 2>/dev/null || true)
         if [[ -z "$KEY_ID" ]]; then
             echo "❌ Failed to read key_id from 1Password"
-            rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
             exit 1
         fi
 
         if ! gpg --list-secret-keys --keyid-format LONG "$KEY_ID" >/dev/null 2>&1; then
             echo "❌ Secret key $KEY_ID is not available after import"
             echo "   Update the 'git-signing-config' item so key_id matches the exported private key"
-            rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
             exit 1
         fi
-        
-        # Set trust level to ultimate for the key (non-interactive)
+
         echo "Setting trust level for key $KEY_ID..."
-        (gpg --batch --yes --command-fd 0 --status-fd 2 --edit-key "$KEY_ID" <<EOF
+        (gpg --batch --yes --command-fd 0 --status-fd 2 --edit-key "$KEY_ID" <<'EOF'
 trust
 5
 y
@@ -149,28 +181,24 @@ EOF
         ) 2>/dev/null || {
             echo "⚠️  Warning: Could not set trust level automatically"
             echo "   You may need to run: gpg --edit-key $KEY_ID"
-            echo "   Then: trust → 5 → y → quit"
+            echo "   Then: trust -> 5 -> y -> quit"
         }
-        
-    # Clean up temp files
-    rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
-    
-    echo "✅ GPG keys imported successfully"
-    echo ""
-    
-    # Ensure gpg.conf is in place for terminal signing
-    if [[ -f "$PWD/git/gpg.conf" ]] && [[ ! -L "$HOME/.gnupg/gpg.conf" ]]; then
-        echo "Linking gpg.conf for terminal-based signing..."
-        ln -sf "$PWD/git/gpg.conf" "$HOME/.gnupg/gpg.conf"
-    fi
+
+        echo "✅ GPG keys imported successfully"
+        echo ""
+
+        if [[ -f "$GPG_CONFIG_SOURCE" ]]; then
+            if [[ ! -L "$GPG_CONFIG_FILE" ]] || [[ "$(readlink "$GPG_CONFIG_FILE" 2>/dev/null || true)" != "$GPG_CONFIG_SOURCE" ]]; then
+                echo "Linking gpg.conf for terminal-based signing..."
+                ln -sf "$GPG_CONFIG_SOURCE" "$GPG_CONFIG_FILE"
+            fi
+        fi
     else
         echo "❌ Failed to export GPG keys from 1Password"
         echo "   Make sure the 'git-signing-config' item exists with 'private_key' and 'public_key' fields"
-        rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
         exit 1
     fi
-    
-    # Use op inject to generate the config file
+
     echo "Generating git config from template..."
     if op inject -f -i "$TEMPLATE_FILE" -o "$LOCAL_CONFIG_FILE"; then
         echo ""
@@ -179,19 +207,16 @@ EOF
         echo "❌ Failed to generate config from template"
         exit 1
     fi
-    
 else
     echo "1Password CLI not available or not signed in."
     echo "Creating config file manually..."
     echo ""
-    
-    # Get user info manually
+
     read -rp "Enter your git user.name: " GIT_NAME
     read -rp "Enter your git user.email: " GIT_EMAIL
     read -rp "Enter your GPG key ID (e.g., F6BCB6B1): " GIT_SIGNINGKEY
-    
-    # Create the config file
-    cat > "$LOCAL_CONFIG_FILE" << EOF
+
+    cat > "$LOCAL_CONFIG_FILE" <<EOF
 # Local git configuration - machine specific
 # This file is NOT shared across machines
 # Generated manually (1Password CLI not available)
@@ -207,27 +232,27 @@ else
 [commit]
 	gpgsign = true
 EOF
-    
-echo ""
-echo "✅ Local git config created at: $LOCAL_CONFIG_FILE"
-echo ""
-echo "⚠️  IMPORTANT: Your GPG key has a passphrase. When signing commits,"
-echo "   GPG will prompt you to enter it (via terminal, no GUI)."
-echo ""
-echo "To verify your setup, run:"
-echo "  git config --get user.name"
-echo "  git config --get user.email"
-echo "  git config --get user.signingkey"
-echo ""
-echo "To list your GPG keys:"
-echo "  gpg --list-secret-keys --keyid-format=short"
-echo ""
-echo "To test signing (you'll be prompted for passphrase):"
-echo "  git commit --allow-empty -m \"Test GPG signing\""
-echo "  git log --show-signature -1"
-echo ""
-echo "To make signing easier, you can cache your passphrase:"
-echo "  gpg --edit-key $GIT_SIGNINGKEY"
-echo "  Then: passwd → (enter new empty passphrase) → save"
-echo "  (Only do this if your machine is secure and you trust it)"
+
+    echo ""
+    echo "✅ Local git config created at: $LOCAL_CONFIG_FILE"
+    echo ""
+    echo "⚠️  IMPORTANT: Your GPG key has a passphrase. When signing commits,"
+    echo "   GPG will prompt you to enter it (via terminal, no GUI)."
+    echo ""
+    echo "To verify your setup, run:"
+    echo "  git config --get user.name"
+    echo "  git config --get user.email"
+    echo "  git config --get user.signingkey"
+    echo ""
+    echo "To list your GPG keys:"
+    echo "  gpg --list-secret-keys --keyid-format=short"
+    echo ""
+    echo "To test signing (you'll be prompted for passphrase):"
+    echo "  git commit --allow-empty -m \"Test GPG signing\""
+    echo "  git log --show-signature -1"
+    echo ""
+    echo "To make signing easier, you can cache your passphrase:"
+    echo "  gpg --edit-key $GIT_SIGNINGKEY"
+    echo "  Then: passwd -> (enter new empty passphrase) -> save"
+    echo "  (Only do this if your machine is secure and you trust it)"
 fi

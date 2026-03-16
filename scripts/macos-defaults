@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Apply macOS system defaults for better developer experience
-# Usage: ./macos-defaults.sh [--check]
+# Usage: macos-defaults [--check]
 
 set -euo pipefail
 

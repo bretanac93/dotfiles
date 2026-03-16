@@ -2,81 +2,79 @@
 # Check if dependencies from Brewfile are installed
 # Usage: check-deps [brewfile_path]
 
-local brewfile="${1:-$(dirname $0:h)/Brewfile}"
+set -euo pipefail
+
+script_dir="${0:A:h}"
+repo_root="${script_dir:h}"
+brewfile="${1:-$repo_root/Brewfile}"
+
+typeset -a missing_deps=()
+
+package_installed() {
+  local pkg="$1"
+
+  case "$pkg" in
+    zsh-fast-syntax-highlighting)
+      local -a fsh_paths=(
+        "/opt/homebrew/share/zsh-fast-syntax-highlighting"
+        "/usr/local/share/zsh-fast-syntax-highlighting"
+      )
+
+      if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+        fsh_paths+=("${HOMEBREW_PREFIX}/share/zsh-fast-syntax-highlighting")
+      fi
+
+      local fsh_path
+      for fsh_path in "${fsh_paths[@]}"; do
+        if [[ -r "$fsh_path/fast-syntax-highlighting.plugin.zsh" ]]; then
+          return 0
+        fi
+      done
+      return 1
+      ;;
+    neovim)
+      command -v nvim >/dev/null 2>&1
+      ;;
+    gnupg)
+      command -v gpg >/dev/null 2>&1
+      ;;
+    ripgrep)
+      command -v rg >/dev/null 2>&1
+      ;;
+    *)
+      command -v "$pkg" >/dev/null 2>&1
+      ;;
+  esac
+}
 
 if [[ ! -r "$brewfile" ]]; then
   print "Error: Brewfile not found: $brewfile" >&2
   return 1
 fi
 
-local missing_deps=()
-
 while IFS= read -r line; do
-  # Skip comments and empty lines
   [[ "$line" =~ ^[[:space:]]*# ]] && continue
-  [[ -z "$line" ]] && continue
-  
-  # Extract package name from brew "package" lines
+  [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+
   if [[ "$line" =~ ^brew[[:space:]]+\"([^\"]+)\" ]]; then
-    local pkg="${match[1]}"
-    
-    # Check if package is installed
-    case "$pkg" in
-      zsh-fast-syntax-highlighting)
-        # Plugin file check
-        local fsh_found=0
-        local -a fsh_paths=(
-          "/opt/homebrew/share/zsh-fast-syntax-highlighting"
-          "/usr/local/share/zsh-fast-syntax-highlighting"
-          "${HOMEBREW_PREFIX:-}/share/zsh-fast-syntax-highlighting"
-        )
-        for fsh_path in $fsh_paths; do
-          if [[ -r "$fsh_path/fast-syntax-highlighting.plugin.zsh" ]]; then
-            fsh_found=1
-            break
-          fi
-        done
-        (( ! fsh_found )) && missing_deps+=("$pkg")
-        ;;
-      neovim)
-        # Command is 'nvim'
-        if ! command -v nvim &>/dev/null; then
-          missing_deps+=("$pkg")
-        fi
-        ;;
-      gnupg)
-        # Command is 'gpg'
-        if ! command -v gpg &>/dev/null; then
-          missing_deps+=("$pkg")
-        fi
-        ;;
-      ripgrep)
-        # Command is 'rg'
-        if ! command -v rg &>/dev/null; then
-          missing_deps+=("$pkg")
-        fi
-        ;;
-      *)
-        # Standard case: package name matches command
-        if ! command -v "$pkg" &>/dev/null; then
-          missing_deps+=("$pkg")
-        fi
-        ;;
-    esac
+    pkg="${match[1]}"
+    if ! package_installed "$pkg"; then
+      missing_deps+=("$pkg")
+    fi
   fi
 done < "$brewfile"
 
 if (( ${#missing_deps} > 0 )); then
   print ""
   print "⚠️  Missing dependencies from Brewfile:"
-  for dep in $missing_deps; do
+  for dep in "${missing_deps[@]}"; do
     print "  - $dep"
   done
   print ""
   print "Install them with:"
   print "  brew bundle install --file=$brewfile"
   return 1
-else
-  print "✅ All dependencies from Brewfile installed"
-  return 0
 fi
+
+print "✅ All dependencies from Brewfile installed"
+return 0

@@ -4,19 +4,137 @@
 # Exports SSH keys to ~/.ssh/ with proper permissions
 #
 
-set -e
+set -euo pipefail
+
+resolve_script_path() {
+    local source="${BASH_SOURCE[0]}"
+    local source_dir
+
+    if [[ "$source" != */* ]]; then
+        source="$(command -v -- "$source")"
+    fi
+
+    while [[ -L "$source" ]]; do
+        source_dir="$(cd -P -- "$(dirname -- "$source")" && pwd)"
+        source="$(readlink "$source")"
+        if [[ "$source" != /* ]]; then
+            source="$source_dir/$source"
+        fi
+    done
+
+    printf '%s\n' "$source"
+}
+
+SCRIPT_PATH="$(resolve_script_path)"
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "$SCRIPT_PATH")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 SSH_DIR="$HOME/.ssh"
 SSH_CONFIG_FILE="$SSH_DIR/config"
+SSH_CONFIG_SOURCE="$REPO_ROOT/ssh/config"
+KEY_TITLE="Legacy SSH key"
+
+TEMP_FILES=()
+
+cleanup() {
+    if ((${#TEMP_FILES[@]} > 0)); then
+        rm -f "${TEMP_FILES[@]}"
+    fi
+}
+
+trap cleanup EXIT INT TERM
+
+make_temp_file() {
+    local temp_file
+
+    temp_file=$(mktemp)
+    TEMP_FILES+=("$temp_file")
+    printf '%s\n' "$temp_file"
+}
+
+write_op_field() {
+    local item_json_file="$1"
+    local field_label="$2"
+    local output_file="$3"
+
+    python3 - "$item_json_file" "$field_label" "$output_file" <<'PY'
+import json
+import pathlib
+import sys
+
+item_json_file, field_label, output_file = sys.argv[1:4]
+
+with open(item_json_file, encoding="utf-8") as fh:
+    data = json.load(fh)
+
+for field in data.get("fields", []):
+    if field.get("label") == field_label:
+        value = field.get("value") or ""
+        if not value:
+            break
+        if not value.endswith("\n"):
+            value += "\n"
+        pathlib.Path(output_file).write_text(value, encoding="utf-8")
+        sys.exit(0)
+
+sys.stderr.write(f"Missing 1Password field: {field_label}\n")
+sys.exit(1)
+PY
+}
+
+read_op_field() {
+    local item_json_file="$1"
+    local field_label="$2"
+
+    python3 - "$item_json_file" "$field_label" <<'PY'
+import json
+import sys
+
+item_json_file, field_label = sys.argv[1:3]
+
+with open(item_json_file, encoding="utf-8") as fh:
+    data = json.load(fh)
+
+for field in data.get("fields", []):
+    if field.get("label") == field_label:
+        value = field.get("value") or ""
+        if value:
+            print(value)
+            sys.exit(0)
+        break
+
+sys.exit(1)
+PY
+}
+
+private_key_name_for_type() {
+    local key_type="$1"
+
+    case "$key_type" in
+        rsa)
+            printf 'id_rsa\n'
+            ;;
+        ed25519)
+            printf 'id_ed25519\n'
+            ;;
+        ecdsa)
+            printf 'id_ecdsa\n'
+            ;;
+        dsa)
+            printf 'id_dsa\n'
+            ;;
+        *)
+            printf 'id_%s\n' "$key_type"
+            ;;
+    esac
+}
 
 echo "Setting up SSH keys from 1Password..."
 
-# Create SSH directory with proper permissions
 mkdir -p "$SSH_DIR"
 chmod 700 "$SSH_DIR"
 
-# Check if 1Password CLI is available and signed in
-if ! command -v op &> /dev/null || ! op account list &> /dev/null; then
+if ! command -v op >/dev/null 2>&1 || ! op account list >/dev/null 2>&1; then
     echo "❌ 1Password CLI not available or not signed in."
     echo "   Run 'op signin' first or install 1Password CLI."
     exit 1
@@ -25,11 +143,8 @@ fi
 echo "1Password CLI detected and signed in."
 echo ""
 
-# Export the Legacy SSH key specifically
-KEY_TITLE="Legacy SSH key"
-KEY_ID=$(op item list --categories SSHKEY 2>/dev/null | grep "$KEY_TITLE" | awk '{print $1}')
-
-if [[ -z "$KEY_ID" ]]; then
+ITEM_JSON_FILE=$(make_temp_file)
+if ! op item get "$KEY_TITLE" --format json > "$ITEM_JSON_FILE" 2>/dev/null; then
     echo "❌ Could not find '$KEY_TITLE' in 1Password."
     echo ""
     echo "Available SSH keys:"
@@ -40,47 +155,47 @@ fi
 echo "Found: $KEY_TITLE"
 echo ""
 
-# Export private key to id_rsa (Legacy SSH key is RSA type)
-PRIVATE_KEY_FILE="$SSH_DIR/id_rsa"
+KEY_TYPE=$(read_op_field "$ITEM_JSON_FILE" "key type" 2>/dev/null || echo "rsa")
+PRIVATE_KEY_BASENAME=$(private_key_name_for_type "$KEY_TYPE")
+PRIVATE_KEY_FILE="$SSH_DIR/$PRIVATE_KEY_BASENAME"
+PUBLIC_KEY_FILE="$PRIVATE_KEY_FILE.pub"
+PRIVATE_KEY_TEMP=$(make_temp_file)
+PUBLIC_KEY_TEMP=$(make_temp_file)
+
 echo "Exporting private key to $PRIVATE_KEY_FILE..."
-if op item get "$KEY_ID" --field "private key" --reveal > "$PRIVATE_KEY_FILE.tmp" 2>/dev/null; then
-    # Clean up 1Password export: remove quotes, leading/trailing whitespace
-    sed 's/^"//;s/"$//' "$PRIVATE_KEY_FILE.tmp" | sed '/./,$!d' > "$PRIVATE_KEY_FILE"
-    rm -f "$PRIVATE_KEY_FILE.tmp"
-    chmod 600 "$PRIVATE_KEY_FILE"
+if write_op_field "$ITEM_JSON_FILE" "private key" "$PRIVATE_KEY_TEMP" && [[ -s "$PRIVATE_KEY_TEMP" ]]; then
+    chmod 600 "$PRIVATE_KEY_TEMP"
+    mv "$PRIVATE_KEY_TEMP" "$PRIVATE_KEY_FILE"
     echo "  ✅ Private key saved"
 else
     echo "  ❌ Failed to export private key"
     exit 1
 fi
 
-# Export public key
-PUBLIC_KEY_FILE="$SSH_DIR/id_rsa.pub"
 echo "Exporting public key to $PUBLIC_KEY_FILE..."
-if op item get "$KEY_ID" --field "public key" > "$PUBLIC_KEY_FILE" 2>/dev/null; then
-    chmod 644 "$PUBLIC_KEY_FILE"
+if write_op_field "$ITEM_JSON_FILE" "public key" "$PUBLIC_KEY_TEMP" && [[ -s "$PUBLIC_KEY_TEMP" ]]; then
+    chmod 644 "$PUBLIC_KEY_TEMP"
+    mv "$PUBLIC_KEY_TEMP" "$PUBLIC_KEY_FILE"
     echo "  ✅ Public key saved"
 else
     echo "  ❌ Failed to export public key"
     exit 1
 fi
 
-# Link SSH config if it doesn't exist
-if [[ -f "$PWD/ssh/config" ]]; then
-    if [[ ! -f "$SSH_CONFIG_FILE" ]] || [[ ! -L "$SSH_CONFIG_FILE" ]]; then
+if [[ -f "$SSH_CONFIG_SOURCE" ]]; then
+    if [[ -L "$SSH_CONFIG_FILE" ]] && [[ "$(readlink "$SSH_CONFIG_FILE")" == "$SSH_CONFIG_SOURCE" ]]; then
+        echo ""
+        echo "ℹ️  SSH config already linked"
+    else
         echo ""
         echo "Linking SSH config..."
-        # Backup existing config if present
-        if [[ -f "$SSH_CONFIG_FILE" ]] && [[ ! -L "$SSH_CONFIG_FILE" ]]; then
+        if [[ -e "$SSH_CONFIG_FILE" ]] && [[ ! -L "$SSH_CONFIG_FILE" ]]; then
             mv "$SSH_CONFIG_FILE" "$SSH_CONFIG_FILE.backup.$(date +%Y%m%d)"
             echo "  📦 Backed up existing config"
         fi
-        ln -sf "$PWD/ssh/config" "$SSH_CONFIG_FILE"
+        ln -sf "$SSH_CONFIG_SOURCE" "$SSH_CONFIG_FILE"
         chmod 644 "$SSH_CONFIG_FILE"
         echo "  ✅ SSH config linked to $SSH_CONFIG_FILE"
-    else
-        echo ""
-        echo "ℹ️  SSH config already linked"
     fi
 fi
 
