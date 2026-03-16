@@ -11,6 +11,72 @@ LOCAL_CONFIG_FILE="$LOCAL_CONFIG_DIR/config.local"
 TEMPLATE_FILE="$PWD/git/gitconfig.local.tpl"
 GPG_DIR="$HOME/.gnupg"
 
+write_op_gpg_field() {
+    local item_json_file="$1"
+    local field_label="$2"
+    local output_file="$3"
+
+    python3 - "$item_json_file" "$field_label" "$output_file" <<'PY'
+import json
+import pathlib
+import re
+import sys
+
+item_json_file, field_label, output_file = sys.argv[1:4]
+with open(item_json_file, encoding="utf-8") as fh:
+    data = json.load(fh)
+
+value = None
+for field in data.get("fields", []):
+    if field.get("label") == field_label:
+        value = field.get("value") or ""
+        break
+
+if not value:
+    sys.stderr.write(f"Missing 1Password field: {field_label}\n")
+    sys.exit(1)
+
+value = value.rstrip("\n")
+match = re.fullmatch(
+    r"(-----BEGIN PGP (?:PRIVATE|PUBLIC) KEY BLOCK-----)\s+(.*)\s+(-----END PGP (?:PRIVATE|PUBLIC) KEY BLOCK-----)",
+    value,
+    re.S,
+)
+
+if match and value.count("\n") <= 1:
+    body = match.group(2).strip().replace(" ", "\n")
+    value = f"{match.group(1)}\n\n{body}\n{match.group(3)}\n"
+elif not value.endswith("\n"):
+    value += "\n"
+
+pathlib.Path(output_file).write_text(value, encoding="utf-8")
+PY
+}
+
+read_op_field() {
+    local item_json_file="$1"
+    local field_label="$2"
+
+    python3 - "$item_json_file" "$field_label" <<'PY'
+import json
+import sys
+
+item_json_file, field_label = sys.argv[1:3]
+with open(item_json_file, encoding="utf-8") as fh:
+    data = json.load(fh)
+
+for field in data.get("fields", []):
+    if field.get("label") == field_label:
+        value = field.get("value") or ""
+        if value:
+            print(value)
+            sys.exit(0)
+        break
+
+sys.exit(1)
+PY
+}
+
 echo "Setting up local git configuration with GPG signing..."
 
 # Create directories
@@ -32,44 +98,62 @@ if command -v op &> /dev/null && op account list &> /dev/null; then
     # Export the GPG private key from 1Password
     echo "Exporting GPG keys from 1Password..."
     
+    ITEM_JSON_FILE=$(mktemp)
     PRIVATE_KEY_FILE=$(mktemp)
     PUBLIC_KEY_FILE=$(mktemp)
     
-    if op item get "git-signing-config" --field "private_key" --reveal > "$PRIVATE_KEY_FILE" 2>/dev/null && \
-       op item get "git-signing-config" --field "public_key" > "$PUBLIC_KEY_FILE" 2>/dev/null; then
+    if op item get "git-signing-config" --format json > "$ITEM_JSON_FILE" 2>/dev/null && \
+       write_op_gpg_field "$ITEM_JSON_FILE" "private_key" "$PRIVATE_KEY_FILE" && \
+       write_op_gpg_field "$ITEM_JSON_FILE" "public_key" "$PUBLIC_KEY_FILE"; then
         
         # Import keys into GPG
         echo "Importing GPG private key..."
-        gpg --batch --import "$PRIVATE_KEY_FILE" 2>/dev/null || {
-            echo "⚠️  Warning: Failed to import private key (may already exist)"
-        }
+        if ! PRIVATE_IMPORT_OUTPUT=$(gpg --batch --import "$PRIVATE_KEY_FILE" 2>&1); then
+            echo "❌ Failed to import private key from 1Password"
+            echo "$PRIVATE_IMPORT_OUTPUT"
+            rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+            exit 1
+        fi
         
         echo "Importing GPG public key..."
-        gpg --batch --import "$PUBLIC_KEY_FILE" 2>/dev/null || {
-            echo "⚠️  Warning: Failed to import public key (may already exist)"
-        }
+        if ! PUBLIC_IMPORT_OUTPUT=$(gpg --batch --import "$PUBLIC_KEY_FILE" 2>&1); then
+            echo "❌ Failed to import public key from 1Password"
+            echo "$PUBLIC_IMPORT_OUTPUT"
+            rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+            exit 1
+        fi
         
         # Get the key ID
-        KEY_ID=$(op item get "git-signing-config" --field "key_id" 2>/dev/null || echo "")
+        KEY_ID=$(read_op_field "$ITEM_JSON_FILE" "key_id" 2>/dev/null || echo "")
+        if [[ -z "$KEY_ID" ]]; then
+            echo "❌ Failed to read key_id from 1Password"
+            rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+            exit 1
+        fi
+
+        if ! gpg --list-secret-keys --keyid-format LONG "$KEY_ID" >/dev/null 2>&1; then
+            echo "❌ Secret key $KEY_ID is not available after import"
+            echo "   Update the 'git-signing-config' item so key_id matches the exported private key"
+            rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+            exit 1
+        fi
         
-        if [[ -n "$KEY_ID" ]]; then
-            # Set trust level to ultimate for the key (non-interactive)
-            echo "Setting trust level for key $KEY_ID..."
-            (gpg --batch --yes --command-fd 0 --status-fd 2 --edit-key "$KEY_ID" <<EOF
+        # Set trust level to ultimate for the key (non-interactive)
+        echo "Setting trust level for key $KEY_ID..."
+        (gpg --batch --yes --command-fd 0 --status-fd 2 --edit-key "$KEY_ID" <<EOF
 trust
 5
 y
 quit
 EOF
-) 2>/dev/null || {
-                echo "⚠️  Warning: Could not set trust level automatically"
-                echo "   You may need to run: gpg --edit-key $KEY_ID"
-                echo "   Then: trust → 5 → y → quit"
-            }
-        fi
+        ) 2>/dev/null || {
+            echo "⚠️  Warning: Could not set trust level automatically"
+            echo "   You may need to run: gpg --edit-key $KEY_ID"
+            echo "   Then: trust → 5 → y → quit"
+        }
         
     # Clean up temp files
-    rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+    rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
     
     echo "✅ GPG keys imported successfully"
     echo ""
@@ -82,7 +166,7 @@ EOF
     else
         echo "❌ Failed to export GPG keys from 1Password"
         echo "   Make sure the 'git-signing-config' item exists with 'private_key' and 'public_key' fields"
-        rm -f "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
+        rm -f "$ITEM_JSON_FILE" "$PRIVATE_KEY_FILE" "$PUBLIC_KEY_FILE"
         exit 1
     fi
     
@@ -143,6 +227,7 @@ echo "  git commit --allow-empty -m \"Test GPG signing\""
 echo "  git log --show-signature -1"
 echo ""
 echo "To make signing easier, you can cache your passphrase:"
-echo "  gpg --edit-key $KEY_ID"
+echo "  gpg --edit-key $GIT_SIGNINGKEY"
 echo "  Then: passwd → (enter new empty passphrase) → save"
 echo "  (Only do this if your machine is secure and you trust it)"
+fi

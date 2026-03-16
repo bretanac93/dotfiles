@@ -16,12 +16,16 @@ export LC_ALL="en_US.UTF-8"
 export DOCKER_HOST="unix://$HOME/.orbstack/run/docker.sock"
 export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 export GOPATH="${GOPATH:-$HOME/go}"
+export OPENCODEPATH="$HOME/.opencode"
+export LOCALBIN="$HOME/.local/bin"
 
 path=(
   "$GOPATH/bin"
+  "$OPENCODEPATH/bin"
   "$HOME/.composer/vendor/bin"
   "$HOME/.dotnet/tools"
   "$HOME/.cache/lm-studio/bin"
+  "$LOCALBIN"
   $path
 )
 
