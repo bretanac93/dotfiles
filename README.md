@@ -194,6 +194,17 @@ export PATH="$HOME/custom-tools:$PATH"
 export OPENAI_API_KEY="sk-..."
 ```
 
+Machine-specific login-shell overrides:
+
+```zsh
+# ~/.config/zsh.local/profile.<short-hostname>.zsh
+if [[ -S "$HOME/.colima/default/docker.sock" ]]; then
+  export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+fi
+```
+
+Use `env.zsh` for general local environment variables, `profile.zsh` or `profile.<short-hostname>.zsh` for login-shell overrides, and `rc.zsh` or `rc.<short-hostname>.zsh` for interactive-shell overrides. The short hostname is derived from `${HOST%%.*}`.
+
 Generated completions are stored in `~/.config/zsh.local/completions/`.
 
 ## Structure

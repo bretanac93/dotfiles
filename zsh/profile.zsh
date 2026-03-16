@@ -13,7 +13,11 @@ if [[ -r "$HOME/.orbstack/shell/init.zsh" ]]; then
 fi
 
 export LC_ALL="en_US.UTF-8"
-export DOCKER_HOST="unix://$HOME/.orbstack/run/docker.sock"
+
+if [[ -z "${DOCKER_HOST:-}" ]] && [[ -S "$HOME/.orbstack/run/docker.sock" ]]; then
+  export DOCKER_HOST="unix://$HOME/.orbstack/run/docker.sock"
+fi
+
 export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 export GOPATH="${GOPATH:-$HOME/go}"
 export OPENCODEPATH="$HOME/.opencode"
@@ -48,3 +52,5 @@ if [[ -n "${JAVA_HOME:-}" ]]; then
 fi
 
 export PATH
+
+_source_local_configs profile
