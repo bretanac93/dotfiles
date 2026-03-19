@@ -39,7 +39,7 @@ cd() {
     local depth=${#1}
     local target='..'
 
-    while (( depth > 3 )); do
+    while (( depth > 2 )); do
       target+='/..'
       (( depth-- ))
     done
