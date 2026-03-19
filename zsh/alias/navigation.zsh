@@ -33,3 +33,20 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias ......='cd ../../../../..'
 alias -- -='cd -'
+
+cd() {
+  if (( $# == 1 )) && [[ "$1" == ...* ]] && [[ "$1" != *[^.]* ]]; then
+    local depth=${#1}
+    local target='..'
+
+    while (( depth > 3 )); do
+      target+='/..'
+      (( depth-- ))
+    done
+
+    builtin cd "$target"
+    return
+  fi
+
+  builtin cd "$@"
+}
