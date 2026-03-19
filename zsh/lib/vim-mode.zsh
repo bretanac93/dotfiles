@@ -90,8 +90,16 @@ bindkey "^K" kill-line                  # Ctrl+k: delete to end
 bindkey "^U" backward-kill-line         # Ctrl+u: delete to beginning
 bindkey "^W" backward-kill-word         # Ctrl+w: delete word
 
-# Allow Ctrl+R for history search in insert mode
-bindkey "^R" history-incremental-search-backward
+# Keep Ctrl+R consistent across insert and normal modes.
+# Prefer fzf history when the widget is available, otherwise fall back to zsh's
+# incremental history search.
+if zle -l fzf-history-widget >/dev/null 2>&1; then
+  bindkey -M viins "^R" fzf-history-widget
+  bindkey -M vicmd "^R" fzf-history-widget
+else
+  bindkey -M viins "^R" history-incremental-search-backward
+  bindkey -M vicmd "^R" history-incremental-search-backward
+fi
 
 # Fix backspace in vi mode
 bindkey "^?" backward-delete-char
