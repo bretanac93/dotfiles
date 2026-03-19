@@ -64,6 +64,8 @@ Tools linked into `~/.local/bin/`:
 - `dotfiles-cleanup-backups` - prune old backup directories
 - `zsh-dotfiles` - launch an isolated zsh session using this repo
 
+`wb` creates a three-pane tmux layout with your editor, a shell, and an assistant pane. When the assistant is OpenCode, each `wb` launch picks its own port, exports `OPENCODE_PORT` into the panes it creates, and starts `opencode --port <port>` so the Neovim instance in that layout talks to the adjacent OpenCode session instead of a shared default port. Set `WB_OPENCODE_PORT` if you want to pin a specific port manually.
+
 ## Shell and Configs
 
 Tracked config includes:

@@ -30,6 +30,9 @@ usage() {
   print -u"$fd" "                  set the default right pane assistant"
   print -u"$fd" "                  supports: opencode, claude, codex"
   print -u"$fd" "                  falls back to opencode"
+  print -u"$fd" "  WB_OPENCODE_PORT"
+  print -u"$fd" "                  override the port used when the assistant is opencode"
+  print -u"$fd" "                  when unset, wb picks an available port automatically"
   print -u"$fd" ""
   print -u"$fd" "Examples:"
   print -u"$fd" "  ${script_name}"
@@ -106,6 +109,25 @@ resolve_assistant_command() {
   esac
 }
 
+pick_opencode_port() {
+  if [[ -n "${WB_OPENCODE_PORT:-}" ]]; then
+    if [[ "$WB_OPENCODE_PORT" != <-> ]]; then
+      print -u2 "WB_OPENCODE_PORT must be a number"
+      exit 1
+    fi
+
+    print -r -- "$WB_OPENCODE_PORT"
+    return
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    print -u2 "Missing required command: python3"
+    exit 1
+  fi
+
+  python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
+}
+
 assistant_command="$(resolve_assistant_command "${WB_DEFAULT_ASSISTANT:-opencode}")"
 editor_command="${WB_EDITOR:-${EDITOR:-nvim}}"
 editor_words=(${(z)editor_command})
@@ -166,6 +188,11 @@ workspace_name="$(sanitize_name "${target_dir:t}")"
 right_pane_width=38
 bottom_pane_height=22
 reuse_current_window=0
+opencode_port=""
+
+if [[ "$assistant_command" == "opencode" ]]; then
+  opencode_port="$(pick_opencode_port)"
+fi
 
 if [[ -n "${TMUX:-}" ]]; then
   session_name="$(tmux display-message -p '#S')"
@@ -185,14 +212,26 @@ fi
 
 window_id="${window_id:-$(tmux display-message -p -t "$top_left_pane" '#{window_id}')}"
 right_pane="$(tmux split-window -h -P -F '#{pane_id}' -t "$top_left_pane" -c "$target_dir" -p "$right_pane_width")"
-tmux split-window -v -t "$top_left_pane" -c "$target_dir" -p "$bottom_pane_height" >/dev/null
+bottom_left_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "$top_left_pane" -c "$target_dir" -p "$bottom_pane_height")"
 
 if (( reuse_current_window )) && [[ "$(tmux display-message -p -t "$top_left_pane" '#{pane_current_path}')" != "$target_dir" ]]; then
   tmux send-keys -t "$top_left_pane" "cd -- ${(q)target_dir}" C-m
 fi
 
+if [[ -n "$opencode_port" ]]; then
+  tmux send-keys -t "$top_left_pane" "export OPENCODE_PORT=${(q)opencode_port}" C-m
+  tmux send-keys -t "$bottom_left_pane" "export OPENCODE_PORT=${(q)opencode_port}" C-m
+  tmux send-keys -t "$right_pane" "export OPENCODE_PORT=${(q)opencode_port}" C-m
+fi
+
 tmux send-keys -t "$top_left_pane" "$editor_command" C-m
-tmux send-keys -t "$right_pane" "$assistant_command" C-m
+
+if [[ -n "$opencode_port" ]]; then
+  tmux send-keys -t "$right_pane" "opencode --port ${(q)opencode_port}" C-m
+else
+  tmux send-keys -t "$right_pane" "$assistant_command" C-m
+fi
+
 tmux select-pane -t "$top_left_pane"
 
 if [[ -n "${TMUX:-}" ]]; then
