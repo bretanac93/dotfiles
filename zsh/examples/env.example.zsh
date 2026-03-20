@@ -22,6 +22,9 @@
 # export EDITOR="vim"
 # export VISUAL="code --wait"
 
+# Store wb git worktrees somewhere else if you prefer
+# export WB_WORKTREE_ROOT="$HOME/Code/.worktrees"
+
 # Language-specific settings
 # export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
 # export GOPATH="$HOME/go"

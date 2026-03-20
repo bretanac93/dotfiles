@@ -1,4 +1,5 @@
 export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+export WB_WORKTREE_ROOT="${WB_WORKTREE_ROOT:-$HOME/.worktrees}"
 
 if [[ -r "$CARGO_HOME/env" ]]; then
   . "$CARGO_HOME/env"

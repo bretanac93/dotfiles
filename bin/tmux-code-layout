@@ -7,7 +7,7 @@ script_name="${0:t}"
 usage() {
   local fd="${1:-2}"
 
-  print -u"$fd" "Usage: ${script_name} [directory] [-c|--claude|-x|--codex|-o|--opencode]"
+  print -u"$fd" "Usage: ${script_name} [directory] [-c|--claude|-x|--codex|-o|--opencode] [-w|--with-worktree <branch>]"
   print -u"$fd" ""
   print -u"$fd" "Build a tmux coding layout for a folder:"
   print -u"$fd" "  top-left     editor command (default: nvim)"
@@ -21,6 +21,9 @@ usage() {
   print -u"$fd" "  -c, --claude    open Claude on the right"
   print -u"$fd" "  -x, --codex     open Codex on the right"
   print -u"$fd" "  -o, --opencode  open OpenCode on the right"
+  print -u"$fd" "  -w, --with-worktree <branch>"
+  print -u"$fd" "                  create or reuse a git worktree for <branch>"
+  print -u"$fd" "                  opens the matching directory inside that worktree"
   print -u"$fd" "  -h, --help      show this help"
   print -u"$fd" ""
   print -u"$fd" "Environment:"
@@ -33,11 +36,15 @@ usage() {
   print -u"$fd" "  WB_OPENCODE_PORT"
   print -u"$fd" "                  override the port used when the assistant is opencode"
   print -u"$fd" "                  when unset, wb picks an available port automatically"
+  print -u"$fd" "  WB_WORKTREE_ROOT"
+  print -u"$fd" "                  root directory for centralized git worktrees"
+  print -u"$fd" "                  defaults to $HOME/.worktrees"
   print -u"$fd" ""
   print -u"$fd" "Examples:"
   print -u"$fd" "  ${script_name}"
   print -u"$fd" "  ${script_name} ~/Code/my-project"
   print -u"$fd" "  ${script_name} -c ~/Code/my-project"
+  print -u"$fd" "  ${script_name} --with-worktree feature/my-branch ~/Code/my-project"
   print -u"$fd" "  WB_DEFAULT_ASSISTANT=claude ${script_name}"
   print -u"$fd" "  WB_EDITOR=vim ${script_name} -x"
 }
@@ -128,11 +135,119 @@ pick_opencode_port() {
   python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
 }
 
+branch_worktree_path() {
+  local repo_root="$1"
+  local branch_name="$2"
+  local line
+  local current_worktree=""
+  local current_branch=""
+
+  while IFS= read -r line; do
+    if [[ -z "$line" ]]; then
+      if [[ "$current_branch" == "refs/heads/$branch_name" && -n "$current_worktree" ]]; then
+        print -r -- "$current_worktree"
+        return 0
+      fi
+
+      current_worktree=""
+      current_branch=""
+      continue
+    fi
+
+    if [[ "$line" == worktree\ * ]]; then
+      current_worktree="${line#worktree }"
+    elif [[ "$line" == branch\ * ]]; then
+      current_branch="${line#branch }"
+    fi
+  done < <(git -C "$repo_root" worktree list --porcelain)
+
+  if [[ "$current_branch" == "refs/heads/$branch_name" && -n "$current_worktree" ]]; then
+    print -r -- "$current_worktree"
+  fi
+}
+
+default_worktree_root() {
+  print -r -- "${WB_WORKTREE_ROOT:-$HOME/.worktrees}"
+}
+
+worktree_repo_dir() {
+  local repo_root="$1"
+  local storage_root="$2"
+  local relative_repo_path=""
+
+  if [[ "$repo_root" == "$HOME" ]]; then
+    relative_repo_path="home"
+  elif [[ "$repo_root" == "$HOME"/* ]]; then
+    relative_repo_path="${repo_root#$HOME/}"
+  else
+    relative_repo_path="external/${repo_root#/}"
+  fi
+
+  print -r -- "$storage_root/$relative_repo_path"
+}
+
+resolve_worktree_target() {
+  local start_dir="$1"
+  local branch_name="$2"
+  local repo_root=""
+  local relative_subdir=""
+  local existing_worktree=""
+  local worktree_root=""
+  local storage_root=""
+  local repo_worktree_dir=""
+
+  if ! repo_root="$(git -C "$start_dir" rev-parse --show-toplevel 2>/dev/null)"; then
+    print -u2 "--with-worktree requires a directory inside a git repository"
+    exit 1
+  fi
+
+  repo_root="$(cd "$repo_root" && pwd -P)"
+
+  if ! git -C "$repo_root" check-ref-format --branch "$branch_name" >/dev/null 2>&1; then
+    print -u2 "Invalid branch name: $branch_name"
+    exit 1
+  fi
+
+  if [[ "$start_dir" != "$repo_root" ]]; then
+    relative_subdir="${start_dir#$repo_root/}"
+  fi
+
+  existing_worktree="$(branch_worktree_path "$repo_root" "$branch_name")"
+  if [[ -n "$existing_worktree" ]]; then
+    worktree_root="$existing_worktree"
+  else
+    storage_root="$(default_worktree_root)"
+    repo_worktree_dir="$(worktree_repo_dir "$repo_root" "$storage_root")"
+    worktree_root="$repo_worktree_dir/$branch_name"
+
+    if [[ -e "$worktree_root" ]]; then
+      print -u2 "Worktree path already exists: $worktree_root"
+      exit 1
+    fi
+
+    mkdir -p "$worktree_root:h"
+
+    if git -C "$repo_root" show-ref --verify --quiet "refs/heads/$branch_name"; then
+      git -C "$repo_root" worktree add "$worktree_root" "$branch_name" >/dev/null
+    else
+      git -C "$repo_root" worktree add -b "$branch_name" "$worktree_root" >/dev/null
+    fi
+  fi
+
+  if [[ -n "$relative_subdir" && -d "$worktree_root/$relative_subdir" ]]; then
+    print -r -- "$worktree_root/$relative_subdir"
+    return 0
+  fi
+
+  print -r -- "$worktree_root"
+}
+
 assistant_command="$(resolve_assistant_command "${WB_DEFAULT_ASSISTANT:-opencode}")"
 editor_command="${WB_EDITOR:-${EDITOR:-nvim}}"
 editor_words=(${(z)editor_command})
 editor_executable="${editor_words[1]:-}"
 target_dir=""
+worktree_branch=""
 
 if [[ -z "$editor_executable" ]]; then
   print -u2 "Editor command cannot be empty"
@@ -149,6 +264,26 @@ while (( $# > 0 )); do
       ;;
     -o|--opencode)
       assistant_command="opencode"
+      ;;
+    -w|--with-worktree)
+      shift
+
+      if (( $# == 0 )) || [[ "$1" == -* ]]; then
+        print -u2 "Missing branch name for --with-worktree"
+        usage
+        exit 1
+      fi
+
+      worktree_branch="$1"
+      ;;
+    --with-worktree=*)
+      worktree_branch="${1#*=}"
+
+      if [[ -z "$worktree_branch" ]]; then
+        print -u2 "Missing branch name for --with-worktree"
+        usage
+        exit 1
+      fi
       ;;
     -h|--help)
       usage 1
@@ -184,7 +319,20 @@ if [[ ! -d "$target_dir" ]]; then
 fi
 
 target_dir="$(cd "$target_dir" && pwd -P)"
-workspace_name="$(sanitize_name "${target_dir:t}")"
+worktree_root=""
+
+if [[ -n "$worktree_branch" ]]; then
+  require_command git
+  target_dir="$(resolve_worktree_target "$target_dir" "$worktree_branch")"
+  worktree_root="$(git -C "$target_dir" rev-parse --show-toplevel)"
+fi
+
+workspace_name_source="${target_dir:t}"
+if [[ -n "$worktree_root" ]]; then
+  workspace_name_source="${worktree_root:t}"
+fi
+
+workspace_name="$(sanitize_name "$workspace_name_source")"
 right_pane_width=38
 bottom_pane_height=22
 reuse_current_window=0

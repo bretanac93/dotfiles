@@ -38,6 +38,7 @@ print ""
 
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.worktrees"
 mkdir -p "$HOME/.config/zsh.local"
 mkdir -p "$HOME/.config/zsh.local/alias"
 mkdir -p "$HOME/.config/zsh.local/completions"
