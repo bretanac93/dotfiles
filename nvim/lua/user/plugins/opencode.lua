@@ -5,10 +5,10 @@ return {
 		{
 			"<leader>oa",
 			function()
-				require("opencode").ask("@this: ", { submit = true })
+				require("opencode").prompt("@this ")
 			end,
 			mode = { "n", "x" },
-			desc = "Ask OpenCode",
+			desc = "Send selection to OpenCode",
 		},
 		{
 			"<leader>os",
