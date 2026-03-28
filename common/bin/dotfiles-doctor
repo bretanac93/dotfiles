@@ -89,6 +89,9 @@ check_symlink "$COMMON_DIR/wallpaper.png" "$HOME/.config/wallpaper.png" "wallpap
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/hypr" ]]; then
     check_symlink "$REPO_ROOT/arch/hypr" "$HOME/.config/hypr" "hyprland"
 fi
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/waybar" ]]; then
+    check_symlink "$REPO_ROOT/arch/waybar" "$HOME/.config/waybar" "waybar"
+fi
 check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
 check_symlink "$COMMON_DIR/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
 

@@ -11,3 +11,6 @@ github-cli
 ripgrep
 gnupg
 deno
+hyprpaper
+hyprshutdown
+waybar

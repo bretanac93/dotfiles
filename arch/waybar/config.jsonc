@@ -1,0 +1,85 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 32,
+  "margin-top": 8,
+  "margin-left": 12,
+  "margin-right": 12,
+  "spacing": 8,
+
+  "modules-left": ["hyprland/workspaces"],
+  "modules-center": ["hyprland/window"],
+  "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "clock"],
+
+  "hyprland/workspaces": {
+    "active-only": false,
+    "all-outputs": false,
+    "disable-scroll": true,
+    "format": "{name}",
+    "persistent-workspaces": {
+      "*": 10
+    }
+  },
+
+  "hyprland/window": {
+    "format": "{class}",
+    "max-length": 48,
+    "separate-outputs": true,
+    "rewrite": {
+      "": "Desktop",
+      "com.mitchellh.ghostty": "Ghostty",
+      "firefox": "Firefox"
+    }
+  },
+
+  "pulseaudio": {
+    "format": "{volume}% {icon}",
+    "format-muted": "mute",
+    "format-icons": {
+      "default": ["vol", "vol", "vol"]
+    },
+    "scroll-step": 5,
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+
+  "network": {
+    "format-wifi": "wifi",
+    "format-ethernet": "eth",
+    "format-disconnected": "offline",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)",
+    "tooltip-format-ethernet": "{ifname}",
+    "tooltip-format-disconnected": "Disconnected"
+  },
+
+  "cpu": {
+    "format": "cpu {usage}%",
+    "tooltip": false
+  },
+
+  "memory": {
+    "format": "mem {}%",
+    "tooltip": false
+  },
+
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "tooltip-format": "<big>{:%A, %d %B %Y}</big>\n<tt>{calendar}</tt>",
+    "calendar": {
+      "mode": "month",
+      "mode-mon-col": 3,
+      "weeks-pos": "right",
+      "on-scroll": 1,
+      "format": {
+        "months": "<span color='#81a1c1'><b>{}</b></span>",
+        "days": "<span color='#d8dee9'><b>{}</b></span>",
+        "weeks": "<span color='#4c566a'><b>W{}</b></span>",
+        "weekdays": "<span color='#88c0d0'><b>{}</b></span>",
+        "today": "<span color='#2e3440' background='#88c0d0'><b>{}</b></span>"
+      }
+    }
+  },
+
+  "tray": {
+    "spacing": 10
+  }
+}
