@@ -109,6 +109,7 @@ fi
 
 link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
+link_path "$common_dir/bin/hypr-launcher" "$HOME/.local/bin/hypr-launcher" "hypr-launcher"
 link_path "$common_dir/bin/hypr-power-menu" "$HOME/.local/bin/hypr-power-menu" "hypr-power-menu"
 link_path "$common_dir/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
 link_path "$common_dir/bin/dotfiles-benchmark" "$HOME/.local/bin/dotfiles-benchmark" "dotfiles-benchmark"
