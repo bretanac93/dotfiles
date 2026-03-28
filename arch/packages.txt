@@ -1,0 +1,13 @@
+# Core dependencies for Arch
+# Install with: sudo pacman -S --needed $(grep -vE '^[[:space:]]*(#|$)' arch/packages.txt)
+
+fzf
+fd
+zsh-syntax-highlighting
+tmux
+neovim
+git
+github-cli
+ripgrep
+gnupg
+deno

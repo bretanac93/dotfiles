@@ -1,13 +1,13 @@
 # dotfiles
 
-Minimal, opinionated macOS development environment built around native zsh, tmux, Neovim, Ghostty, and a small set of setup scripts.
+Minimal, opinionated personal environment for macOS and Arch/Hyprland built around native zsh, tmux, Neovim, Ghostty, and a small set of setup scripts.
 
 ## Highlights
 
 - Native zsh setup with no Oh-My-Zsh
 - One main entry point: `mdf`
 - Idempotent setup with backups in `~/.dotfiles-backups/YYYYMMDD-HHMMSS/`
-- Brewfile dependency checks during install
+- Platform-native dependency checks during install
 - 1Password-backed Git signing and SSH key export
 - Installed helper scripts work from `~/.local/bin` in any directory
 
@@ -17,6 +17,8 @@ Minimal, opinionated macOS development environment built around native zsh, tmux
 git clone https://github.com/bretanac93/dotfiles ~/Code/dotfiles
 cd ~/Code/dotfiles
 ./init.sh
+# or force relink managed symlinks after moving paths around
+./init.sh --force-symlinks
 ```
 
 After the first install, use `mdf` for day-to-day management.
@@ -26,6 +28,7 @@ After the first install, use `mdf` for day-to-day management.
 ```bash
 mdf install              # Run init again
 mdf update               # Pull latest changes and re-run setup
+mdf deps                 # Install platform dependencies
 mdf doctor               # Check health
 mdf benchmark            # Measure zsh startup time
 mdf cleanup --dry-run    # Preview old-backup cleanup
@@ -44,8 +47,8 @@ Running `./init.sh` or `mdf install` will:
 - symlink tracked config into your home directory
 - back up any existing conflicting files before replacing them
 - link helper commands into `~/.local/bin/`
-- check the `Brewfile` and install missing dependencies if Homebrew is available
-- apply macOS defaults from `scripts/macos-defaults`
+- check platform dependencies and install missing packages through Homebrew or pacman/paru
+- apply macOS defaults from `macos/scripts/macos-defaults`
 - optionally bootstrap Git and SSH secrets from 1Password
 
 ## Included Tools
@@ -54,7 +57,8 @@ Tools linked into `~/.local/bin/`:
 
 - `mdf` - main dotfiles manager
 - `wb` - launch editor + terminal + AI assistant in tmux
-- `check-deps` - verify Brewfile dependencies
+- `check-deps` - verify platform dependency manifests
+- `install-deps` - install platform dependency manifests
 - `setup-git-local` - configure git with GPG signing
 - `setup-ssh` - export SSH keys from 1Password
 - `dotfiles-doctor` - health checks
@@ -75,6 +79,7 @@ Tracked config includes:
 - zsh config, aliases, functions, completions, and plugins
 - tmux config and helper layout tools
 - Ghostty config and macOS key-repeat tuning
+- Hyprland config for Linux/Arch environments
 - Neovim config
 - shared Git config plus local per-machine Git config support
 - SSH config that uses local keys instead of the 1Password SSH agent
@@ -111,10 +116,10 @@ setup-git-local
 
 This will:
 
-- generate `~/.config/git/config.local` from `git/gitconfig.local.tpl`
+- generate `~/.config/git/config.local` from `common/git/gitconfig.local.tpl`
 - import the GPG public and private key from 1Password into your local keyring
 - validate that the imported secret key matches `key_id`
-- link `git/gpg.conf` to `~/.gnupg/gpg.conf` for terminal-based signing
+- link `common/git/gpg.conf` to `~/.gnupg/gpg.conf` for terminal-based signing
 
 If terminal signing acts up, this usually helps:
 
@@ -137,7 +142,7 @@ This will:
 - export the exact `Legacy SSH key` item from 1Password
 - write the key to the conventional filename for its key type (`id_rsa`, `id_ed25519`, etc.)
 - write the matching public key beside it
-- link `ssh/config` into `~/.ssh/config`
+- link `common/ssh/config` into `~/.ssh/config`
 
 For the current bundled key item, the exported filenames are:
 
@@ -214,24 +219,36 @@ Generated completions are stored in `~/.config/zsh.local/completions/`.
 ## Structure
 
 ```text
-bin/            user-facing tools linked to ~/.local/bin/
-git/            shared git config, template, and gpg.conf
-ghostty/        Ghostty config
-nvim/           Neovim config
-scripts/        setup helpers and system scripts
-ssh/            SSH config
-tmux/           tmux config
-zsh/            zsh env, rc, aliases, functions, completions, plugins
+common/
+  bin/          user-facing tools linked to ~/.local/bin/
+  ghostty/      shared Ghostty config
+  git/          shared git config, template, and gpg.conf
+  nvim/         shared Neovim config
+scripts/        shared setup helpers
+  ssh/          shared SSH config
+  tmux/         shared tmux config
+  zsh/          shared zsh env, rc, aliases, functions, completions, plugins
+macos/
+  Brewfile      macOS dependencies
+  scripts/      macOS-only setup helpers
+arch/
+  hypr/         Hyprland config
+  packages.txt  Arch repo packages
+  aur-packages.txt
 ```
 
 ## Requirements
 
-- macOS
+- macOS or Arch
 - zsh
-- Homebrew
+- Homebrew on macOS, `pacman` on Arch, and `paru` if you want AUR packages installed automatically
 - 1Password CLI for automatic Git and SSH secret bootstrap
 
-Dependencies are managed through `Brewfile`.
+Dependencies are managed through `macos/Brewfile`, `arch/packages.txt`, and `arch/aur-packages.txt`.
+
+- macOS formulas and casks live in `macos/Brewfile`
+- Arch repo packages live in `arch/packages.txt`
+- Arch AUR packages live in `arch/aur-packages.txt`
 
 ## Maintenance
 

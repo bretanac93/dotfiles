@@ -5,7 +5,31 @@
 set -euo pipefail
 
 repo_root="${0:A:h}"
+common_dir="$repo_root/common"
+macos_dir="$repo_root/macos"
 backup_dir="$HOME/.dotfiles-backups/$(date +%Y%m%d-%H%M%S)"
+force_symlinks=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --force-symlinks)
+      force_symlinks=1
+      ;;
+    -h|--help)
+      print "Usage: ./init.sh [--force-symlinks]"
+      print ""
+      print "Options:"
+      print "  --force-symlinks  recreate managed symlinks even if already linked"
+      exit 0
+      ;;
+    *)
+      print "Error: unknown option: $1" >&2
+      print "Run ./init.sh --help for usage." >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
 
 link_path() {
   local src="$1"
@@ -14,8 +38,13 @@ link_path() {
   local backup_name="${4:-$name}"
 
   if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
-    print "  ✓ $name (already linked)"
-    return 0
+    if (( force_symlinks )); then
+      rm -f "$dst"
+      print "  ↻ $name (relinked)"
+    else
+      print "  ✓ $name (already linked)"
+      return 0
+    fi
   fi
 
   if [[ -L "$dst" ]]; then
@@ -43,17 +72,21 @@ mkdir -p "$HOME/.config/zsh.local"
 mkdir -p "$HOME/.config/zsh.local/alias"
 mkdir -p "$HOME/.config/zsh.local/completions"
 
-link_path "$repo_root/nvim" "$HOME/.config/nvim" "nvim"
-link_path "$repo_root/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux" "tmux.conf"
-link_path "$repo_root/ghostty" "$HOME/.config/ghostty" "ghostty"
+link_path "$common_dir/nvim" "$HOME/.config/nvim" "nvim"
+link_path "$common_dir/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux" "tmux.conf"
+link_path "$common_dir/ghostty" "$HOME/.config/ghostty" "ghostty"
 
-link_path "$repo_root/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
-link_path "$repo_root/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
-link_path "$repo_root/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
-link_path "$repo_root/zsh" "$HOME/.config/zsh" "zsh"
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/hypr" ]]; then
+  link_path "$repo_root/arch/hypr" "$HOME/.config/hypr" "hyprland" "hypr"
+fi
 
-if [[ -r "$repo_root/git/gitconfig" ]]; then
-  link_path "$repo_root/git/gitconfig" "$HOME/.gitconfig" "git" "gitconfig"
+link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
+link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
+link_path "$common_dir/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
+link_path "$common_dir/zsh" "$HOME/.config/zsh" "zsh"
+
+if [[ -r "$common_dir/git/gitconfig" ]]; then
+  link_path "$common_dir/git/gitconfig" "$HOME/.gitconfig" "git" "gitconfig"
 
   if [[ ! -r "$HOME/.config/git/config.local" ]]; then
     print ""
@@ -65,20 +98,21 @@ fi
 
 mkdir -p "$HOME/.gnupg"
 chmod 700 "$HOME/.gnupg"
-if [[ -r "$repo_root/git/gpg.conf" ]]; then
-  link_path "$repo_root/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg" "gpg.conf"
+if [[ -r "$common_dir/git/gpg.conf" ]]; then
+  link_path "$common_dir/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg" "gpg.conf"
 fi
 
-link_path "$repo_root/bin/wb" "$HOME/.local/bin/wb" "wb"
-link_path "$repo_root/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
-link_path "$repo_root/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
-link_path "$repo_root/bin/dotfiles-benchmark" "$HOME/.local/bin/dotfiles-benchmark" "dotfiles-benchmark"
-link_path "$repo_root/bin/dotfiles-uninstall" "$HOME/.local/bin/dotfiles-uninstall" "dotfiles-uninstall"
-link_path "$repo_root/bin/dotfiles-update" "$HOME/.local/bin/dotfiles-update" "dotfiles-update"
-link_path "$repo_root/bin/dotfiles-cleanup-backups" "$HOME/.local/bin/dotfiles-cleanup-backups" "dotfiles-cleanup-backups"
+link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
+link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
+link_path "$common_dir/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
+link_path "$common_dir/bin/dotfiles-benchmark" "$HOME/.local/bin/dotfiles-benchmark" "dotfiles-benchmark"
+link_path "$common_dir/bin/dotfiles-uninstall" "$HOME/.local/bin/dotfiles-uninstall" "dotfiles-uninstall"
+link_path "$common_dir/bin/dotfiles-update" "$HOME/.local/bin/dotfiles-update" "dotfiles-update"
+link_path "$common_dir/bin/dotfiles-cleanup-backups" "$HOME/.local/bin/dotfiles-cleanup-backups" "dotfiles-cleanup-backups"
 link_path "$repo_root/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles" "zsh-dotfiles"
 link_path "$repo_root/scripts/check-deps" "$HOME/.local/bin/check-deps" "check-deps"
-link_path "$repo_root/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"
+link_path "$repo_root/scripts/install-deps" "$HOME/.local/bin/install-deps" "install-deps"
+link_path "$macos_dir/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"
 link_path "$repo_root/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local" "setup-git-local"
 link_path "$repo_root/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh" "setup-ssh"
 
@@ -91,14 +125,13 @@ fi
 
 print ""
 if [[ -x "$repo_root/scripts/check-deps" ]]; then
-  if ! zsh "$repo_root/scripts/check-deps" "$repo_root/Brewfile" 2>/dev/null; then
+  if ! zsh "$repo_root/scripts/check-deps"; then
     print ""
     print "Installing missing dependencies..."
-    if command -v brew >/dev/null 2>&1; then
-      brew bundle install --file="$repo_root/Brewfile"
+    if [[ -x "$repo_root/scripts/install-deps" ]]; then
+      zsh "$repo_root/scripts/install-deps"
     else
-      print "Error: Homebrew not found. Please install Homebrew first."
-      print "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+      print "Error: install-deps script not found"
       exit 1
     fi
   fi
@@ -106,9 +139,9 @@ else
   print "Warning: check-deps script not found"
 fi
 
-if [[ "$(uname)" == "Darwin" ]] && [[ -x "$repo_root/scripts/macos-defaults" ]]; then
+if [[ "$(uname)" == "Darwin" ]] && [[ -x "$macos_dir/scripts/macos-defaults" ]]; then
   print ""
-  zsh "$repo_root/scripts/macos-defaults" 2>/dev/null | grep -E "^✅|^Configuring" | sed 's/^/  /' | sed 's/✅/✓/' || true
+  zsh "$macos_dir/scripts/macos-defaults" 2>/dev/null | grep -E "^✅|^Configuring" | sed 's/^/  /' | sed 's/✅/✓/' || true
 fi
 
 print ""
@@ -123,7 +156,7 @@ typeset -a setup_needed=()
 
 if ! command -v op >/dev/null 2>&1; then
   print "⚠️  1Password CLI not found"
-  print "   Run: brew install --cask 1password 1password-cli"
+  print "   Run: install-deps"
   print ""
   print "   Then:"
   print "   1. Open 1Password app"

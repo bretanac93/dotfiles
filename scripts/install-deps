@@ -1,0 +1,85 @@
+#!/bin/zsh
+# Install platform dependencies for dotfiles
+# Usage: install-deps
+
+set -euo pipefail
+
+script_dir="${0:A:h}"
+repo_root="${script_dir:h}"
+brewfile="$repo_root/macos/Brewfile"
+arch_packages_file="$repo_root/arch/packages.txt"
+arch_aur_packages_file="$repo_root/arch/aur-packages.txt"
+
+read_package_file() {
+  local file="$1"
+  local line
+
+  [[ -r "$file" ]] || return 1
+
+  while IFS= read -r line; do
+    line="${line%%#*}"
+    line="${line##[[:space:]]##}"
+    line="${line%%[[:space:]]##}"
+    [[ -z "$line" ]] && continue
+    print -r -- "$line"
+  done < "$file"
+}
+
+install_brew_deps() {
+  if ! command -v brew >/dev/null 2>&1; then
+    print "Error: Homebrew not found. Please install Homebrew first." >&2
+    print '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' >&2
+    return 1
+  fi
+
+  brew bundle install --file="$brewfile"
+}
+
+install_arch_deps() {
+  local -a packages=()
+  local -a aur_packages=()
+
+  if ! command -v pacman >/dev/null 2>&1; then
+    print "Error: pacman not found." >&2
+    return 1
+  fi
+
+  if [[ ! -r "$arch_packages_file" ]]; then
+    print "Error: package list not found: $arch_packages_file" >&2
+    return 1
+  fi
+
+  packages=("${(@f)$(read_package_file "$arch_packages_file")}")
+
+  if (( ${#packages[@]} > 0 )); then
+    sudo pacman -S --needed -- "${packages[@]}"
+  fi
+
+  if [[ -r "$arch_aur_packages_file" ]]; then
+    aur_packages=("${(@f)$(read_package_file "$arch_aur_packages_file")}")
+    if (( ${#aur_packages[@]} > 0 )); then
+      if command -v paru >/dev/null 2>&1; then
+        paru -S --needed -- "${aur_packages[@]}"
+      else
+        print ""
+        print "⚠️  Skipping AUR packages because paru is not installed:"
+        for pkg in "${aur_packages[@]}"; do
+          print "  - $pkg"
+        done
+      fi
+    fi
+  fi
+}
+
+case "$(uname)" in
+  Darwin)
+    install_brew_deps
+    ;;
+  Linux)
+    install_arch_deps
+    ;;
+  *)
+    print "Unsupported platform: $(uname)" >&2
+    exit 1
+    ;;
+esac

@@ -1,0 +1,5 @@
+# AUR dependencies for Arch
+# Install with: paru -S --needed $(grep -vE '^[[:space:]]*(#|$)' arch/aur-packages.txt)
+
+1password
+1password-cli

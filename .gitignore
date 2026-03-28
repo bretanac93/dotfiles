@@ -3,6 +3,7 @@
 
 # Homebrew
 Brewfile.lock.json
+macos/Brewfile.lock.json
 
 # OS files
 .DS_Store

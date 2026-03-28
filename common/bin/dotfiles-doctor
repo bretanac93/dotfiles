@@ -5,6 +5,30 @@
 
 set -e
 
+resolve_script_path() {
+    local source="${BASH_SOURCE[0]}"
+    local source_dir
+
+    if [[ "$source" != */* ]]; then
+        source="$(command -v -- "$source")"
+    fi
+
+    while [[ -L "$source" ]]; do
+        source_dir="$(cd -P -- "$(dirname -- "$source")" && pwd)"
+        source="$(readlink "$source")"
+        if [[ "$source" != /* ]]; then
+            source="$source_dir/$source"
+        fi
+    done
+
+    printf '%s\n' "$source"
+}
+
+SCRIPT_PATH="$(resolve_script_path)"
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "$SCRIPT_PATH")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+COMMON_DIR="$REPO_ROOT/common"
+
 ERRORS=0
 WARNINGS=0
 
@@ -54,22 +78,25 @@ echo "Checking symlinks..."
 echo ""
 
 # Check core configs
-check_symlink "$PWD/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
-check_symlink "$PWD/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
-check_symlink "$PWD/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
-check_symlink "$PWD/zsh" "$HOME/.config/zsh" "zsh config"
-check_symlink "$PWD/nvim" "$HOME/.config/nvim" "nvim"
-check_symlink "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
-check_symlink "$PWD/ghostty" "$HOME/.config/ghostty" "ghostty"
-check_symlink "$PWD/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
-check_symlink "$PWD/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
+check_symlink "$COMMON_DIR/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
+check_symlink "$COMMON_DIR/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
+check_symlink "$COMMON_DIR/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
+check_symlink "$COMMON_DIR/zsh" "$HOME/.config/zsh" "zsh config"
+check_symlink "$COMMON_DIR/nvim" "$HOME/.config/nvim" "nvim"
+check_symlink "$COMMON_DIR/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
+check_symlink "$COMMON_DIR/ghostty" "$HOME/.config/ghostty" "ghostty"
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/hypr" ]]; then
+    check_symlink "$REPO_ROOT/arch/hypr" "$HOME/.config/hypr" "hyprland"
+fi
+check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
+check_symlink "$COMMON_DIR/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
 
 echo ""
 echo "Checking tools..."
 echo ""
 
 # Check if tools are in PATH
-for tool in wb setup-ssh setup-git-local check-deps; do
+for tool in wb setup-ssh setup-git-local check-deps install-deps; do
     if command -v "$tool" &> /dev/null; then
         print_ok "$tool: available in PATH"
     else
@@ -104,7 +131,7 @@ if command -v op &> /dev/null; then
     fi
 else
     print_warning "1Password CLI: not installed"
-    print "     Run: brew install --cask 1password 1password-cli"
+    print "     Run: install-deps"
 fi
 
 echo ""

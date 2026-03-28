@@ -1,80 +1,158 @@
 #!/bin/zsh
-# Check if dependencies from Brewfile are installed
-# Usage: check-deps [brewfile_path]
+# Check if platform dependencies are installed
+# Usage: check-deps
 
 set -euo pipefail
 
 script_dir="${0:A:h}"
 repo_root="${script_dir:h}"
-brewfile="${1:-$repo_root/Brewfile}"
+brewfile="$repo_root/macos/Brewfile"
+arch_packages_file="$repo_root/arch/packages.txt"
+arch_aur_packages_file="$repo_root/arch/aur-packages.txt"
 
-typeset -a missing_deps=()
+typeset -a missing_core=()
+typeset -a missing_optional=()
 
-package_installed() {
-  local pkg="$1"
+read_package_file() {
+  local file="$1"
+  local line
 
-  case "$pkg" in
-    zsh-fast-syntax-highlighting)
-      local -a fsh_paths=(
-        "/opt/homebrew/share/zsh-fast-syntax-highlighting"
-        "/usr/local/share/zsh-fast-syntax-highlighting"
-      )
+  [[ -r "$file" ]] || return 1
 
-      if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-        fsh_paths+=("${HOMEBREW_PREFIX}/share/zsh-fast-syntax-highlighting")
-      fi
-
-      local fsh_path
-      for fsh_path in "${fsh_paths[@]}"; do
-        if [[ -r "$fsh_path/fast-syntax-highlighting.plugin.zsh" ]]; then
-          return 0
-        fi
-      done
-      return 1
-      ;;
-    neovim)
-      command -v nvim >/dev/null 2>&1
-      ;;
-    gnupg)
-      command -v gpg >/dev/null 2>&1
-      ;;
-    ripgrep)
-      command -v rg >/dev/null 2>&1
-      ;;
-    *)
-      command -v "$pkg" >/dev/null 2>&1
-      ;;
-  esac
+  while IFS= read -r line; do
+    line="${line%%#*}"
+    line="${line##[[:space:]]##}"
+    line="${line%%[[:space:]]##}"
+    [[ -z "$line" ]] && continue
+    print -r -- "$line"
+  done < "$file"
 }
 
-if [[ ! -r "$brewfile" ]]; then
-  print "Error: Brewfile not found: $brewfile" >&2
-  return 1
-fi
+parse_brewfile() {
+  local file="$1"
+  local kind="$2"
+  local line
 
-while IFS= read -r line; do
-  [[ "$line" =~ ^[[:space:]]*# ]] && continue
-  [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+  [[ -r "$file" ]] || return 1
 
-  if [[ "$line" =~ ^brew[[:space:]]+\"([^\"]+)\" ]]; then
-    pkg="${match[1]}"
-    if ! package_installed "$pkg"; then
-      missing_deps+=("$pkg")
+  while IFS= read -r line; do
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+
+    if [[ "$kind" == "brew" ]] && [[ "$line" =~ ^brew[[:space:]]+\"([^\"]+)\" ]]; then
+      print -r -- "${match[1]}"
+    elif [[ "$kind" == "cask" ]] && [[ "$line" =~ ^cask[[:space:]]+\"([^\"]+)\" ]]; then
+      print -r -- "${match[1]}"
     fi
+  done < "$file"
+}
+
+check_missing_brew() {
+  local -a formulas=()
+  local -a casks=()
+  local pkg
+
+  if [[ ! -r "$brewfile" ]]; then
+    print "Error: Brewfile not found: $brewfile" >&2
+    return 1
   fi
-done < "$brewfile"
 
-if (( ${#missing_deps} > 0 )); then
-  print ""
-  print "⚠️  Missing dependencies from Brewfile:"
-  for dep in "${missing_deps[@]}"; do
-    print "  - $dep"
+  if ! command -v brew >/dev/null 2>&1; then
+    print "⚠️  Homebrew not found"
+    print ""
+    print "Install Homebrew first:"
+    print '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    return 1
+  fi
+
+  formulas=("${(@f)$(parse_brewfile "$brewfile" brew)}")
+  casks=("${(@f)$(parse_brewfile "$brewfile" cask)}")
+
+  for pkg in "${formulas[@]}"; do
+    brew list --formula "$pkg" >/dev/null 2>&1 || missing_core+=("$pkg")
   done
-  print ""
-  print "Install them with:"
-  print "  brew bundle install --file=$brewfile"
-  return 1
-fi
 
-print "✅ All dependencies from Brewfile installed"
-return 0
+  for pkg in "${casks[@]}"; do
+    brew list --cask "$pkg" >/dev/null 2>&1 || missing_core+=("$pkg")
+  done
+
+  if (( ${#missing_core[@]} > 0 )); then
+    print ""
+    print "⚠️  Missing dependencies for macOS:"
+    for pkg in "${missing_core[@]}"; do
+      print "  - $pkg"
+    done
+    print ""
+    print "Install them with:"
+    print "  install-deps"
+    print "  # or: brew bundle install --file=$brewfile"
+    return 1
+  fi
+
+  print "✅ All macOS dependencies installed"
+}
+
+check_missing_arch() {
+  local -a packages=()
+  local -a aur_packages=()
+  local pkg
+
+  if ! command -v pacman >/dev/null 2>&1; then
+    print "⚠️  pacman not found"
+    return 1
+  fi
+
+  if [[ ! -r "$arch_packages_file" ]]; then
+    print "Error: package list not found: $arch_packages_file" >&2
+    return 1
+  fi
+
+  packages=("${(@f)$(read_package_file "$arch_packages_file")}")
+
+  for pkg in "${packages[@]}"; do
+    pacman -Q "$pkg" >/dev/null 2>&1 || missing_core+=("$pkg")
+  done
+
+  if [[ -r "$arch_aur_packages_file" ]]; then
+    aur_packages=("${(@f)$(read_package_file "$arch_aur_packages_file")}")
+    for pkg in "${aur_packages[@]}"; do
+      pacman -Q "$pkg" >/dev/null 2>&1 || missing_optional+=("$pkg")
+    done
+  fi
+
+  if (( ${#missing_core[@]} > 0 || ${#missing_optional[@]} > 0 )); then
+    print ""
+    print "⚠️  Missing dependencies for Arch:"
+    for pkg in "${missing_core[@]}"; do
+      print "  - $pkg"
+    done
+    if (( ${#missing_optional[@]} > 0 )); then
+      for pkg in "${missing_optional[@]}"; do
+        print "  - $pkg (AUR)"
+      done
+    fi
+    print ""
+    print "Install them with:"
+    print "  install-deps"
+    if ! command -v paru >/dev/null 2>&1 && (( ${#missing_optional[@]} > 0 )); then
+      print ""
+      print "Note: install an AUR helper like paru to install AUR packages automatically."
+    fi
+    return 1
+  fi
+
+  print "✅ All Arch dependencies installed"
+}
+
+case "$(uname)" in
+  Darwin)
+    check_missing_brew
+    ;;
+  Linux)
+    check_missing_arch
+    ;;
+  *)
+    print "Unsupported platform: $(uname)" >&2
+    exit 1
+    ;;
+esac

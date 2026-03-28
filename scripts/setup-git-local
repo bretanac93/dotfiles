@@ -31,10 +31,10 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 LOCAL_CONFIG_DIR="$HOME/.config/git"
 LOCAL_CONFIG_FILE="$LOCAL_CONFIG_DIR/config.local"
-TEMPLATE_FILE="$REPO_ROOT/git/gitconfig.local.tpl"
+TEMPLATE_FILE="$REPO_ROOT/common/git/gitconfig.local.tpl"
 GPG_DIR="$HOME/.gnupg"
 GPG_CONFIG_FILE="$GPG_DIR/gpg.conf"
-GPG_CONFIG_SOURCE="$REPO_ROOT/git/gpg.conf"
+GPG_CONFIG_SOURCE="$REPO_ROOT/common/git/gpg.conf"
 
 TEMP_FILES=()
 

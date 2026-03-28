@@ -4,13 +4,14 @@ set -euo pipefail
 
 script_dir="${0:A:h}"
 repo_root="${script_dir:h}"
+common_dir="$repo_root/common"
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/zsh-dotfiles"
 cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh-dotfiles"
 
 mkdir -p "$state_dir" "$cache_dir"
 
-export ZDOTDIR="$repo_root"
-export ZSH_CONFIG_DIR="$repo_root/zsh"
+export ZDOTDIR="$common_dir/zsh"
+export ZSH_CONFIG_DIR="$common_dir/zsh"
 export ZSH_HISTORY_FILE="$state_dir/history"
 export ZSH_COMPDUMP="$cache_dir/.zcompdump"
 export ZSH_LOAD_LOCAL_CONFIG=0

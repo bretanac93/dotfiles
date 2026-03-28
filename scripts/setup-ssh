@@ -31,7 +31,7 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 SSH_DIR="$HOME/.ssh"
 SSH_CONFIG_FILE="$SSH_DIR/config"
-SSH_CONFIG_SOURCE="$REPO_ROOT/ssh/config"
+SSH_CONFIG_SOURCE="$REPO_ROOT/common/ssh/config"
 KEY_TITLE="Legacy SSH key"
 
 TEMP_FILES=()

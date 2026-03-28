@@ -5,7 +5,29 @@
 
 set -e
 
-DOTFILES_DIR="${0:A:h:h}"  # Go up one level from bin/ to find dotfiles root
+resolve_script_path() {
+    local source="${BASH_SOURCE[0]}"
+    local source_dir
+
+    if [[ "$source" != */* ]]; then
+        source="$(command -v -- "$source")"
+    fi
+
+    while [[ -L "$source" ]]; do
+        source_dir="$(cd -P -- "$(dirname -- "$source")" && pwd)"
+        source="$(readlink "$source")"
+        if [[ "$source" != /* ]]; then
+            source="$source_dir/$source"
+        fi
+    done
+
+    printf '%s\n' "$source"
+}
+
+SCRIPT_PATH="$(resolve_script_path)"
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "$SCRIPT_PATH")" && pwd)"
+DOTFILES_DIR="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+
 cd "$DOTFILES_DIR"
 
 echo "🔄 Updating dotfiles..."
