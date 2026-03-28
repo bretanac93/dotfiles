@@ -69,6 +69,7 @@ remove_symlink "$HOME/.config/hypr" "hyprland"
 remove_symlink "$HOME/.config/waybar" "waybar"
 remove_symlink "$HOME/.config/wofi" "wofi"
 remove_symlink "$HOME/.config/yazi" "yazi"
+remove_symlink "$HOME/.config/mako" "mako"
 remove_symlink "$HOME/.gitconfig" "gitconfig"
 remove_symlink "$HOME/.gnupg/gpg.conf" "gpg"
 
@@ -102,6 +103,7 @@ if [[ -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
     restore_backup "waybar" "$HOME/.config/waybar" "waybar"
     restore_backup "wofi" "$HOME/.config/wofi" "wofi"
     restore_backup "yazi" "$HOME/.config/yazi" "yazi"
+    restore_backup "mako" "$HOME/.config/mako" "mako"
     restore_backup "zsh" "$HOME/.config/zsh" "zsh"
     
     if [[ $DRY_RUN -eq 0 ]]; then

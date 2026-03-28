@@ -15,6 +15,7 @@ grim
 hyprpaper
 hyprlock
 imv
+mako
 slurp
 waybar
 wl-clipboard
