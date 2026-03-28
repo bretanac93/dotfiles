@@ -71,6 +71,7 @@ Window Actions:
   Super + `            Toggle scratch workspace
   Super + Shift + `    Send window to scratch workspace
   Super + M            Exit / power menu
+  Ctrl + Alt + L       Lock screen
   Super + Shift + 3    Save full screenshot
   Super + Shift + 4    Save selection screenshot
   Super + Shift + 5    Screenshot menu

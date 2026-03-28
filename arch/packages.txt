@@ -13,6 +13,7 @@ gnupg
 deno
 grim
 hyprpaper
+hypridle
 hyprlock
 imv
 mako
