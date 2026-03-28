@@ -28,7 +28,8 @@ tooltip label {
 #cpu,
 #memory,
 #clock,
-#tray {
+#tray,
+#custom-power {
   background: rgba(46, 52, 64, 0.94);
   border: 1px solid rgba(76, 86, 106, 0.85);
   color: #d8dee9;
@@ -62,7 +63,7 @@ tooltip label {
 }
 
 #window {
-  color: #81a1c1;
+  color: #d8dee9;
   padding: 0 18px;
 }
 
@@ -71,8 +72,13 @@ tooltip label {
   color: #bf616a;
 }
 
-#clock {
-  color: #88c0d0;
+#custom-power {
+  color: #ebcb8b;
+  padding: 0 14px;
+}
+
+#custom-power:hover {
+  background: #434c5e;
 }
 
 #tray {

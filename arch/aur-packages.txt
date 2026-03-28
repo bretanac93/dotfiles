@@ -3,3 +3,4 @@
 
 1password
 1password-cli
+hyprshutdown

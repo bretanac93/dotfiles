@@ -12,5 +12,6 @@ ripgrep
 gnupg
 deno
 hyprpaper
-hyprshutdown
+hyprlock
 waybar
+wofi

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v wofi >/dev/null 2>&1; then
+  printf '%s\n' 'wofi is required for hypr-power-menu' >&2
+  exit 1
+fi
+
+choice="$({
+  printf '%s\n' 'lock'
+  printf '%s\n' 'logout'
+  printf '%s\n' 'suspend'
+  printf '%s\n' 'reboot'
+  printf '%s\n' 'shutdown'
+} | wofi --dmenu --prompt 'power' --width 220 --lines 5 --hide-scroll)"
+
+case "$choice" in
+  lock)
+    if command -v hyprlock >/dev/null 2>&1; then
+      exec hyprlock
+    fi
+    exec loginctl lock-session
+    ;;
+  logout)
+    exec hyprctl dispatch exit
+    ;;
+  suspend)
+    if command -v hyprlock >/dev/null 2>&1; then
+      hyprlock &
+      sleep 1
+    fi
+    exec systemctl suspend
+    ;;
+  reboot)
+    exec systemctl reboot
+    ;;
+  shutdown)
+    exec systemctl poweroff
+    ;;
+  *)
+    exit 0
+    ;;
+esac

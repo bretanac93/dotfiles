@@ -9,7 +9,7 @@
 
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["hyprland/window"],
-  "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "clock"],
+  "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "clock", "custom/power"],
 
   "hyprland/workspaces": {
     "active-only": false,
@@ -77,6 +77,12 @@
         "today": "<span color='#2e3440' background='#88c0d0'><b>{}</b></span>"
       }
     }
+  },
+
+  "custom/power": {
+    "format": "⏻",
+    "tooltip": false,
+    "on-click": "hypr-power-menu"
   },
 
   "tray": {
