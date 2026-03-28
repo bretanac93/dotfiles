@@ -42,6 +42,10 @@ window {
   color: #d8dee9;
 }
 
+#entry box {
+  spacing: 10px;
+}
+
 #entry:selected {
   background-color: #88c0d0;
   border-color: #88c0d0;
@@ -54,4 +58,6 @@ window {
 
 #img {
   margin-right: 12px;
+  min-width: 20px;
+  min-height: 20px;
 }
