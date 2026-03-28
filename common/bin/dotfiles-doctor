@@ -85,6 +85,7 @@ check_symlink "$COMMON_DIR/zsh" "$HOME/.config/zsh" "zsh config"
 check_symlink "$COMMON_DIR/nvim" "$HOME/.config/nvim" "nvim"
 check_symlink "$COMMON_DIR/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
 check_symlink "$COMMON_DIR/ghostty" "$HOME/.config/ghostty" "ghostty"
+check_symlink "$COMMON_DIR/wallpaper.png" "$HOME/.config/wallpaper.png" "wallpaper"
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/hypr" ]]; then
     check_symlink "$REPO_ROOT/arch/hypr" "$HOME/.config/hypr" "hyprland"
 fi

@@ -75,6 +75,7 @@ mkdir -p "$HOME/.config/zsh.local/completions"
 link_path "$common_dir/nvim" "$HOME/.config/nvim" "nvim"
 link_path "$common_dir/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux" "tmux.conf"
 link_path "$common_dir/ghostty" "$HOME/.config/ghostty" "ghostty"
+link_path "$common_dir/wallpaper.png" "$HOME/.config/wallpaper.png" "wallpaper" "wallpaper.png"
 
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/hypr" ]]; then
   link_path "$repo_root/arch/hypr" "$HOME/.config/hypr" "hyprland" "hypr"
