@@ -67,6 +67,7 @@ remove_symlink "$HOME/.config/ghostty" "ghostty"
 remove_symlink "$HOME/.config/wallpaper.png" "wallpaper"
 remove_symlink "$HOME/.config/hypr" "hyprland"
 remove_symlink "$HOME/.config/waybar" "waybar"
+remove_symlink "$HOME/.config/wofi" "wofi"
 remove_symlink "$HOME/.gitconfig" "gitconfig"
 remove_symlink "$HOME/.gnupg/gpg.conf" "gpg"
 
@@ -98,6 +99,7 @@ if [[ -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
     restore_backup "ghostty" "$HOME/.config/ghostty" "ghostty"
     restore_backup "hypr" "$HOME/.config/hypr" "hyprland"
     restore_backup "waybar" "$HOME/.config/waybar" "waybar"
+    restore_backup "wofi" "$HOME/.config/wofi" "wofi"
     restore_backup "zsh" "$HOME/.config/zsh" "zsh"
     
     if [[ $DRY_RUN -eq 0 ]]; then

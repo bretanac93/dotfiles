@@ -85,6 +85,10 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/waybar" ]]; then
   link_path "$repo_root/arch/waybar" "$HOME/.config/waybar" "waybar"
 fi
 
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/wofi" ]]; then
+  link_path "$repo_root/arch/wofi" "$HOME/.config/wofi" "wofi"
+fi
+
 link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
 link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
 link_path "$common_dir/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"

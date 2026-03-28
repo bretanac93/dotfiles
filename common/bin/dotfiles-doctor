@@ -92,6 +92,9 @@ fi
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/waybar" ]]; then
     check_symlink "$REPO_ROOT/arch/waybar" "$HOME/.config/waybar" "waybar"
 fi
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/wofi" ]]; then
+    check_symlink "$REPO_ROOT/arch/wofi" "$HOME/.config/wofi" "wofi"
+fi
 check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
 check_symlink "$COMMON_DIR/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
 
