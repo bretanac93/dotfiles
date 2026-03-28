@@ -27,6 +27,7 @@ Commands:
   benchmark, b     Benchmark zsh startup performance
   uninstall       Remove dotfiles (with --dry-run support)
   aliases, a      Show available aliases
+  shortcuts, s    Show Hyprland keyboard shortcuts
   
 Setup Commands:
   ssh              Export SSH keys from 1Password
@@ -43,8 +44,61 @@ Examples:
   mdf doctor               # Check health
   mdf benchmark            # Measure shell startup time
   mdf aliases              # Show all aliases
+  mdf shortcuts            # Show Hyprland keybind cheat sheet
   mdf uninstall --dry-run  # Preview uninstall
 
+EOF
+}
+
+show_shortcuts() {
+    cat << 'EOF'
+Hyprland Shortcuts
+
+Launchers:
+  Super + Space        App launcher
+  Alt + Space          App launcher
+  Super + Return       Terminal
+  Super + E            File manager
+
+Window Actions:
+  Super + Q            Close focused window
+  Super + F            Fullscreen
+  Super + Shift + F    Toggle floating
+  Super + P            Toggle pseudotile
+  Super + \            Toggle split direction
+  Super + Tab          Next window
+  Super + Shift + Tab  Previous window
+  Super + `            Toggle scratch workspace
+  Super + Shift + `    Send window to scratch workspace
+  Super + M            Exit / power menu
+
+Focus:
+  Super + H/J/K/L      Focus left/down/up/right
+  Super + Arrow keys   Focus left/down/up/right
+
+Move Windows:
+  Super + Shift + H/J/K/L   Move window left/down/up/right
+
+Resize Windows:
+  Super + Ctrl + H/J/K/L    Resize left/down/up/right
+
+Workspaces:
+  Super + 1..0         Switch to workspace 1..10
+  Super + Shift + 1..0 Move window to workspace 1..10
+  Super + mouse wheel  Cycle workspaces
+
+Mouse:
+  Super + Left drag    Move window
+  Super + Right drag   Resize window
+
+Media / Hardware:
+  XF86AudioRaiseVolume / XF86AudioLowerVolume
+  XF86AudioMute / XF86AudioMicMute
+  XF86AudioPlay / XF86AudioPause / XF86AudioNext / XF86AudioPrev
+  XF86MonBrightnessUp / XF86MonBrightnessDown
+
+Tip:
+  `hyprctl binds` shows the live bind list from Hyprland, but it is more raw than this cheat sheet.
 EOF
 }
 
@@ -195,7 +249,12 @@ case "${1:-}" in
         show_aliases
         exit 0
         ;;
-        
+
+    shortcuts|shortcut|keys|keybinds|s)
+        show_shortcuts
+        exit 0
+        ;;
+         
     version|v|--version|-v)
         echo "mdf version ${VERSION}"
         exit 0
