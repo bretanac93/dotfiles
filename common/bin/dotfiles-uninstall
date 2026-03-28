@@ -68,6 +68,7 @@ remove_symlink "$HOME/.config/wallpaper.png" "wallpaper"
 remove_symlink "$HOME/.config/hypr" "hyprland"
 remove_symlink "$HOME/.config/waybar" "waybar"
 remove_symlink "$HOME/.config/wofi" "wofi"
+remove_symlink "$HOME/.config/yazi" "yazi"
 remove_symlink "$HOME/.gitconfig" "gitconfig"
 remove_symlink "$HOME/.gnupg/gpg.conf" "gpg"
 
@@ -100,6 +101,7 @@ if [[ -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
     restore_backup "hypr" "$HOME/.config/hypr" "hyprland"
     restore_backup "waybar" "$HOME/.config/waybar" "waybar"
     restore_backup "wofi" "$HOME/.config/wofi" "wofi"
+    restore_backup "yazi" "$HOME/.config/yazi" "yazi"
     restore_backup "zsh" "$HOME/.config/zsh" "zsh"
     
     if [[ $DRY_RUN -eq 0 ]]; then
@@ -119,7 +121,7 @@ read -p "Remove dotfiles tools from ~/.local/bin? [y/N]: " remove_tools
 if [[ "$remove_tools" =~ ^[Yy]$ ]]; then
     echo ""
     echo "Removing tools..."
-    for tool in wb hypr-launcher hypr-power-menu zsh-dotfiles check-deps install-deps macos-defaults setup-git-local setup-ssh dotfiles-doctor; do
+    for tool in wb hypr-launcher hypr-screenshot hypr-power-menu zsh-dotfiles check-deps install-deps macos-defaults setup-git-local setup-ssh dotfiles-doctor; do
         if [[ -L "$HOME/.local/bin/$tool" ]]; then
             if [[ $DRY_RUN -eq 0 ]]; then
                 rm -f "$HOME/.local/bin/$tool"

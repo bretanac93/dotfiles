@@ -89,6 +89,10 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/wofi" ]]; then
   link_path "$repo_root/arch/wofi" "$HOME/.config/wofi" "wofi"
 fi
 
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/yazi" ]]; then
+  link_path "$repo_root/arch/yazi" "$HOME/.config/yazi" "yazi"
+fi
+
 link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
 link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
 link_path "$common_dir/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
@@ -114,6 +118,7 @@ fi
 link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
 link_path "$common_dir/bin/hypr-launcher" "$HOME/.local/bin/hypr-launcher" "hypr-launcher"
+link_path "$common_dir/bin/hypr-screenshot" "$HOME/.local/bin/hypr-screenshot" "hypr-screenshot"
 link_path "$common_dir/bin/hypr-power-menu" "$HOME/.local/bin/hypr-power-menu" "hypr-power-menu"
 link_path "$common_dir/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
 link_path "$common_dir/bin/dotfiles-benchmark" "$HOME/.local/bin/dotfiles-benchmark" "dotfiles-benchmark"

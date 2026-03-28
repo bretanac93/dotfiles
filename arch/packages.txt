@@ -11,7 +11,12 @@ github-cli
 ripgrep
 gnupg
 deno
+grim
 hyprpaper
 hyprlock
+imv
+slurp
 waybar
+wl-clipboard
 wofi
+yazi

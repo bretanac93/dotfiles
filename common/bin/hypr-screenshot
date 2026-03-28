@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+mode="${1:-menu}"
+dest="${2:-save}"
+
+dir="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+mkdir -p "$dir"
+
+timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
+file="$dir/screenshot_${timestamp}.png"
+
+require() {
+  command -v "$1" >/dev/null 2>&1 || {
+    printf '%s\n' "missing dependency: $1" >&2
+    exit 1
+  }
+}
+
+require grim
+
+capture_full() {
+  grim "$file"
+}
+
+capture_area() {
+  require slurp
+  grim -g "$(slurp)" "$file"
+}
+
+copy_image() {
+  require wl-copy
+  wl-copy < "$file"
+}
+
+show_menu() {
+  require wofi
+  local choice
+  choice="$({
+    printf '%s\n' 'capture screen'
+    printf '%s\n' 'capture selection'
+    printf '%s\n' 'copy screen'
+    printf '%s\n' 'copy selection'
+  } | wofi --dmenu --prompt 'screenshot' --width 260 --lines 4 --hide-scroll)"
+
+  case "$choice" in
+    'capture screen')
+      mode="full"
+      dest="save"
+      ;;
+    'capture selection')
+      mode="area"
+      dest="save"
+      ;;
+    'copy screen')
+      mode="full"
+      dest="copy"
+      ;;
+    'copy selection')
+      mode="area"
+      dest="copy"
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+}
+
+[[ "$mode" == "menu" ]] && show_menu
+
+case "$mode" in
+  full)
+    capture_full
+    ;;
+  area)
+    capture_area
+    ;;
+  *)
+    printf '%s\n' "unsupported screenshot mode: $mode" >&2
+    exit 1
+    ;;
+esac
+
+case "$dest" in
+  save)
+    printf '%s\n' "$file"
+    ;;
+  copy)
+    copy_image
+    rm -f "$file"
+    ;;
+  save-copy)
+    copy_image
+    printf '%s\n' "$file"
+    ;;
+  *)
+    printf '%s\n' "unsupported screenshot destination: $dest" >&2
+    exit 1
+    ;;
+esac
