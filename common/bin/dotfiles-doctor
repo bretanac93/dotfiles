@@ -107,6 +107,15 @@ fi
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/walker" ]]; then
     check_symlink "$REPO_ROOT/arch/walker" "$HOME/.config/walker" "walker"
 fi
+if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/yazi.desktop" ]]; then
+    check_symlink "$REPO_ROOT/arch/applications/yazi.desktop" "$HOME/.local/share/applications/yazi.desktop" "yazi-desktop"
+fi
+if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/com.mitchellh.ghostty.desktop" ]]; then
+    check_symlink "$REPO_ROOT/arch/applications/com.mitchellh.ghostty.desktop" "$HOME/.local/share/applications/com.mitchellh.ghostty.desktop" "ghostty-desktop"
+fi
+if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/vivaldi-stable.desktop" ]]; then
+    check_symlink "$REPO_ROOT/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop"
+fi
 check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
 check_symlink "$COMMON_DIR/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
 

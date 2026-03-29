@@ -105,6 +105,13 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/walker" ]]; then
   link_path "$repo_root/arch/walker" "$HOME/.config/walker" "walker"
 fi
 
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/applications" ]]; then
+  mkdir -p "$HOME/.local/share/applications"
+  link_path "$repo_root/arch/applications/yazi.desktop" "$HOME/.local/share/applications/yazi.desktop" "yazi-desktop" "yazi.desktop"
+  link_path "$repo_root/arch/applications/com.mitchellh.ghostty.desktop" "$HOME/.local/share/applications/com.mitchellh.ghostty.desktop" "ghostty-desktop" "com.mitchellh.ghostty.desktop"
+  link_path "$repo_root/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop" "vivaldi-stable.desktop"
+fi
+
 link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
 link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
 link_path "$common_dir/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
