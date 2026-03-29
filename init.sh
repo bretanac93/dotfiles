@@ -110,6 +110,8 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/applications" ]]; then
   link_path "$repo_root/arch/applications/yazi.desktop" "$HOME/.local/share/applications/yazi.desktop" "yazi-desktop" "yazi.desktop"
   link_path "$repo_root/arch/applications/com.mitchellh.ghostty.desktop" "$HOME/.local/share/applications/com.mitchellh.ghostty.desktop" "ghostty-desktop" "com.mitchellh.ghostty.desktop"
   link_path "$repo_root/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop" "vivaldi-stable.desktop"
+  mkdir -p "$HOME/.config"
+  link_path "$repo_root/arch/applications/mimeapps.list" "$HOME/.config/mimeapps.list" "mimeapps" "mimeapps.list"
 fi
 
 link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
@@ -144,6 +146,7 @@ link_path "$common_dir/bin/hypr-wifi-menu" "$HOME/.local/bin/hypr-wifi-menu" "hy
 link_path "$common_dir/bin/hypr-emoji-picker" "$HOME/.local/bin/hypr-emoji-picker" "hypr-emoji-picker"
 link_path "$common_dir/bin/hypr-calculator" "$HOME/.local/bin/hypr-calculator" "hypr-calculator"
 link_path "$common_dir/bin/hypr-clipboard-history" "$HOME/.local/bin/hypr-clipboard-history" "hypr-clipboard-history"
+link_path "$common_dir/bin/hypr-record-screen" "$HOME/.local/bin/hypr-record-screen" "hypr-record-screen"
 link_path "$common_dir/bin/hypr-screenshot" "$HOME/.local/bin/hypr-screenshot" "hypr-screenshot"
 link_path "$common_dir/bin/hypr-power-menu" "$HOME/.local/bin/hypr-power-menu" "hypr-power-menu"
 link_path "$common_dir/bin/setup-sddm-theme" "$HOME/.local/bin/setup-sddm-theme" "setup-sddm-theme"

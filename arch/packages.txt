@@ -23,6 +23,8 @@ slurp
 swayosd
 waybar
 walker
+vlc
+wf-recorder
 wl-clipboard
 wofi
 yazi

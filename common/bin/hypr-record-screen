@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+mode="${1:-menu}"
+dir="${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings"
+mkdir -p "$dir"
+
+notify() {
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send "$@"
+  fi
+}
+
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 260 --lines 3 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-record-screen' >&2
+    exit 1
+  fi
+}
+
+require() {
+  command -v "$1" >/dev/null 2>&1 || {
+    printf '%s\n' "missing dependency: $1" >&2
+    exit 1
+  }
+}
+
+stop_recording() {
+  if pgrep -x wf-recorder >/dev/null 2>&1; then
+    pkill -INT -x wf-recorder
+    notify "Screen recording" "Stopped"
+  fi
+}
+
+focused_output() {
+  require hyprctl
+  python - <<'PY'
+import json, subprocess
+data = json.loads(subprocess.check_output(['hyprctl', 'monitors', '-j']))
+focused = next((m['name'] for m in data if m.get('focused')), None)
+if focused:
+    print(focused)
+PY
+}
+
+start_recording() {
+  require wf-recorder
+  local timestamp file
+  timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
+  file="$dir/recording_${timestamp}.mp4"
+
+  case "$1" in
+    screen)
+      local output
+      output="$(focused_output)"
+      nohup wf-recorder -o "$output" -f "$file" >/tmp/wf-recorder.log 2>&1 &
+      ;;
+    area)
+      require slurp
+      nohup wf-recorder -g "$(slurp)" -f "$file" >/tmp/wf-recorder.log 2>&1 &
+      ;;
+    *)
+      printf '%s\n' "unsupported recording mode: $1" >&2
+      exit 1
+      ;;
+  esac
+
+  notify "Screen recording" "$file"
+}
+
+if [[ "$mode" == "toggle" ]]; then
+  if pgrep -x wf-recorder >/dev/null 2>&1; then
+    stop_recording
+  else
+    start_recording screen
+  fi
+  exit 0
+fi
+
+if [[ "$mode" == "menu" ]]; then
+  mode="$({
+    printf '%s\n' 'record screen'
+    printf '%s\n' 'record selection'
+    printf '%s\n' 'stop recording'
+  } | menu 'record')"
+
+  case "$mode" in
+    'record screen') mode='screen' ;;
+    'record selection') mode='area' ;;
+    'stop recording') mode='stop' ;;
+    *) exit 0 ;;
+  esac
+fi
+
+case "$mode" in
+  screen|area)
+    start_recording "$mode"
+    ;;
+  stop)
+    stop_recording
+    ;;
+  *)
+    printf '%s\n' "unsupported mode: $mode" >&2
+    exit 1
+    ;;
+esac
