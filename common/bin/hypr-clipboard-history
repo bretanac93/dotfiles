@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+require() {
+  command -v "$1" >/dev/null 2>&1 || {
+    printf '%s\n' "missing dependency: $1" >&2
+    exit 1
+  }
+}
+
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 720 --lines 12 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-clipboard-history' >&2
+    exit 1
+  fi
+}
+
+require cliphist
+require wl-copy
+
+selection="$(cliphist list | menu 'clipboard history')"
+[[ -z "$selection" ]] && exit 0
+
+cliphist decode <<< "$selection" | wl-copy
