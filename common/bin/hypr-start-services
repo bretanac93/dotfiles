@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+start_bg() {
+  local name="$1"
+  shift
+
+  if pgrep -x "$name" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  nohup "$@" >/tmp/"$name".log 2>&1 &
+}
+
+start_bg hyprpaper hyprpaper
+start_bg mako mako
+start_bg swayosd-server swayosd-server
+
+if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+  if ! pgrep -f 'walker --gapplication-service' >/dev/null 2>&1; then
+    nohup walker --gapplication-service >/tmp/walker.log 2>&1 &
+  fi
+fi
+
+if ! pgrep -x waybar >/dev/null 2>&1; then
+  nohup waybar >/tmp/waybar.log 2>&1 &
+fi

@@ -40,6 +40,7 @@
     "max-length": 48,
     "on-click": "playerctl play-pause",
     "on-click-right": "playerctl stop",
+    "on-click-middle": "hypr-launcher",
     "on-scroll-up": "playerctl next",
     "on-scroll-down": "playerctl previous"
   },
@@ -51,7 +52,8 @@
       "default": ["vol", "vol", "vol"]
     },
     "scroll-step": 5,
-    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    "on-click": "hypr-audio-menu",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
 
   "network": {
@@ -60,7 +62,9 @@
     "format-disconnected": "offline",
     "tooltip-format-wifi": "{essid} ({signalStrength}%)",
     "tooltip-format-ethernet": "{ifname}",
-    "tooltip-format-disconnected": "Disconnected"
+    "tooltip-format-disconnected": "Disconnected",
+    "on-click": "hypr-wifi-menu",
+    "on-click-right": "hypr-bluetooth-menu"
   },
 
   "cpu": {

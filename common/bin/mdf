@@ -107,6 +107,15 @@ Mouse:
   Super + Left drag    Move window
   Super + Right drag   Resize window
 
+Waybar:
+  media click          Play/pause
+  media middle-click   Launcher
+  media scroll         Next/previous
+  volume click         Audio devices
+  volume right-click   Mute output
+  network click        Wi-Fi menu
+  network right-click  Bluetooth menu
+
 Media / Hardware:
   XF86AudioRaiseVolume / XF86AudioLowerVolume
   XF86AudioMute / XF86AudioMicMute

@@ -139,6 +139,7 @@ fi
 link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
 link_path "$common_dir/bin/waybar-media" "$HOME/.local/bin/waybar-media" "waybar-media"
+link_path "$common_dir/bin/hypr-start-services" "$HOME/.local/bin/hypr-start-services" "hypr-start-services"
 link_path "$common_dir/bin/hypr-launcher" "$HOME/.local/bin/hypr-launcher" "hypr-launcher"
 link_path "$common_dir/bin/hypr-audio-menu" "$HOME/.local/bin/hypr-audio-menu" "hypr-audio-menu"
 link_path "$common_dir/bin/hypr-bluetooth-menu" "$HOME/.local/bin/hypr-bluetooth-menu" "hypr-bluetooth-menu"
