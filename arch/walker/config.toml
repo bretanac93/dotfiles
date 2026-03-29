@@ -30,7 +30,7 @@ page_up = ["Page_Up"]
 show_actions = ["alt j"]
 
 [providers]
-default = ["desktopapplications", "calc", "websearch"]
+default = ["windows", "desktopapplications", "calc", "websearch"]
 empty = ["desktopapplications"]
 ignore_preview = ["desktopapplications", "calc", "websearch", "clipboard", "symbols", "providerlist"]
 max_results = 40
