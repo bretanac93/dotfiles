@@ -8,6 +8,7 @@ theme_commit="d73842c761f7d7859f3bdd80e4360f09180fad41"
 theme_name="sddm-astronaut-theme"
 theme_dst="/usr/share/sddm/themes/${theme_name}"
 config_dst="/etc/sddm.conf.d/10-theme.conf"
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/mdf/${theme_name}"
 tmp_dir="$(mktemp -d)"
 
 cleanup() {
@@ -15,9 +16,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
-git clone --depth 1 "$theme_repo" "$tmp_dir/$theme_name"
-git -C "$tmp_dir/$theme_name" fetch --depth 1 origin "$theme_commit"
-git -C "$tmp_dir/$theme_name" checkout "$theme_commit"
+if [[ ! -d "$cache_dir/.git" ]]; then
+  install -d "$(dirname "$cache_dir")"
+  git clone --filter=blob:none "$theme_repo" "$cache_dir"
+fi
+
+git -C "$cache_dir" fetch --depth 1 origin "$theme_commit"
+git -C "$cache_dir" checkout --force "$theme_commit"
+
+cp -r "$cache_dir" "$tmp_dir/$theme_name"
+rm -rf "$tmp_dir/$theme_name/.git"
 
 cp "$repo_root/arch/sddm/astronaut-theme.conf" "$tmp_dir/$theme_name/Themes/opencode-nord.conf"
 python - <<'PY' "$tmp_dir/$theme_name/metadata.desktop"
