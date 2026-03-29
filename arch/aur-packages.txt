@@ -3,4 +3,5 @@
 
 1password
 1password-cli
+elephant-all-bin
 hyprshutdown

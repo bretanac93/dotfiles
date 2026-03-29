@@ -35,14 +35,21 @@ copy_image() {
 }
 
 show_menu() {
-  require wofi
+  menu() {
+    if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+      walker --dmenu --placeholder "$1"
+    else
+      require wofi
+      wofi --dmenu --prompt "$1" --width 260 --lines 4 --hide-scroll
+    fi
+  }
   local choice
   choice="$({
     printf '%s\n' 'capture screen'
     printf '%s\n' 'capture selection'
     printf '%s\n' 'copy screen'
     printf '%s\n' 'copy selection'
-  } | wofi --dmenu --prompt 'screenshot' --width 260 --lines 4 --hide-scroll)"
+  } | menu 'screenshot')"
 
   case "$choice" in
     'capture screen')

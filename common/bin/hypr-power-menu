@@ -2,10 +2,16 @@
 
 set -euo pipefail
 
-if ! command -v wofi >/dev/null 2>&1; then
-  printf '%s\n' 'wofi is required for hypr-power-menu' >&2
-  exit 1
-fi
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 220 --lines 5 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-power-menu' >&2
+    exit 1
+  fi
+}
 
 choice="$({
   printf '%s\n' 'lock'
@@ -13,7 +19,7 @@ choice="$({
   printf '%s\n' 'suspend'
   printf '%s\n' 'reboot'
   printf '%s\n' 'shutdown'
-} | wofi --dmenu --prompt 'power' --width 220 --lines 5 --hide-scroll)"
+} | menu 'power')"
 
 case "$choice" in
   lock)

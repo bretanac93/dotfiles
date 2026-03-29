@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+  exec walker
+fi
+
 if pgrep -x wofi >/dev/null 2>&1; then
   pkill -x wofi
   exit 0

@@ -19,6 +19,7 @@ imv
 mako
 slurp
 waybar
+walker
 wl-clipboard
 wofi
 yazi

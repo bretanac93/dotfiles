@@ -97,6 +97,10 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/mako" ]]; then
   link_path "$repo_root/arch/mako" "$HOME/.config/mako" "mako"
 fi
 
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/walker" ]]; then
+  link_path "$repo_root/arch/walker" "$HOME/.config/walker" "walker"
+fi
+
 link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
 link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
 link_path "$common_dir/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"

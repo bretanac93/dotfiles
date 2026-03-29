@@ -1,0 +1,68 @@
+close_when_open = true
+click_to_close = true
+force_keyboard_focus = true
+single_click_activation = true
+selection_wrap = true
+theme = "nord"
+hide_action_hints = true
+hide_action_hints_dmenu = true
+hide_quick_activation = true
+resume_last_query = false
+autoplay_videos = false
+
+[shell]
+layer = "overlay"
+exclusive_zone = -1
+anchor_top = true
+anchor_bottom = true
+anchor_left = true
+anchor_right = true
+
+[placeholders]
+"default" = { input = "Type to launch, search, or calculate", list = "No matches" }
+
+[keybinds]
+close = ["Escape"]
+next = ["Down", "ctrl j"]
+previous = ["Up", "ctrl k"]
+page_down = ["Page_Down"]
+page_up = ["Page_Up"]
+show_actions = ["alt j"]
+
+[providers]
+default = ["desktopapplications", "calc", "websearch"]
+empty = ["desktopapplications"]
+ignore_preview = ["desktopapplications", "calc", "websearch", "clipboard", "symbols", "providerlist"]
+max_results = 40
+
+[[providers.prefixes]]
+prefix = ";"
+provider = "providerlist"
+
+[[providers.prefixes]]
+prefix = ">"
+provider = "runner"
+
+[[providers.prefixes]]
+prefix = "/"
+provider = "files"
+
+[[providers.prefixes]]
+prefix = "."
+provider = "symbols"
+
+[[providers.prefixes]]
+prefix = "="
+provider = "calc"
+
+[[providers.prefixes]]
+prefix = "@"
+provider = "websearch"
+
+[[providers.prefixes]]
+prefix = ":"
+provider = "clipboard"
+
+[[providers.prefixes]]
+prefix = "$"
+provider = "windows"

@@ -101,6 +101,9 @@ fi
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/mako" ]]; then
     check_symlink "$REPO_ROOT/arch/mako" "$HOME/.config/mako" "mako"
 fi
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/walker" ]]; then
+    check_symlink "$REPO_ROOT/arch/walker" "$HOME/.config/walker" "walker"
+fi
 check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
 check_symlink "$COMMON_DIR/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
 
