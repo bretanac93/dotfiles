@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+theme_repo="https://github.com/Keyitdev/sddm-astronaut-theme.git"
+theme_commit="d73842c761f7d7859f3bdd80e4360f09180fad41"
+theme_name="sddm-astronaut-theme"
+theme_dst="/usr/share/sddm/themes/${theme_name}"
+config_dst="/etc/sddm.conf.d/10-theme.conf"
+tmp_dir="$(mktemp -d)"
+
+cleanup() {
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT
+
+git clone --depth 1 "$theme_repo" "$tmp_dir/$theme_name"
+git -C "$tmp_dir/$theme_name" fetch --depth 1 origin "$theme_commit"
+git -C "$tmp_dir/$theme_name" checkout "$theme_commit"
+
+cp "$repo_root/arch/sddm/astronaut-theme.conf" "$tmp_dir/$theme_name/Themes/opencode-nord.conf"
+python - <<'PY' "$tmp_dir/$theme_name/metadata.desktop"
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+text = text.replace('ConfigFile=Themes/astronaut.conf', 'ConfigFile=Themes/opencode-nord.conf')
+path.write_text(text)
+PY
+
+install -d "$tmp_dir/$theme_name/Backgrounds"
+cp "$repo_root/common/wallpaper.png" "$tmp_dir/$theme_name/Backgrounds/opencode-wallpaper.png"
+
+sudo install -d /usr/share/sddm/themes /etc/sddm.conf.d /usr/share/fonts
+sudo rm -rf "$theme_dst"
+sudo cp -r "$tmp_dir/$theme_name" "$theme_dst"
+sudo cp -r "$theme_dst/Fonts/." /usr/share/fonts/
+sudo install -m 0644 "$repo_root/arch/sddm/10-theme.conf" "$config_dst"
+
+printf '%s\n' "Installed ${theme_name} at ${theme_commit:0:7} with Nord overrides."
+printf '%s\n' "Test with: sddm-greeter-qt6 --test-mode --theme ${theme_dst}"
+printf '%s\n' "Apply by restarting SDDM or rebooting."

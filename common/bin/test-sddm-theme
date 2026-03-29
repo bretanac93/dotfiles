@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+theme_path="/usr/share/sddm/themes/sddm-astronaut-theme"
+
+if [[ ! -d "$theme_path" ]]; then
+  printf '%s\n' "SDDM theme not installed at $theme_path" >&2
+  printf '%s\n' "Run: mdf arch --setup-sddm" >&2
+  exit 1
+fi
+
+exec sddm-greeter-qt6 --test-mode --theme "$theme_path"

@@ -23,6 +23,7 @@ Commands:
   install, i       Run init.sh to set up dotfiles
   update, u        Pull latest changes and re-run init
   deps             Install platform dependencies
+  arch             Run Arch-specific setup helpers
   doctor, d        Check if everything is working
   benchmark, b     Benchmark zsh startup performance
   uninstall       Remove dotfiles (with --dry-run support)
@@ -42,6 +43,8 @@ Examples:
   mdf install --force-symlinks
   mdf update               # Update to latest
   mdf doctor               # Check health
+  mdf arch --setup-sddm    # Install tracked SDDM theme
+  mdf arch --test-sddm     # Preview the installed SDDM theme
   mdf benchmark            # Measure shell startup time
   mdf aliases              # Show all aliases
   mdf shortcuts            # Show Hyprland keybind cheat sheet
@@ -220,7 +223,29 @@ case "${1:-}" in
         shift
         run_script "install-deps" "$@"
         ;;
-         
+
+    arch)
+        shift
+        case "${1:-}" in
+            --setup-sddm)
+                shift
+                run_script "setup-sddm-theme" "$@"
+                ;;
+            --test-sddm)
+                shift
+                run_script "test-sddm-theme" "$@"
+                ;;
+            *)
+                echo "❌ Unknown arch option: ${1:-<none>}"
+                echo ""
+                echo "Available options:"
+                echo "  --setup-sddm    Install the tracked SDDM Astronaut theme"
+                echo "  --test-sddm     Preview the installed SDDM Astronaut theme"
+                exit 1
+                ;;
+        esac
+        ;;
+          
     doctor|d)
         shift
         run_script "dotfiles-doctor" "$@"
