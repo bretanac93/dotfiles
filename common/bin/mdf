@@ -64,6 +64,9 @@ Launchers:
   Super + E            File manager
   Super + .            Emoji picker
   Super + C            Calculator
+  Super + A            Audio devices
+  Super + B            Bluetooth menu
+  Super + W            Wi-Fi menu
 
 Window Actions:
   Super + Q            Close focused window

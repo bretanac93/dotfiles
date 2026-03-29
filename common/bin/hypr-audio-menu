@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 720 --lines 12 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-audio-menu' >&2
+    exit 1
+  fi
+}
+
+require() {
+  command -v "$1" >/dev/null 2>&1 || {
+    printf '%s\n' "missing dependency: $1" >&2
+    exit 1
+  }
+}
+
+require wpctl
+
+selection="$({
+  wpctl status | awk '
+    /Sinks:/ {section="sink"; next}
+    /Sources:/ {section="source"; next}
+    /Sink endpoints:/ {section=""}
+    /Source endpoints:/ {section=""}
+    section != "" {
+      if (match($0, /([*[:space:]]*)[[:graph:]]+[[:space:]]+([0-9]+)\. (.*)/, m)) {
+        prefix = section == "sink" ? "out" : "in"
+        marker = index(m[1], "*") ? "default" : "      "
+        gsub(/[[:space:]]+\[[^]]+\]$/, "", m[3])
+        print prefix "|" m[2] "|" marker "|" m[3]
+      }
+    }
+  ' | while IFS='|' read -r kind id marker name; do
+    printf '%s\n' "$kind  $marker  $name"
+  done
+} | menu 'audio devices')"
+
+[[ -z "$selection" ]] && exit 0
+
+kind="${selection%%  *}"
+rest="${selection#*  }"
+rest="${rest#*  }"
+target_name="$rest"
+
+wpctl status | awk -v target="$target_name" -v kind="$kind" '
+  /Sinks:/ {section="out"; next}
+  /Sources:/ {section="in"; next}
+  /Sink endpoints:/ {section=""}
+  /Source endpoints:/ {section=""}
+  section == kind {
+    if (match($0, /([*[:space:]]*)[[:graph:]]+[[:space:]]+([0-9]+)\. (.*)/, m)) {
+      gsub(/[[:space:]]+\[[^]]+\]$/, "", m[3])
+      if (m[3] == target) {
+        print m[2]
+        exit
+      }
+    }
+  }
+' | {
+  read -r id || exit 0
+  if [[ "$kind" == "out" ]]; then
+    wpctl set-default "$id"
+  else
+    wpctl set-default "$id"
+  fi
+}

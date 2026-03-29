@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 720 --lines 12 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-bluetooth-menu' >&2
+    exit 1
+  fi
+}
+
+choice="$({
+  powered="$(bluetoothctl show | awk -F': ' '/Powered:/ {print $2}')"
+  if [[ "$powered" == "yes" ]]; then
+    printf '%s\n' 'power off bluetooth'
+  else
+    printf '%s\n' 'power on bluetooth'
+  fi
+  bluetoothctl devices | while read -r _ mac name; do
+    info="$(bluetoothctl info "$mac" 2>/dev/null || true)"
+    state="paired"
+    grep -q 'Connected: yes' <<< "$info" && state='connected'
+    printf '%s\n' "$state  $name  [$mac]"
+  done
+} | menu 'bluetooth')"
+
+[[ -z "$choice" ]] && exit 0
+
+case "$choice" in
+  'power on bluetooth') bluetoothctl power on ;;
+  'power off bluetooth') bluetoothctl power off ;;
+  *)
+    mac="${choice##*[}"
+    mac="${mac%]}"
+    bluetoothctl info "$mac" | grep -q 'Connected: yes' && exec bluetoothctl disconnect "$mac"
+    exec bluetoothctl connect "$mac"
+    ;;
+esac

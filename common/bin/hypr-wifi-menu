@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 720 --lines 14 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-wifi-menu' >&2
+    exit 1
+  fi
+}
+
+choice="$({
+  wifi_state="$(nmcli radio wifi)"
+  if [[ "$wifi_state" == "enabled" ]]; then
+    printf '%s\n' 'wifi off'
+  else
+    printf '%s\n' 'wifi on'
+  fi
+  nmcli --terse --escape no --fields IN-USE,SSID,SIGNAL,SECURITY device wifi list | while IFS=: read -r inuse ssid signal security; do
+    [[ -z "$ssid" ]] && continue
+    state=''
+    [[ "$inuse" == '*' ]] && state='connected '
+    printf '%s\n' "$state$ssid  ${signal}%  ${security:-open}"
+  done
+} | menu 'wifi')"
+
+[[ -z "$choice" ]] && exit 0
+
+case "$choice" in
+  'wifi on') exec nmcli radio wifi on ;;
+  'wifi off') exec nmcli radio wifi off ;;
+esac
+
+ssid="$choice"
+ssid="${ssid#connected }"
+ssid="${ssid%%  *}"
+
+exec nmcli device wifi connect "$ssid"

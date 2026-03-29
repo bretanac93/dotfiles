@@ -127,7 +127,7 @@ read -p "Remove dotfiles tools from ~/.local/bin? [y/N]: " remove_tools
 if [[ "$remove_tools" =~ ^[Yy]$ ]]; then
     echo ""
     echo "Removing tools..."
-    for tool in wb waybar-media hypr-launcher hypr-emoji-picker hypr-calculator hypr-clipboard-history hypr-screenshot hypr-power-menu setup-sddm-theme test-sddm-theme zsh-dotfiles check-deps install-deps macos-defaults setup-git-local setup-ssh dotfiles-doctor; do
+    for tool in wb waybar-media hypr-launcher hypr-audio-menu hypr-bluetooth-menu hypr-wifi-menu hypr-emoji-picker hypr-calculator hypr-clipboard-history hypr-screenshot hypr-power-menu setup-sddm-theme test-sddm-theme zsh-dotfiles check-deps install-deps macos-defaults setup-git-local setup-ssh dotfiles-doctor; do
         if [[ -L "$HOME/.local/bin/$tool" ]]; then
             if [[ $DRY_RUN -eq 0 ]]; then
                 rm -f "$HOME/.local/bin/$tool"
