@@ -97,6 +97,10 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/mako" ]]; then
   link_path "$repo_root/arch/mako" "$HOME/.config/mako" "mako"
 fi
 
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/swayosd" ]]; then
+  link_path "$repo_root/arch/swayosd" "$HOME/.config/swayosd" "swayosd"
+fi
+
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/walker" ]]; then
   link_path "$repo_root/arch/walker" "$HOME/.config/walker" "walker"
 fi
@@ -125,6 +129,7 @@ fi
 
 link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
+link_path "$common_dir/bin/waybar-media" "$HOME/.local/bin/waybar-media" "waybar-media"
 link_path "$common_dir/bin/hypr-launcher" "$HOME/.local/bin/hypr-launcher" "hypr-launcher"
 link_path "$common_dir/bin/hypr-emoji-picker" "$HOME/.local/bin/hypr-emoji-picker" "hypr-emoji-picker"
 link_path "$common_dir/bin/hypr-calculator" "$HOME/.local/bin/hypr-calculator" "hypr-calculator"

@@ -18,7 +18,9 @@ hypridle
 hyprlock
 imv
 mako
+playerctl
 slurp
+swayosd
 waybar
 walker
 wl-clipboard

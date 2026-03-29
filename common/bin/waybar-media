@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v playerctl >/dev/null 2>&1; then
+  printf '{"text":"media","class":"offline","tooltip":"playerctl missing"}\n'
+  exit 0
+fi
+
+player="$(playerctl -a metadata --format '{{playerName}}' 2>/dev/null | head -n1 || true)"
+
+if [[ -z "$player" ]]; then
+  printf '{"text":"idle","class":"idle","tooltip":"No active media"}\n'
+  exit 0
+fi
+
+status="$(playerctl -p "$player" status 2>/dev/null || true)"
+artist="$(playerctl -p "$player" metadata artist 2>/dev/null || true)"
+title="$(playerctl -p "$player" metadata title 2>/dev/null || true)"
+
+label=""
+if [[ -n "$artist" && -n "$title" ]]; then
+  label="$artist - $title"
+elif [[ -n "$title" ]]; then
+  label="$title"
+else
+  label="$player"
+fi
+
+short_label="$label"
+if (( ${#short_label} > 48 )); then
+  short_label="${short_label:0:45}..."
+fi
+
+class="paused"
+[[ "$status" == "Playing" ]] && class="playing"
+
+python - <<'PY' "$short_label" "$label" "$class"
+import json, sys
+print(json.dumps({
+    "text": sys.argv[1],
+    "class": sys.argv[3],
+    "tooltip": sys.argv[2],
+}))
+PY

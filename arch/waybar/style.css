@@ -22,6 +22,7 @@ tooltip label {
 }
 
 #workspaces,
+#custom-media,
 #window,
 #pulseaudio,
 #network,
@@ -65,6 +66,21 @@ tooltip label {
 #window {
   color: #d8dee9;
   padding: 0 18px;
+}
+
+#custom-media {
+  color: #d8dee9;
+  padding: 0 18px;
+  min-width: 220px;
+}
+
+#custom-media.playing {
+  color: #88c0d0;
+}
+
+#custom-media.paused,
+#custom-media.idle {
+  color: #a3b1c6;
 }
 
 #network.disconnected,

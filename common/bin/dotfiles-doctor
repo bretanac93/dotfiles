@@ -101,6 +101,9 @@ fi
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/mako" ]]; then
     check_symlink "$REPO_ROOT/arch/mako" "$HOME/.config/mako" "mako"
 fi
+if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/swayosd" ]]; then
+    check_symlink "$REPO_ROOT/arch/swayosd" "$HOME/.config/swayosd" "swayosd"
+fi
 if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/walker" ]]; then
     check_symlink "$REPO_ROOT/arch/walker" "$HOME/.config/walker" "walker"
 fi
