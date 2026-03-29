@@ -62,6 +62,8 @@ Launchers:
   Alt + Space          App launcher
   Super + Return       Terminal
   Super + E            File manager
+  Super + .            Emoji picker
+  Super + C            Calculator
 
 Window Actions:
   Super + Q            Close focused window

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+  exec walker --provider calc
+fi
+
+printf '%s\n' 'walker + elephant is required for hypr-calculator' >&2
+exit 1

@@ -126,6 +126,8 @@ fi
 link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
 link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
 link_path "$common_dir/bin/hypr-launcher" "$HOME/.local/bin/hypr-launcher" "hypr-launcher"
+link_path "$common_dir/bin/hypr-emoji-picker" "$HOME/.local/bin/hypr-emoji-picker" "hypr-emoji-picker"
+link_path "$common_dir/bin/hypr-calculator" "$HOME/.local/bin/hypr-calculator" "hypr-calculator"
 link_path "$common_dir/bin/hypr-clipboard-history" "$HOME/.local/bin/hypr-clipboard-history" "hypr-clipboard-history"
 link_path "$common_dir/bin/hypr-screenshot" "$HOME/.local/bin/hypr-screenshot" "hypr-screenshot"
 link_path "$common_dir/bin/hypr-power-menu" "$HOME/.local/bin/hypr-power-menu" "hypr-power-menu"

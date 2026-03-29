@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+  exec walker --provider symbols
+fi
+
+printf '%s\n' 'walker + elephant is required for hypr-emoji-picker' >&2
+exit 1
