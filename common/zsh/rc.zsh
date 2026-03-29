@@ -3,7 +3,8 @@
 # Set up essential variables FIRST (before any lib files use them)
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 export ZSH_THEME="${ZSH_THEME:-mine}"
-export HISTFILE="${ZSH_HISTORY_FILE:-$HISTFILE}"
+export HISTFILE="${ZSH_HISTORY_FILE:-$HOME/.local/state/zsh/history}"
+mkdir -p "${HISTFILE:h}"
 
 if [[ -n "$SSH_CONNECTION" ]]; then
   export EDITOR="vim"
