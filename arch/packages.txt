@@ -18,11 +18,15 @@ hypridle
 hyprlock
 imv
 mako
+mangohud
 playerctl
 slurp
 swayosd
+steam
 waybar
 walker
+gamescope
+gamemode
 vlc
 wf-recorder
 wl-clipboard
