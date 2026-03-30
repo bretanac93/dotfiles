@@ -17,6 +17,7 @@ hyprpaper
 hypridle
 hyprlock
 imv
+lm_sensors
 mako
 mangohud
 playerctl

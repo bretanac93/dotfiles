@@ -9,7 +9,7 @@
 
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["custom/media", "hyprland/window"],
-  "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "clock", "custom/power"],
+  "modules-right": ["tray", "pulseaudio", "network", "custom/cpu-status", "custom/gpu-status", "memory", "clock", "custom/power"],
 
   "hyprland/workspaces": {
     "active-only": false,
@@ -67,9 +67,20 @@
     "on-click-right": "hypr-bluetooth-menu"
   },
 
-  "cpu": {
-    "format": "cpu {usage}%",
-    "tooltip": false
+  "custom/cpu-status": {
+    "exec": "waybar-cpu-temp",
+    "return-type": "json",
+    "interval": 5,
+    "format": "{}",
+    "on-click": "waybar-toggle-mode cpu"
+  },
+
+  "custom/gpu-status": {
+    "exec": "waybar-gpu-temp",
+    "return-type": "json",
+    "interval": 5,
+    "format": "{}",
+    "on-click": "waybar-toggle-mode gpu"
   },
 
   "memory": {

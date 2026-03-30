@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/waybar"
+mkdir -p "$cache_dir"
+mode_file="$cache_dir/cpu.mode"
+stat_file="$cache_dir/cpu.stat"
+mode="usage"
+
+if [[ -f "$mode_file" ]]; then
+  mode="$(<"$mode_file")"
+fi
+
+if [[ "$mode" == "temp" ]]; then
+  temp="$(sensors 2>/dev/null | awk '/Package id 0:/ {gsub(/[^0-9.]/, "", $4); print int($4); exit}')"
+
+  if [[ -z "${temp:-}" ]]; then
+    printf '{"text":"cpu --C","class":"offline","tooltip":"CPU temperature unavailable"}\n'
+    exit 0
+  fi
+
+  class="cool"
+  if (( temp >= 80 )); then
+    class="hot"
+  elif (( temp >= 65 )); then
+    class="warm"
+  fi
+
+  python - <<'PY' "$temp" "$class"
+import json, sys
+print(json.dumps({
+    "text": f"cpu {sys.argv[1]}C",
+    "class": sys.argv[2],
+    "tooltip": f"CPU package temperature: {sys.argv[1]}C",
+}))
+PY
+  exit 0
+fi
+
+read -r _ user nice system idle iowait irq softirq steal _ < /proc/stat
+idle_all=$((idle + iowait))
+total=$((user + nice + system + idle + iowait + irq + softirq + steal))
+
+usage=0
+if [[ -f "$stat_file" ]]; then
+  read -r prev_total prev_idle < "$stat_file"
+  total_diff=$((total - prev_total))
+  idle_diff=$((idle_all - prev_idle))
+  if (( total_diff > 0 )); then
+    usage=$(( (1000 * (total_diff - idle_diff) / total_diff + 5) / 10 ))
+  fi
+fi
+
+printf '%s %s\n' "$total" "$idle_all" > "$stat_file"
+
+python - <<'PY' "$usage"
+import json, sys
+print(json.dumps({
+    "text": f"cpu {sys.argv[1]}%",
+    "class": "usage",
+    "tooltip": f"CPU usage: {sys.argv[1]}%\nClick to toggle temperature",
+}))
+PY

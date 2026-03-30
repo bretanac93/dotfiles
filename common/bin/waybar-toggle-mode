@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+target="${1:-}"
+
+case "$target" in
+  cpu)
+    default="usage"
+    alt="temp"
+    ;;
+  gpu)
+    default="temp"
+    alt="usage"
+    ;;
+  *)
+    printf '%s\n' 'usage: waybar-toggle-mode <cpu|gpu>' >&2
+    exit 1
+    ;;
+esac
+
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/waybar"
+mkdir -p "$cache_dir"
+mode_file="$cache_dir/${target}.mode"
+current="$default"
+
+if [[ -f "$mode_file" ]]; then
+  current="$(<"$mode_file")"
+fi
+
+if [[ "$current" == "$default" ]]; then
+  printf '%s\n' "$alt" > "$mode_file"
+else
+  printf '%s\n' "$default" > "$mode_file"
+fi

@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/waybar"
+mkdir -p "$cache_dir"
+mode_file="$cache_dir/gpu.mode"
+mode="temp"
+
+if [[ -f "$mode_file" ]]; then
+  mode="$(<"$mode_file")"
+fi
+
+IFS=',' read -r temp usage < <(nvidia-smi --query-gpu=temperature.gpu,utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -n1 | tr -d ' ')
+
+if [[ -z "${temp:-}" ]]; then
+  printf '{"text":"gpu --C","class":"offline","tooltip":"GPU temperature unavailable"}\n'
+  exit 0
+fi
+
+if [[ "$mode" == "usage" ]]; then
+  python - <<'PY' "$usage"
+import json, sys
+print(json.dumps({
+    "text": f"gpu {sys.argv[1]}%",
+    "class": "usage",
+    "tooltip": f"GPU utilization: {sys.argv[1]}%\nClick to toggle temperature",
+}))
+PY
+  exit 0
+fi
+
+class="cool"
+if (( temp >= 80 )); then
+  class="hot"
+elif (( temp >= 65 )); then
+  class="warm"
+fi
+
+python - <<'PY' "$temp" "$class"
+import json, sys
+print(json.dumps({
+    "text": f"gpu {sys.argv[1]}C",
+    "class": sys.argv[2],
+    "tooltip": f"NVIDIA GPU temperature: {sys.argv[1]}C\nClick to toggle utilization",
+}))
+PY
