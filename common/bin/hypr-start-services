@@ -16,6 +16,7 @@ start_bg() {
 start_bg hyprpaper hyprpaper
 start_bg mako mako
 start_bg swayosd-server swayosd-server
+start_bg elephant elephant
 
 if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
   if ! pgrep -f 'walker --gapplication-service' >/dev/null 2>&1; then

@@ -28,3 +28,4 @@ wf-recorder
 wl-clipboard
 wofi
 yazi
+zathura

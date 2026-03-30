@@ -1,4 +1,9 @@
 [Default Applications]
+application/pdf=zathura.desktop
+application/xhtml+xml=vivaldi-stable.desktop
+text/html=vivaldi-stable.desktop
+x-scheme-handler/http=vivaldi-stable.desktop
+x-scheme-handler/https=vivaldi-stable.desktop
 video/mp4=vlc.desktop
 video/x-matroska=vlc.desktop
 video/webm=vlc.desktop

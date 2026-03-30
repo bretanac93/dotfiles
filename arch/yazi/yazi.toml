@@ -3,7 +3,12 @@ image = [
   { run = 'imv "$@"', orphan = true, for = "linux" }
 ]
 
+pdf = [
+  { run = 'zathura "$@"', orphan = true, for = "linux" }
+]
+
 [open]
 prepend_rules = [
+  { mime = "application/pdf", use = "pdf" },
   { mime = "image/*", use = "image" }
 ]
