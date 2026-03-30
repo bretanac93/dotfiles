@@ -116,6 +116,12 @@ fi
 if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/vivaldi-stable.desktop" ]]; then
     check_symlink "$REPO_ROOT/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop"
 fi
+if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/zathura.desktop" ]]; then
+    check_symlink "$REPO_ROOT/arch/applications/zathura.desktop" "$HOME/.local/share/applications/zathura.desktop" "zathura-desktop"
+fi
+if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/slack.desktop" ]]; then
+    check_symlink "$REPO_ROOT/arch/applications/slack.desktop" "$HOME/.local/share/applications/slack.desktop" "slack-desktop"
+fi
 if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/mimeapps.list" ]]; then
     check_symlink "$REPO_ROOT/arch/applications/mimeapps.list" "$HOME/.config/mimeapps.list" "mimeapps"
 fi

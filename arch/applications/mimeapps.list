@@ -13,3 +13,4 @@ video/mpeg=vlc.desktop
 video/ogg=vlc.desktop
 video/x-flv=vlc.desktop
 video/x-ms-wmv=vlc.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop

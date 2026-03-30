@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Zathura
+GenericName=PDF Viewer
+Comment=A minimal document viewer
+Exec=/usr/bin/zathura %U
+Terminal=false
+Type=Application
+Icon=org.pwmt.zathura
+Categories=Office;Viewer;
+MimeType=application/pdf;
+Keywords=pdf;viewer;document;zathura;
+StartupNotify=true

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=Slack
+GenericName=Team Chat
+Comment=Collaborate with your team
+Exec=/usr/bin/slack %U
+Terminal=false
+Type=Application
+Icon=slack
+Categories=Network;InstantMessaging;Chat;
+Keywords=slack;chat;team;work;messages;
+StartupNotify=true

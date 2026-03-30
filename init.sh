@@ -126,6 +126,8 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/applications" ]]; then
   link_path "$repo_root/arch/applications/yazi.desktop" "$HOME/.local/share/applications/yazi.desktop" "yazi-desktop" "yazi.desktop"
   link_path "$repo_root/arch/applications/com.mitchellh.ghostty.desktop" "$HOME/.local/share/applications/com.mitchellh.ghostty.desktop" "ghostty-desktop" "com.mitchellh.ghostty.desktop"
   link_path "$repo_root/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop" "vivaldi-stable.desktop"
+  link_path "$repo_root/arch/applications/zathura.desktop" "$HOME/.local/share/applications/zathura.desktop" "zathura-desktop" "zathura.desktop"
+  link_path "$repo_root/arch/applications/slack.desktop" "$HOME/.local/share/applications/slack.desktop" "slack-desktop" "slack.desktop"
   mkdir -p "$HOME/.config"
   link_path "$repo_root/arch/applications/mimeapps.list" "$HOME/.config/mimeapps.list" "mimeapps" "mimeapps.list"
 fi
