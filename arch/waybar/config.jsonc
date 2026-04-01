@@ -6,11 +6,23 @@
   "margin-left": 12,
   "margin-right": 12,
   "spacing": 8,
-
-  "modules-left": ["hyprland/workspaces"],
-  "modules-center": ["custom/media", "hyprland/window"],
-  "modules-right": ["tray", "pulseaudio", "network", "custom/cpu-status", "custom/gpu-status", "memory", "clock", "custom/power"],
-
+  "modules-left": [
+    "hyprland/workspaces",
+    "custom/claude-usage",
+    "custom/codex-usage"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  "modules-right": [
+    "tray",
+    "pulseaudio",
+    "network",
+    "custom/cpu-status",
+    "custom/gpu-status",
+    "memory",
+    "custom/power"
+  ],
   "hyprland/workspaces": {
     "active-only": false,
     "all-outputs": false,
@@ -20,7 +32,6 @@
       "*": 10
     }
   },
-
   "hyprland/window": {
     "format": "{class}",
     "max-length": 48,
@@ -31,7 +42,6 @@
       "firefox": "Firefox"
     }
   },
-
   "custom/media": {
     "exec": "waybar-media",
     "return-type": "json",
@@ -44,18 +54,20 @@
     "on-scroll-up": "playerctl next",
     "on-scroll-down": "playerctl previous"
   },
-
   "pulseaudio": {
     "format": "{volume}% {icon}",
     "format-muted": "mute",
     "format-icons": {
-      "default": ["vol", "vol", "vol"]
+      "default": [
+        "vol",
+        "vol",
+        "vol"
+      ]
     },
     "scroll-step": 5,
     "on-click": "hypr-audio-menu",
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
-
   "network": {
     "format-wifi": "wifi",
     "format-ethernet": "eth",
@@ -66,7 +78,6 @@
     "on-click": "hypr-wifi-menu",
     "on-click-right": "hypr-bluetooth-menu"
   },
-
   "custom/cpu-status": {
     "exec": "waybar-cpu-temp",
     "return-type": "json",
@@ -74,7 +85,6 @@
     "format": "{}",
     "on-click": "waybar-toggle-mode cpu"
   },
-
   "custom/gpu-status": {
     "exec": "waybar-gpu-temp",
     "return-type": "json",
@@ -82,12 +92,10 @@
     "format": "{}",
     "on-click": "waybar-toggle-mode gpu"
   },
-
   "memory": {
     "format": "mem {}%",
     "tooltip": false
   },
-
   "clock": {
     "format": "{:%a %d %b  %H:%M}",
     "tooltip-format": "<big>{:%A, %d %B %Y}</big>\n<tt>{calendar}</tt>",
@@ -105,14 +113,30 @@
       }
     }
   },
-
   "custom/power": {
-    "format": "⏻",
+    "format": "\u23fb",
     "tooltip": false,
     "on-click": "hypr-power-menu"
   },
-
   "tray": {
     "spacing": 10
+  },
+  "custom/claude-usage": {
+    "exec": "/usr/bin/claude-usage --waybar --browser vivaldi",
+    "return-type": "json",
+    "interval": 120,
+    "format": "{}",
+    "tooltip": true,
+    "on-click": "pkill -RTMIN+8 waybar",
+    "signal": 8
+  },
+  "custom/codex-usage": {
+    "exec": "/usr/bin/codex-usage --waybar --browser vivaldi",
+    "return-type": "json",
+    "interval": 120,
+    "format": "{}",
+    "tooltip": true,
+    "on-click": "pkill -RTMIN+9 waybar",
+    "signal": 9
   }
 }
