@@ -58,7 +58,7 @@ show_shortcuts() {
 Hyprland Shortcuts
 
 Launchers:
-  Super + Space        App launcher
+  Super + Space        Open app switcher
   Alt + Space          App launcher
   Super + Return       Terminal
   Super + E            File manager
