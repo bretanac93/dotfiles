@@ -65,3 +65,11 @@ fi
 if [[ -r "$ZSH_CONFIG_DIR/lib/compinit.zsh" ]]; then
   source "$ZSH_CONFIG_DIR/lib/compinit.zsh"
 fi
+
+# pnpm
+export PNPM_HOME="/Users/cesarbretana/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
