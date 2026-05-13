@@ -1,37 +1,78 @@
 # Core dependencies for Arch
 # Install with: sudo pacman -S --needed $(grep -vE '^[[:space:]]*(#|$)' arch/packages.txt)
 
-fzf
-fd
+# Compositor
+hyprland
+hyprpaper
+hypridle
+hyprlock
+
+# Wayland portals (screen sharing, file picker, etc.)
+xdg-desktop-portal
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+
+# Audio
+pipewire
+pipewire-pulse
+wireplumber
+
+# Bluetooth
+bluez
+bluez-utils
+
+# Networking
+networkmanager
+
+# Terminal & shell
+ghostty
 zsh-syntax-highlighting
 tmux
+
+# Editors & dev tools
 neovim
 git
 github-cli
+fzf
+fd
 ripgrep
 gnupg
 deno
-cliphist
-grim
-hyprpaper
-xdg-desktop-portal-gtk
-hypridle
-hyprlock
+pnpm
+
+# Fonts
+noto-fonts
+ttf-jetbrains-mono-nerd
+
+# Desktop apps
+vivaldi
+signal-desktop
+telegram-desktop
+cider
+dolphin
+vlc
 imv
-lm_sensors
-mako
-mangohud
-playerctl
-slurp
-swayosd
+zathura
 steam
+
+# Wayland utilities
+grim
+slurp
+wl-clipboard
+cliphist
+wf-recorder
+playerctl
+swayosd
+mako
 waybar
 walker
-gamescope
-gamemode
-vlc
-wf-recorder
-wl-clipboard
 wofi
 yazi
-zathura
+
+# Gaming
+gamescope
+gamemode
+mangohud
+
+# System
+lm_sensors
