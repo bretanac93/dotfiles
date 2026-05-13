@@ -31,6 +31,7 @@ tooltip label {
 #memory,
 #clock,
 #tray,
+#custom-dnd,
 #custom-power {
   background: rgba(46, 52, 64, 0.94);
   border: 1px solid rgba(76, 86, 106, 0.85);
@@ -110,6 +111,18 @@ tooltip label {
 
 #tray {
   padding: 0 10px;
+}
+
+#custom-dnd {
+  color: #4c566a;
+  padding: 0 10px;
+}
+
+#custom-dnd.dnd-none,
+#custom-dnd.dnd-notification,
+#custom-dnd.dnd-inhibited-none,
+#custom-dnd.dnd-inhibited-notification {
+  color: #ebcb8b;
 }
 
 /* Claude Code Usage Monitor Styling */

@@ -16,6 +16,7 @@
   ],
   "modules-right": [
     "tray",
+    "custom/dnd",
     "pulseaudio",
     "network",
     "custom/cpu-status",
@@ -120,6 +121,25 @@
   },
   "tray": {
     "spacing": 10
+  },
+  "custom/dnd": {
+    "exec": "swaync-client --subscribe-waybar",
+    "return-type": "json",
+    "format": "{icon}",
+    "format-icons": {
+      "none": "",
+      "notification": "",
+      "dnd-none": "dnd",
+      "dnd-notification": "dnd",
+      "inhibited-none": "",
+      "inhibited-notification": "",
+      "dnd-inhibited-none": "dnd",
+      "dnd-inhibited-notification": "dnd"
+    },
+    "on-click": "swaync-client -d -sw",
+    "on-click-right": "swaync-client -t -sw",
+    "tooltip": false,
+    "escape": true
   },
   "custom/claude-usage": {
     "exec": "/usr/bin/claude-usage --waybar --browser vivaldi",
