@@ -1,6 +1,5 @@
 #!/bin/zsh
 # Dotfiles initialization script
-# Sets up symlinks and checks dependencies
 
 set -euo pipefail
 
@@ -12,30 +11,17 @@ force_symlinks=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --force-symlinks)
-      force_symlinks=1
-      ;;
-    -h|--help)
-      print "Usage: ./init.sh [--force-symlinks]"
-      print ""
-      print "Options:"
-      print "  --force-symlinks  recreate managed symlinks even if already linked"
-      exit 0
-      ;;
-    *)
-      print "Error: unknown option: $1" >&2
-      print "Run ./init.sh --help for usage." >&2
-      exit 1
-      ;;
+    --force-symlinks) force_symlinks=1 ;;
+    -h|--help) print "Usage: ./init.sh [--force-symlinks]"; exit 0 ;;
+    *) print "Error: unknown option: $1" >&2; exit 1 ;;
   esac
   shift
 done
 
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
 link_path() {
-  local src="$1"
-  local dst="$2"
-  local name="$3"
-  local backup_name="${4:-$name}"
+  local src="$1" dst="$2" name="$3" backup_name="${4:-$3}"
 
   if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
     if (( force_symlinks )); then
@@ -47,11 +33,10 @@ link_path() {
     fi
   fi
 
-  if [[ -L "$dst" ]]; then
-    rm -f "$dst"
-  elif [[ -e "$dst" ]]; then
+  [[ -L "$dst" ]] && rm -f "$dst"
+  if [[ -e "$dst" ]]; then
     mv "$dst" "$backup_dir/$backup_name"
-    print "  📦 Backed up existing $name"
+    print "  📦 Backed up $name"
   fi
 
   ln -s "$src" "$dst"
@@ -59,232 +44,133 @@ link_path() {
 }
 
 copy_if_missing() {
-  local src="$1"
-  local dst="$2"
-  local name="$3"
-
-  if [[ -e "$dst" ]]; then
-    print "  ✓ $name (already exists)"
-    return 0
-  fi
-
+  local src="$1" dst="$2" name="$3"
+  [[ -e "$dst" ]] && { print "  ✓ $name (already exists)"; return 0; }
   cp "$src" "$dst"
   print "  ✓ $name"
 }
 
-print "Setting up dotfiles..."
-print ""
+# ── Bootstrap ──────────────────────────────────────────────────────────────────
 
+print "Setting up dotfiles...\n"
 mkdir -p "$backup_dir"
-print "📁 Backup directory: $backup_dir"
-print ""
+print "📁 Backup directory: $backup_dir\n"
 
-mkdir -p "$HOME/.config"
-mkdir -p "$HOME/.local/bin"
-mkdir -p "$HOME/.worktrees"
-mkdir -p "$HOME/.config/zsh.local"
-mkdir -p "$HOME/.config/zsh.local/alias"
-mkdir -p "$HOME/.config/zsh.local/completions"
+mkdir -p "$HOME"/{.config,.local/bin,.worktrees}
+mkdir -p "$HOME/.config/zsh.local/"{alias,completions}
+
+# ── Cross-platform configs ─────────────────────────────────────────────────────
 
 copy_if_missing "$common_dir/zsh.local/env.zsh" "$HOME/.config/zsh.local/env.zsh" "zsh local env"
 
-link_path "$common_dir/nvim" "$HOME/.config/nvim" "nvim"
-link_path "$common_dir/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux" "tmux.conf"
-link_path "$common_dir/ghostty" "$HOME/.config/ghostty" "ghostty"
-link_path "$common_dir/wallpaper.png" "$HOME/.config/wallpaper.png" "wallpaper" "wallpaper.png"
+link_path "$common_dir/nvim"           "$HOME/.config/nvim"          "nvim"
+link_path "$common_dir/tmux/tmux.conf" "$HOME/.tmux.conf"            "tmux" "tmux.conf"
+link_path "$common_dir/ghostty"        "$HOME/.config/ghostty"       "ghostty"
+link_path "$common_dir/wallpaper.png"  "$HOME/.config/wallpaper.png" "wallpaper" "wallpaper.png"
 
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/hypr" ]]; then
-  link_path "$repo_root/arch/hypr" "$HOME/.config/hypr" "hyprland" "hypr"
-fi
+# ── Shell ──────────────────────────────────────────────────────────────────────
 
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/waybar" ]]; then
-  link_path "$repo_root/arch/waybar" "$HOME/.config/waybar" "waybar"
-fi
+link_path "$common_dir/zsh/env.zsh"     "$HOME/.zshenv"     "zshenv"
+link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile"   "zprofile"
+link_path "$common_dir/zsh/rc.zsh"      "$HOME/.zshrc"      "zshrc"
+link_path "$common_dir/zsh"             "$HOME/.config/zsh" "zsh"
 
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/wofi" ]]; then
-  link_path "$repo_root/arch/wofi" "$HOME/.config/wofi" "wofi"
-fi
-
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/yazi" ]]; then
-  link_path "$repo_root/arch/yazi" "$HOME/.config/yazi" "yazi"
-fi
-
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/mako" ]]; then
-  link_path "$repo_root/arch/mako" "$HOME/.config/mako" "mako"
-fi
-
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/swayosd" ]]; then
-  link_path "$repo_root/arch/swayosd" "$HOME/.config/swayosd" "swayosd"
-fi
-
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/walker" ]]; then
-  link_path "$repo_root/arch/walker" "$HOME/.config/walker" "walker"
-fi
-
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/applications" ]]; then
-  mkdir -p "$HOME/.local/share/applications"
-  link_path "$repo_root/arch/applications/yazi.desktop" "$HOME/.local/share/applications/yazi.desktop" "yazi-desktop" "yazi.desktop"
-  link_path "$repo_root/arch/applications/com.mitchellh.ghostty.desktop" "$HOME/.local/share/applications/com.mitchellh.ghostty.desktop" "ghostty-desktop" "com.mitchellh.ghostty.desktop"
-  link_path "$repo_root/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop" "vivaldi-stable.desktop"
-  link_path "$repo_root/arch/applications/zathura.desktop" "$HOME/.local/share/applications/zathura.desktop" "zathura-desktop" "zathura.desktop"
-  link_path "$repo_root/arch/applications/slack.desktop" "$HOME/.local/share/applications/slack.desktop" "slack-desktop" "slack.desktop"
-  mkdir -p "$HOME/.config"
-  link_path "$repo_root/arch/applications/mimeapps.list" "$HOME/.config/mimeapps.list" "mimeapps" "mimeapps.list"
-  link_path "$repo_root/arch/vivaldi/vivaldi-stable.conf" "$HOME/.config/vivaldi-stable.conf" "vivaldi-flags" "vivaldi-stable.conf"
-fi
-
-link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
-link_path "$common_dir/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
-link_path "$common_dir/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
-link_path "$common_dir/zsh" "$HOME/.config/zsh" "zsh"
+# ── Git & GPG ─────────────────────────────────────────────────────────────────
 
 if [[ -r "$common_dir/git/gitconfig" ]]; then
   link_path "$common_dir/git/gitconfig" "$HOME/.gitconfig" "git" "gitconfig"
-
-  if [[ ! -r "$HOME/.config/git/config.local" ]]; then
-    print ""
-    print "⚠️  Local git config not found. Run this to set it up:"
-    print "  setup-git-local"
-    print ""
-  fi
+  [[ ! -r "$HOME/.config/git/config.local" ]] && print "\n⚠️  Local git config missing — run: setup-git-local\n"
 fi
 
-mkdir -p "$HOME/.gnupg"
-chmod 700 "$HOME/.gnupg"
-if [[ -r "$common_dir/git/gpg.conf" ]]; then
-  link_path "$common_dir/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg" "gpg.conf"
+mkdir -p "$HOME/.gnupg" && chmod 700 "$HOME/.gnupg"
+[[ -r "$common_dir/git/gpg.conf" ]] && link_path "$common_dir/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg" "gpg.conf"
+
+# ── Arch / Hyprland configs ───────────────────────────────────────────────────
+
+if [[ "$(uname)" == "Linux" ]]; then
+  for dir in hypr waybar wofi yazi mako swayosd walker; do
+    [[ -d "$repo_root/arch/$dir" ]] && link_path "$repo_root/arch/$dir" "$HOME/.config/$dir" "$dir"
+  done
+
+  mkdir -p "$HOME/.local/share/applications"
+  for desktop in "$repo_root/arch/applications/"*.desktop; do
+    name=$(basename "$desktop")
+    link_path "$desktop" "$HOME/.local/share/applications/$name" "$name"
+  done
+
+  link_path "$repo_root/arch/applications/mimeapps.list"  "$HOME/.config/mimeapps.list"       "mimeapps"
+  link_path "$repo_root/arch/vivaldi/vivaldi-stable.conf" "$HOME/.config/vivaldi-stable.conf" "vivaldi-flags"
 fi
 
-link_path "$common_dir/bin/wb" "$HOME/.local/bin/wb" "wb"
-link_path "$common_dir/bin/mdf" "$HOME/.local/bin/mdf" "mdf"
-link_path "$common_dir/bin/waybar-toggle-mode" "$HOME/.local/bin/waybar-toggle-mode" "waybar-toggle-mode"
-link_path "$common_dir/bin/waybar-cpu-temp" "$HOME/.local/bin/waybar-cpu-temp" "waybar-cpu-temp"
-link_path "$common_dir/bin/waybar-gpu-temp" "$HOME/.local/bin/waybar-gpu-temp" "waybar-gpu-temp"
-link_path "$common_dir/bin/waybar-media" "$HOME/.local/bin/waybar-media" "waybar-media"
-link_path "$common_dir/bin/hypr-start-services" "$HOME/.local/bin/hypr-start-services" "hypr-start-services"
-link_path "$common_dir/bin/hypr-pip-watcher" "$HOME/.local/bin/hypr-pip-watcher" "hypr-pip-watcher"
-link_path "$common_dir/bin/hypr-app-switcher" "$HOME/.local/bin/hypr-app-switcher" "hypr-app-switcher"
-link_path "$common_dir/bin/hypr-launcher" "$HOME/.local/bin/hypr-launcher" "hypr-launcher"
-link_path "$common_dir/bin/hypr-audio-menu" "$HOME/.local/bin/hypr-audio-menu" "hypr-audio-menu"
-link_path "$common_dir/bin/hypr-bluetooth-menu" "$HOME/.local/bin/hypr-bluetooth-menu" "hypr-bluetooth-menu"
-link_path "$common_dir/bin/hypr-wifi-menu" "$HOME/.local/bin/hypr-wifi-menu" "hypr-wifi-menu"
-link_path "$common_dir/bin/hypr-emoji-picker" "$HOME/.local/bin/hypr-emoji-picker" "hypr-emoji-picker"
-link_path "$common_dir/bin/hypr-calculator" "$HOME/.local/bin/hypr-calculator" "hypr-calculator"
-link_path "$common_dir/bin/hypr-clipboard-history" "$HOME/.local/bin/hypr-clipboard-history" "hypr-clipboard-history"
-link_path "$common_dir/bin/hypr-record-screen" "$HOME/.local/bin/hypr-record-screen" "hypr-record-screen"
-link_path "$common_dir/bin/hypr-screenshot" "$HOME/.local/bin/hypr-screenshot" "hypr-screenshot"
-link_path "$common_dir/bin/hypr-open-with" "$HOME/.local/bin/hypr-open-with" "hypr-open-with"
-link_path "$common_dir/bin/hypr-power-menu" "$HOME/.local/bin/hypr-power-menu" "hypr-power-menu"
-link_path "$common_dir/bin/setup-sddm-theme" "$HOME/.local/bin/setup-sddm-theme" "setup-sddm-theme"
-link_path "$common_dir/bin/test-sddm-theme" "$HOME/.local/bin/test-sddm-theme" "test-sddm-theme"
-link_path "$common_dir/bin/dotfiles-doctor" "$HOME/.local/bin/dotfiles-doctor" "dotfiles-doctor"
-link_path "$common_dir/bin/dotfiles-benchmark" "$HOME/.local/bin/dotfiles-benchmark" "dotfiles-benchmark"
-link_path "$common_dir/bin/dotfiles-uninstall" "$HOME/.local/bin/dotfiles-uninstall" "dotfiles-uninstall"
-link_path "$common_dir/bin/dotfiles-update" "$HOME/.local/bin/dotfiles-update" "dotfiles-update"
-link_path "$common_dir/bin/dotfiles-cleanup-backups" "$HOME/.local/bin/dotfiles-cleanup-backups" "dotfiles-cleanup-backups"
-link_path "$repo_root/scripts/zsh-dotfiles" "$HOME/.local/bin/zsh-dotfiles" "zsh-dotfiles"
-link_path "$repo_root/scripts/check-deps" "$HOME/.local/bin/check-deps" "check-deps"
-link_path "$repo_root/scripts/install-deps" "$HOME/.local/bin/install-deps" "install-deps"
-link_path "$macos_dir/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"
-link_path "$repo_root/scripts/setup-git-local" "$HOME/.local/bin/setup-git-local" "setup-git-local"
-link_path "$repo_root/scripts/setup-ssh" "$HOME/.local/bin/setup-ssh" "setup-ssh"
+# ── Bin scripts (auto-link everything) ────────────────────────────────────────
 
-if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
-  print ""
-  print "⚠️  SSH keys not found. Run this to set them up:"
-  print "  setup-ssh"
-  print ""
-fi
+for script in "$common_dir/bin/"* "$repo_root/scripts/"*; do
+  [[ -f "$script" ]] || continue
+  name=$(basename "$script")
+  link_path "$script" "$HOME/.local/bin/$name" "$name"
+done
+
+[[ "$(uname)" == "Darwin" ]] && \
+  link_path "$macos_dir/scripts/macos-defaults" "$HOME/.local/bin/macos-defaults" "macos-defaults"
+
+# ── SSH check ─────────────────────────────────────────────────────────────────
+
+[[ ! -f "$HOME/.ssh/id_rsa" ]] && print "\n⚠️  SSH keys not found — run: setup-ssh\n"
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
 
 print ""
 if [[ -x "$repo_root/scripts/check-deps" ]]; then
   if ! zsh "$repo_root/scripts/check-deps"; then
-    print ""
-    print "Installing missing dependencies..."
-    if [[ -x "$repo_root/scripts/install-deps" ]]; then
-      zsh "$repo_root/scripts/install-deps"
-    else
-      print "Error: install-deps script not found"
-      exit 1
-    fi
+    print "\nInstalling missing dependencies..."
+    zsh "$repo_root/scripts/install-deps"
   fi
-else
-  print "Warning: check-deps script not found"
 fi
+
+# ── macOS defaults ────────────────────────────────────────────────────────────
 
 if [[ "$(uname)" == "Darwin" ]] && [[ -x "$macos_dir/scripts/macos-defaults" ]]; then
-  print ""
-  zsh "$macos_dir/scripts/macos-defaults" 2>/dev/null | grep -E "^✅|^Configuring" | sed 's/^/  /' | sed 's/✅/✓/' || true
+  zsh "$macos_dir/scripts/macos-defaults" 2>/dev/null \
+    | grep -E "^✅|^Configuring" | sed 's/^/  /; s/✅/✓/' || true
 fi
 
-print ""
-print "✓ Setup complete!"
-print ""
+print "\n✓ Setup complete!\n"
 
-print "Checking 1Password integration..."
-print ""
+# ── 1Password ─────────────────────────────────────────────────────────────────
+
+print "Checking 1Password integration...\n"
 
 op_ready=0
 typeset -a setup_needed=()
 
 if ! command -v op >/dev/null 2>&1; then
-  print "⚠️  1Password CLI not found"
-  print "   Run: install-deps"
-  print ""
-  print "   Then:"
-  print "   1. Open 1Password app"
-  print "   2. Unlock with your password/biometrics"
-  print "   3. Run setup-ssh and setup-git-local"
-  print ""
+  print "⚠️  1Password CLI not found — run: install-deps"
+  print "   Then: op signin → setup-ssh → setup-git-local\n"
+elif ! op account list >/dev/null 2>&1; then
+  print "⚠️  1Password CLI not authenticated"
+  print "   Unlock 1Password → op signin → setup-ssh → setup-git-local\n"
 else
-  if ! op account list >/dev/null 2>&1; then
-    print "⚠️  1Password CLI installed but not authenticated"
-    print ""
-    print "   To use secrets from 1Password:"
-    print "   1. Open 1Password app"
-    print "   2. Unlock with your password/biometrics"
-    print "   3. Run: op signin"
-    print "   4. Then run: setup-ssh and setup-git-local"
-    print ""
-  else
-    print "✓ 1Password CLI ready"
-    op_ready=1
-  fi
+  print "✓ 1Password CLI ready"
+  op_ready=1
 fi
 
-if [[ $op_ready -eq 1 ]]; then
-  if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
-    setup_needed+=("setup-ssh")
-  fi
-
-  if [[ ! -f "$HOME/.config/git/config.local" ]]; then
-    setup_needed+=("setup-git-local")
-  fi
+if (( op_ready )); then
+  [[ ! -f "$HOME/.ssh/id_rsa" ]]              && setup_needed+=("setup-ssh")
+  [[ ! -f "$HOME/.config/git/config.local" ]] && setup_needed+=("setup-git-local")
 
   if (( ${#setup_needed[@]} > 0 )); then
-    print ""
-    print "🔐 Setting up secrets from 1Password..."
-    for setup_script in "${setup_needed[@]}"; do
-      print ""
-      print "▶️  Running $setup_script..."
-      if [[ -x "$HOME/.local/bin/$setup_script" ]]; then
-        "$HOME/.local/bin/$setup_script" || print "   ⚠️  $setup_script failed - you can run it manually later"
-      else
-        print "   ⚠️  $setup_script is not linked yet - you can run it manually later"
-      fi
+    print "\n🔐 Setting up secrets from 1Password..."
+    for script in "${setup_needed[@]}"; do
+      print "\n▶️  Running $script..."
+      "$HOME/.local/bin/$script" || print "   ⚠️  $script failed — run manually later"
     done
-    print ""
-    print "✅ Secret setup complete!"
+    print "\n✅ Secret setup complete!"
   fi
 else
-  print ""
-  print "💡 After setting up 1Password, run:"
-  [[ ! -f "$HOME/.ssh/id_rsa" ]] && print "   setup-ssh"
+  print "\n💡 After setting up 1Password, run:"
+  [[ ! -f "$HOME/.ssh/id_rsa" ]]              && print "   setup-ssh"
   [[ ! -f "$HOME/.config/git/config.local" ]] && print "   setup-git-local"
 fi
 
-print ""
-print "Reloading shell with new configuration..."
-print ""
-
+print "\nReloading shell...\n"
 exec zsh -l
