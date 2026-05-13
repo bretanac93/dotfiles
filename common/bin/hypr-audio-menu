@@ -22,7 +22,56 @@ require() {
 
 require wpctl
 
+show_profiles() {
+  local items
+  items="$(python3 - <<'EOF'
+import subprocess, re
+
+out = subprocess.check_output(['pactl', 'list', 'cards'], text=True)
+blocks = re.split(r'^Card #', out, flags=re.M)[1:]
+
+for block in blocks:
+    name_m  = re.search(r'Name:\s+(\S+)', block)
+    desc_m  = re.search(r'device\.description\s*=\s*"([^"]+)"', block)
+    active_m = re.search(r'Active Profile:\s+(.+)', block)
+    if not (name_m and desc_m and active_m):
+        continue
+
+    card_name = name_m.group(1)
+    card_desc = desc_m.group(1)
+    active    = active_m.group(1).strip()
+
+    for m in re.finditer(
+        r'^\t\t(\S[^:]+):\s+(.+?)\s+\(sinks:.*?available:\s+(yes|no)',
+        block, re.M
+    ):
+        pid, pdesc, avail = m.group(1).strip(), m.group(2).strip(), m.group(3)
+        if pid in ('off', 'pro-audio') and pid != active:
+            continue
+        if avail == 'no' and pid != active:
+            continue
+        mark = '✓' if pid == active else ' '
+        print(f'{mark}  {card_desc}  {pdesc}  [{card_name}|{pid}]')
+EOF
+  )"
+
+  [[ -z "$items" ]] && return
+
+  local pick
+  pick="$(printf '%s\n' "$items" | menu 'audio profile')" || return 0
+  [[ -z "$pick" ]] && return 0
+
+  local card_profile="${pick##*[}"; card_profile="${card_profile%]}"
+  local card="${card_profile%%|*}"
+  local profile="${card_profile##*|}"
+  local desc="${pick#*  }"; desc="${desc%%  *}"
+
+  pactl set-card-profile "$card" "$profile"
+  notify-send -a "Audio" -i "audio-card" "Profile switched" "$desc"
+}
+
 selection="$({
+  printf '🎛  audio profiles\n'
   wpctl status | awk '
     /Sinks:/ {section="sink"; next}
     /Sources:/ {section="source"; next}
@@ -39,9 +88,14 @@ selection="$({
   ' | while IFS='|' read -r kind id marker name; do
     printf '%s\n' "$kind  $marker  $name"
   done
-} | menu 'audio devices')"
+} | menu 'audio')"
 
 [[ -z "$selection" ]] && exit 0
+
+if [[ "$selection" == '🎛  audio profiles' ]]; then
+  show_profiles
+  exit 0
+fi
 
 kind="${selection%%  *}"
 rest="${selection#*  }"
@@ -64,9 +118,5 @@ wpctl status | awk -v target="$target_name" -v kind="$kind" '
   }
 ' | {
   read -r id || exit 0
-  if [[ "$kind" == "out" ]]; then
-    wpctl set-default "$id"
-  else
-    wpctl set-default "$id"
-  fi
+  wpctl set-default "$id"
 }
