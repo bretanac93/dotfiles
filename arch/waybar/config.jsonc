@@ -125,16 +125,16 @@
   "custom/dnd": {
     "exec": "swaync-client --subscribe-waybar",
     "return-type": "json",
-    "format": "{icon}",
+    "format": "{icon}{} ",
     "format-icons": {
       "none": "",
-      "notification": "",
+      "notification": "  ",
       "dnd-none": "dnd",
-      "dnd-notification": "dnd",
+      "dnd-notification": "dnd  ",
       "inhibited-none": "",
-      "inhibited-notification": "",
+      "inhibited-notification": "  ",
       "dnd-inhibited-none": "dnd",
-      "dnd-inhibited-notification": "dnd"
+      "dnd-inhibited-notification": "dnd  "
     },
     "on-click": "swaync-client -d -sw",
     "on-click-right": "swaync-client -t -sw",
