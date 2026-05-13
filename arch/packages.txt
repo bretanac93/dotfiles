@@ -45,6 +45,7 @@ noto-fonts
 ttf-jetbrains-mono-nerd
 
 # Desktop apps
+1password
 vivaldi
 signal-desktop
 telegram-desktop
