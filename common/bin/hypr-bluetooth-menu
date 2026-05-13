@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+SCAN_TIMEOUT=8
+
 menu() {
   if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
     walker --dmenu --placeholder "$1"
@@ -13,30 +15,111 @@ menu() {
   fi
 }
 
-choice="$({
-  powered="$(bluetoothctl show | awk -F': ' '/Powered:/ {print $2}')"
-  if [[ "$powered" == "yes" ]]; then
-    printf '%s\n' 'power off bluetooth'
+notify() {
+  notify-send -a "Bluetooth" -i "bluetooth" "$1" "${2:-}"
+}
+
+device_icon() {
+  local info="$1"
+  grep -q 'Icon: audio' <<< "$info" && echo "🎧" && return
+  grep -q 'Icon: phone' <<< "$info" && echo "📱" && return
+  grep -q 'Icon: input-keyboard' <<< "$info" && echo "⌨" && return
+  grep -q 'Icon: input-mouse' <<< "$info" && echo "🖱" && return
+  echo "🔵"
+}
+
+battery_label() {
+  local mac="$1"
+  local path
+  path=$(upower -e 2>/dev/null | grep -i "${mac//:/_}" | head -1 || true)
+  [[ -z "$path" ]] && return
+  upower -i "$path" 2>/dev/null | awk -F': +' '/percentage/ {printf " 🔋" $2}' || true
+}
+
+build_device_line() {
+  local mac="$1" name="$2"
+  local info icon battery
+  info="$(bluetoothctl info "$mac" 2>/dev/null || true)"
+  icon="$(device_icon "$info")"
+  battery="$(battery_label "$mac")"
+
+  if grep -q 'Connected: yes' <<< "$info"; then
+    printf 'connected  %s  %s%s  [%s]\n' "$icon" "$name" "$battery" "$mac"
   else
-    printf '%s\n' 'power on bluetooth'
+    printf 'paired     %s  %s  [%s]\n' "$icon" "$name" "$mac"
   fi
-  bluetoothctl devices | while read -r _ mac name; do
-    info="$(bluetoothctl info "$mac" 2>/dev/null || true)"
-    state="paired"
-    grep -q 'Connected: yes' <<< "$info" && state='connected'
-    printf '%s\n' "$state  $name  [$mac]"
-  done
+}
+
+scan_and_pair() {
+  notify "Scanning for ${SCAN_TIMEOUT}s..." "Put your device in pairing mode"
+
+  local paired_macs
+  paired_macs=$(bluetoothctl devices Paired | awk '{print $2}')
+
+  { echo "scan on"; sleep "$SCAN_TIMEOUT"; echo "scan off"; } | bluetoothctl > /dev/null 2>&1
+
+  local new_devices=""
+  while read -r _ mac name; do
+    grep -qx "$mac" <<< "$paired_macs" && continue
+    new_devices+="🔵  $name  [$mac]"$'\n'
+  done < <(bluetoothctl devices)
+
+  if [[ -z "${new_devices// /}" ]]; then
+    notify "No new devices found" "Make sure the device is in pairing mode and try again"
+    exit 0
+  fi
+
+  local pick
+  pick=$(printf '%s' "$new_devices" | menu 'pair device') || exit 0
+  [[ -z "$pick" ]] && exit 0
+
+  local mac name
+  mac="${pick##*[}"; mac="${mac%]}"
+  name="${pick#*  }"; name="${name%%  *}"
+
+  notify "Pairing with $name..."
+  if bluetoothctl pair "$mac" 2>/dev/null && bluetoothctl connect "$mac" 2>/dev/null; then
+    notify "Connected" "$name"
+  else
+    notify "Failed to connect" "$name — check it's in pairing mode"
+  fi
+}
+
+powered="$(bluetoothctl show | awk -F': ' '/Powered:/ {print $2}')"
+
+choice="$({
+  if [[ "$powered" == "yes" ]]; then
+    printf '🔴  power off\n'
+    printf '🔍  scan & pair new device\n'
+    bluetoothctl devices Paired | while read -r _ mac name; do
+      build_device_line "$mac" "$name"
+    done
+  else
+    printf '🟢  power on\n'
+  fi
 } | menu 'bluetooth')"
 
 [[ -z "$choice" ]] && exit 0
 
 case "$choice" in
-  'power on bluetooth') bluetoothctl power on ;;
-  'power off bluetooth') bluetoothctl power off ;;
+  '🟢  power on')
+    bluetoothctl power on
+    notify "Bluetooth on"
+    ;;
+  '🔴  power off')
+    bluetoothctl power off
+    notify "Bluetooth off"
+    ;;
+  '🔍  scan & pair new device')
+    scan_and_pair
+    ;;
   *)
-    mac="${choice##*[}"
-    mac="${mac%]}"
-    bluetoothctl info "$mac" | grep -q 'Connected: yes' && exec bluetoothctl disconnect "$mac"
-    exec bluetoothctl connect "$mac"
+    mac="${choice##*[}"; mac="${mac%]}"
+    name="${choice#*  }"; name="${name#*  }"; name="${name%%  *}"
+    if bluetoothctl info "$mac" | grep -q 'Connected: yes'; then
+      bluetoothctl disconnect "$mac" && notify "Disconnected" "$name"
+    else
+      bluetoothctl connect "$mac" && notify "Connected" "$name" || notify "Failed to connect" "$name"
+    fi
     ;;
 esac
