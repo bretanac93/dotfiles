@@ -65,7 +65,7 @@ cliphist
 wf-recorder
 playerctl
 swayosd
-mako
+swaync
 waybar
 walker
 wofi

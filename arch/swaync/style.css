@@ -1,0 +1,174 @@
+/* Nord palette */
+/* nord0: #2E3440  nord1: #3B4252  nord2: #434C5E  nord3: #4C566A */
+/* nord4: #D8DEE9  nord5: #E5E9F0  nord6: #ECEFF4               */
+/* nord7: #8FBCBB  nord8: #88C0D0  nord9: #81A1C1  nord10: #5E81AC */
+/* nord11: #BF616A nord12: #D08770 nord13: #EBCB8B nord14: #A3BE8C */
+
+* {
+  font-family: "JetBrainsMono Nerd Font Mono", monospace;
+  font-size: 11px;
+  color: #d8dee9;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ── Notification popups ─────────────────────────────────────────── */
+
+.notification-row {
+  outline: none;
+  margin: 6px 8px 0 8px;
+}
+
+.notification {
+  background: rgba(46, 52, 64, 0.95);
+  border: 1px solid #4c566a;
+  border-radius: 4px;
+  padding: 0;
+}
+
+.notification.critical {
+  border-color: #bf616a;
+  background: rgba(59, 66, 82, 0.97);
+}
+
+.notification.low {
+  background: rgba(46, 52, 64, 0.90);
+  border-color: rgba(76, 86, 106, 0.8);
+}
+
+.notification-default-action,
+.notification-action {
+  padding: 10px 14px;
+  background: transparent;
+  border-radius: 4px;
+}
+
+.notification-default-action:hover,
+.notification-action:hover {
+  background: rgba(76, 86, 106, 0.4);
+}
+
+.notification-content {
+  padding: 10px 14px;
+}
+
+.app-icon {
+  margin-right: 8px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.app-name {
+  font-size: 10px;
+  color: #81a1c1;
+}
+
+.time-stamp {
+  font-size: 10px;
+  color: #4c566a;
+}
+
+.summary {
+  font-size: 12px;
+  font-weight: bold;
+  color: #eceff4;
+}
+
+.body {
+  font-size: 11px;
+  color: #d8dee9;
+}
+
+.close-button {
+  background: transparent;
+  color: #4c566a;
+  margin: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.close-button:hover {
+  background: rgba(191, 97, 106, 0.3);
+  color: #bf616a;
+}
+
+/* ── Control center panel ─────────────────────────────────────────── */
+
+.control-center {
+  background: rgba(46, 52, 64, 0.97);
+  border: 1px solid #4c566a;
+  border-radius: 4px;
+}
+
+.control-center-list {
+  background: transparent;
+}
+
+.control-center-list .notification-row {
+  margin: 4px 6px;
+}
+
+.control-center-list .notification-row:last-child {
+  margin-bottom: 6px;
+}
+
+/* ── Widgets ──────────────────────────────────────────────────────── */
+
+.widget-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #88c0d0;
+  padding: 12px 16px 8px 16px;
+  border-bottom: 1px solid #3b4252;
+}
+
+.widget-title > button {
+  font-size: 11px;
+  color: #4c566a;
+  background: transparent;
+  border: 1px solid #434c5e;
+  border-radius: 3px;
+  padding: 2px 8px;
+}
+
+.widget-title > button:hover {
+  color: #d8dee9;
+  border-color: #4c566a;
+  background: rgba(76, 86, 106, 0.3);
+}
+
+.widget-dnd {
+  padding: 8px 16px;
+  border-bottom: 1px solid #3b4252;
+}
+
+.widget-dnd > switch {
+  border-radius: 10px;
+  background: #3b4252;
+  border: 1px solid #434c5e;
+}
+
+.widget-dnd > switch:checked {
+  background: #81a1c1;
+  border-color: #88c0d0;
+}
+
+.widget-dnd > switch slider {
+  background: #d8dee9;
+  border-radius: 10px;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────── */
+
+.empty-state-icon {
+  color: #3b4252;
+  font-size: 48px;
+}
+
+.empty-state > box > label {
+  color: #4c566a;
+  font-size: 12px;
+}

@@ -88,7 +88,7 @@ mkdir -p "$HOME/.gnupg" && chmod 700 "$HOME/.gnupg"
 # ── Arch / Hyprland configs ───────────────────────────────────────────────────
 
 if [[ "$(uname)" == "Linux" ]]; then
-  for dir in hypr waybar wofi yazi mako swayosd walker; do
+  for dir in hypr waybar wofi yazi swaync swayosd walker; do
     [[ -d "$repo_root/arch/$dir" ]] && link_path "$repo_root/arch/$dir" "$HOME/.config/$dir" "$dir"
   done
 

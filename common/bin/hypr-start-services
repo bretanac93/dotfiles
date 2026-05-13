@@ -14,7 +14,7 @@ start_bg() {
 }
 
 start_bg hyprpaper hyprpaper
-start_bg mako mako
+start_bg swaync swaync
 start_bg swayosd-server swayosd-server
 start_bg elephant elephant
 
