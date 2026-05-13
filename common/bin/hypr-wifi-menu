@@ -13,30 +13,124 @@ menu() {
   fi
 }
 
-choice="$({
-  wifi_state="$(nmcli radio wifi)"
-  if [[ "$wifi_state" == "enabled" ]]; then
-    printf '%s\n' 'wifi off'
+notify() {
+  notify-send -a "WiFi" -i "network-wireless" "$1" "${2:-}"
+}
+
+password_prompt() {
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --password --title "WiFi" --text "Password for: $1" 2>/dev/null
+  elif command -v wofi >/dev/null 2>&1; then
+    printf '' | wofi --dmenu --prompt "password for $1:" --width 540 --lines 0 --hide-scroll
   else
-    printf '%s\n' 'wifi on'
+    printf '' | walker --dmenu --placeholder "password for $1:"
   fi
-  nmcli --terse --escape no --fields IN-USE,SSID,SIGNAL,SECURITY device wifi list | while IFS=: read -r inuse ssid signal security; do
-    [[ -z "$ssid" ]] && continue
-    state=''
-    [[ "$inuse" == '*' ]] && state='connected '
-    printf '%s\n' "$state$ssid  ${signal}%  ${security:-open}"
-  done
+}
+
+signal_bars() {
+  local sig="${1:-0}"
+  if   (( sig >= 75 )); then echo "▂▄▆█"
+  elif (( sig >= 50 )); then echo "▂▄▆_"
+  elif (( sig >= 25 )); then echo "▂▄__"
+  else                       echo "▂___"
+  fi
+}
+
+wifi_state="$(nmcli radio wifi)"
+saved_ssids="$(nmcli --terse --fields name connection show 2>/dev/null || true)"
+
+choice="$({
+  if [[ "$wifi_state" == "enabled" ]]; then
+    printf '📵  wifi off\n'
+    printf '🔍  rescan\n'
+
+    while IFS=: read -r inuse ssid signal security; do
+      [[ -z "$ssid" ]] && continue
+      bars="$(signal_bars "${signal:-0}")"
+      saved=""
+      grep -qxF "$ssid" <<< "$saved_ssids" 2>/dev/null && saved=" ★"
+
+      if [[ "$inuse" == '*' ]]; then
+        printf '📶  %s  %s  %s\n' "$ssid" "$bars" "${security:---}"
+      elif [[ -z "$security" || "$security" == "--" ]]; then
+        printf '📡  %s  %s  open%s\n' "$ssid" "$bars" "$saved"
+      else
+        printf '🔒  %s  %s  %s%s\n' "$ssid" "$bars" "$security" "$saved"
+      fi
+    done < <(nmcli --terse --escape no --fields IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null)
+  else
+    printf '📶  wifi on\n'
+  fi
 } | menu 'wifi')"
 
 [[ -z "$choice" ]] && exit 0
 
 case "$choice" in
-  'wifi on') exec nmcli radio wifi on ;;
-  'wifi off') exec nmcli radio wifi off ;;
+  '📶  wifi on')
+    nmcli radio wifi on
+    notify "WiFi on"
+    ;;
+  '📵  wifi off')
+    nmcli radio wifi off
+    notify "WiFi off"
+    ;;
+  '🔍  rescan')
+    notify "Scanning..." "Refreshing network list"
+    nmcli device wifi rescan 2>/dev/null || true
+    sleep 2
+    exec "$0"
+    ;;
+  *)
+    ssid="${choice#*  }"
+    ssid="${ssid%%  *}"
+
+    # Disconnect if already on this network
+    current="$(nmcli --terse --fields ACTIVE,SSID device wifi list 2>/dev/null \
+      | awk -F: '$1 == "yes" {print $2; exit}')"
+    if [[ "$current" == "$ssid" ]]; then
+      notify "Disconnecting from $ssid..."
+      wifi_dev="$(nmcli --terse --fields TYPE,DEVICE device status 2>/dev/null \
+        | awk -F: '$1 == "wifi" {print $2; exit}')"
+      if nmcli device disconnect "$wifi_dev" 2>/dev/null; then
+        notify "Disconnected" "$ssid"
+      else
+        notify "Failed to disconnect" "$ssid"
+      fi
+      exit 0
+    fi
+
+    # Saved network — use stored credentials
+    if grep -qxF "$ssid" <<< "$saved_ssids" 2>/dev/null; then
+      notify "Connecting to $ssid..."
+      if nmcli connection up id "$ssid" 2>/dev/null \
+        || nmcli device wifi connect "$ssid" 2>/dev/null; then
+        notify "Connected" "$ssid"
+      else
+        notify "Failed to connect" "$ssid"
+      fi
+      exit 0
+    fi
+
+    # New network — check if password is needed
+    security="$(nmcli --terse --escape no --fields SSID,SECURITY device wifi list 2>/dev/null \
+      | awk -F: -v s="$ssid" '$1 == s {print $2; exit}')"
+
+    if [[ -z "$security" || "$security" == "--" ]]; then
+      notify "Connecting to $ssid..."
+      if nmcli device wifi connect "$ssid" 2>/dev/null; then
+        notify "Connected" "$ssid"
+      else
+        notify "Failed to connect" "$ssid"
+      fi
+    else
+      password="$(password_prompt "$ssid")" || exit 0
+      [[ -z "$password" ]] && exit 0
+      notify "Connecting to $ssid..."
+      if nmcli device wifi connect "$ssid" password "$password" 2>/dev/null; then
+        notify "Connected" "$ssid"
+      else
+        notify "Failed to connect" "$ssid — check password"
+      fi
+    fi
+    ;;
 esac
-
-ssid="$choice"
-ssid="${ssid#connected }"
-ssid="${ssid%%  *}"
-
-exec nmcli device wifi connect "$ssid"
