@@ -1,9 +1,29 @@
 [Default Applications]
-application/pdf=zathura.desktop
-application/xhtml+xml=vivaldi-stable.desktop
+# Browser
 text/html=vivaldi-stable.desktop
+application/xhtml+xml=vivaldi-stable.desktop
 x-scheme-handler/http=vivaldi-stable.desktop
 x-scheme-handler/https=vivaldi-stable.desktop
+x-scheme-handler/ftp=vivaldi-stable.desktop
+
+# Documents
+application/pdf=zathura.desktop
+application/postscript=zathura.desktop
+application/epub+zip=zathura.desktop
+
+# Images
+image/jpeg=imv.desktop
+image/png=imv.desktop
+image/gif=imv.desktop
+image/webp=imv.desktop
+image/avif=imv.desktop
+image/bmp=imv.desktop
+image/tiff=imv.desktop
+image/svg+xml=imv.desktop
+image/x-portable-pixmap=imv.desktop
+image/vnd.microsoft.icon=imv.desktop
+
+# Video
 video/mp4=vlc.desktop
 video/x-matroska=vlc.desktop
 video/webm=vlc.desktop
@@ -13,4 +33,32 @@ video/mpeg=vlc.desktop
 video/ogg=vlc.desktop
 video/x-flv=vlc.desktop
 video/x-ms-wmv=vlc.desktop
+video/x-m4v=vlc.desktop
+video/3gpp=vlc.desktop
+
+# Audio
+audio/mpeg=vlc.desktop
+audio/ogg=vlc.desktop
+audio/flac=vlc.desktop
+audio/wav=vlc.desktop
+audio/x-wav=vlc.desktop
+audio/x-flac=vlc.desktop
+audio/mp4=vlc.desktop
+audio/aac=vlc.desktop
+audio/opus=vlc.desktop
+audio/x-m4a=vlc.desktop
+audio/webm=vlc.desktop
+
+# Archives
+application/zip=org.kde.dolphin.desktop
+application/x-tar=org.kde.dolphin.desktop
+application/gzip=org.kde.dolphin.desktop
+application/x-bzip2=org.kde.dolphin.desktop
+application/x-xz=org.kde.dolphin.desktop
+application/x-7z-compressed=org.kde.dolphin.desktop
+application/x-rar=org.kde.dolphin.desktop
+application/zstd=org.kde.dolphin.desktop
+
+# Misc
+inode/directory=org.kde.dolphin.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop

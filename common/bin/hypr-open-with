@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+# Usage: hypr-open-with [FILE]
+# Without FILE: manage a MIME type default directly.
+
+set -euo pipefail
+
+menu() {
+  if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; then
+    walker --dmenu --placeholder "$1"
+  elif command -v wofi >/dev/null 2>&1; then
+    wofi --dmenu --prompt "$1" --width 720 --lines 14 --hide-scroll
+  else
+    printf '%s\n' 'walker or wofi is required for hypr-open-with' >&2
+    exit 1
+  fi
+}
+
+list_apps_for_mime() {
+  local mime="$1"
+  python3 - "$mime" <<'EOF'
+import os, re, sys
+from pathlib import Path
+
+mime = sys.argv[1]
+base = mime.split('/')[0]
+seen = set()
+
+for app_dir in ['/usr/share/applications', os.path.expanduser('~/.local/share/applications')]:
+    if not os.path.isdir(app_dir):
+        continue
+    for f in sorted(Path(app_dir).glob('*.desktop')):
+        try:
+            content = f.read_text(errors='ignore')
+            m = re.search(r'^MimeType=(.+)$', content, re.M)
+            if not m:
+                continue
+            supported = [t.strip() for t in m.group(1).split(';')]
+            if mime not in supported and base + '/*' not in supported:
+                continue
+            name_m = re.search(r'^Name=(.+)$', content, re.M)
+            if not name_m or f.name in seen:
+                continue
+            seen.add(f.name)
+            print(f'{name_m.group(1)}  [{f.name}]')
+        except Exception:
+            pass
+EOF
+}
+
+set_default() {
+  local mime="$1" desktop="$2"
+  xdg-mime default "$desktop" "$mime"
+  notify-send -a "Open With" -i "application-default-icon" \
+    "Default updated" "$(xdg-mime query default "$mime") → $mime"
+}
+
+launch() {
+  local desktop="$1" file="$2"
+  for dir in ~/.local/share/applications /usr/share/applications; do
+    [[ -f "$dir/$desktop" ]] || continue
+    exec_line="$(grep "^Exec=" "$dir/$desktop" | head -1 | sed 's/^Exec=//')"
+    # Strip desktop file field codes and trailing whitespace
+    cmd="$(printf '%s' "$exec_line" | sed 's/ %[fFuUdDnNickvm]//g; s/%[fFuUdDnNickvm]//g')"
+    eval "$cmd $(printf '%q' "$file")" &
+    return
+  done
+  notify-send -a "Open With" "Could not launch $desktop"
+}
+
+# --- main ---
+
+if [[ $# -eq 0 ]]; then
+  # No file: manage a MIME type directly
+  mime="$(printf '' | menu 'mime type (e.g. image/png)')" || exit 0
+  [[ -z "$mime" ]] && exit 0
+else
+  file="$(realpath "$1")"
+  mime="$(xdg-mime query filetype "$file" 2>/dev/null)" || {
+    notify-send -a "Open With" "Could not detect file type for $1"
+    exit 1
+  }
+fi
+
+apps="$(list_apps_for_mime "$mime")"
+
+if [[ -z "$apps" ]]; then
+  notify-send -a "Open With" "No apps found for $mime"
+  exit 0
+fi
+
+current="$(xdg-mime query default "$mime" 2>/dev/null || true)"
+[[ -n "$current" ]] && header="$mime  (current: $current)" || header="$mime"
+
+choice="$(printf '%s\n' "$apps" | menu "$header")" || exit 0
+[[ -z "$choice" ]] && exit 0
+
+desktop="${choice##*[}"; desktop="${desktop%]}"
+
+# Ask whether to also set as default
+if [[ $# -gt 0 ]]; then
+  action="$(printf 'open only\nopen and set as default\nset as default only' | menu "$desktop")" || exit 0
+  case "$action" in
+    'open only')              launch "$desktop" "$file" ;;
+    'open and set as default') set_default "$mime" "$desktop"; launch "$desktop" "$file" ;;
+    'set as default only')     set_default "$mime" "$desktop" ;;
+  esac
+else
+  set_default "$mime" "$desktop"
+fi
