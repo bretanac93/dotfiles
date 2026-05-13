@@ -16,16 +16,16 @@ def hypr_json(*args):
     return json.loads(subprocess.check_output(["hyprctl", *args, "-j"]))
 
 
-def place_pip(address: str) -> None:
+def place_pip(address: str) -> bool:
     clients = hypr_json("clients")
     client = next((c for c in clients if c.get("address") == address), None)
     if not client or client.get("title") not in PIP_TITLES:
-        return
+        return False
 
     monitors = hypr_json("monitors")
     monitor = next((m for m in monitors if m.get("id") == client.get("monitor")), None)
     if not monitor:
-        return
+        return False
 
     x = monitor["x"] + monitor["width"] - client["size"][0] - MARGIN_X
     y = monitor["y"] + monitor["height"] - client["size"][1] - MARGIN_Y
@@ -47,6 +47,7 @@ def place_pip(address: str) -> None:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
+    return True
 
 
 def handle_event(line: str) -> None:
@@ -57,14 +58,16 @@ def handle_event(line: str) -> None:
     if not payload:
         return
 
-    address = payload[0]
+    # Socket events omit the 0x prefix; hyprctl clients includes it
+    address = "0x" + payload[0]
 
     for _ in range(10):
         try:
-            place_pip(address)
-            break
+            if place_pip(address):
+                break
         except Exception:
-            time.sleep(0.15)
+            pass
+        time.sleep(0.15)
 
 
 def main() -> None:
