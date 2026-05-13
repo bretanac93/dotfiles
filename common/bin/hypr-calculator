@@ -6,5 +6,21 @@ if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; the
   exec walker --provider calc
 fi
 
-printf '%s\n' 'walker + elephant is required for hypr-calculator' >&2
+# Wofi fallback: type an expression, evaluate with python, copy result
+if command -v wofi >/dev/null 2>&1; then
+  expr="$(printf '' | wofi --dmenu --prompt 'calculate:' --width 480 --lines 0 --hide-scroll)" || exit 0
+  [[ -z "$expr" ]] && exit 0
+  result="$(python3 -c "
+import math
+try:
+    print(eval('$expr', {'__builtins__': {}}, vars(math)))
+except Exception as e:
+    print(f'error: {e}')
+" 2>/dev/null)" || exit 0
+  printf '%s' "$result" | wl-copy
+  notify-send -a "Calculator" "$expr = $result"
+  exit 0
+fi
+
+printf '%s\n' 'hypr-calculator requires walker+elephant or wofi+wl-copy' >&2
 exit 1
