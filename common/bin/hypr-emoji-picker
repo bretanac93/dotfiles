@@ -6,5 +6,12 @@ if command -v walker >/dev/null 2>&1 && command -v elephant >/dev/null 2>&1; the
   exec walker --provider symbols
 fi
 
-printf '%s\n' 'walker + elephant is required for hypr-emoji-picker' >&2
+if command -v rofimoji >/dev/null 2>&1; then
+  if command -v wofi >/dev/null 2>&1; then
+    exec rofimoji --action copy --selector wofi
+  fi
+  exec rofimoji --action copy
+fi
+
+printf '%s\n' 'hypr-emoji-picker requires walker+elephant or rofimoji' >&2
 exit 1
