@@ -16,7 +16,6 @@
   ],
   "modules-right": [
     "tray",
-    "custom/dnd",
     "pulseaudio",
     "network",
     "custom/cpu-status",
