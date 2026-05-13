@@ -45,7 +45,6 @@ noto-fonts
 ttf-jetbrains-mono-nerd
 
 # Desktop apps
-1password
 vivaldi
 signal-desktop
 telegram-desktop
@@ -57,6 +56,8 @@ zathura
 steam
 
 # Wayland utilities
+hyprsunset
+hyprpicker
 grim
 slurp
 wl-clipboard
