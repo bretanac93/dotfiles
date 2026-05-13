@@ -41,3 +41,15 @@ background-color=#3b4252f2
 text-color=#eceff4ff
 border-color=#bf616acc
 default-timeout=0
+
+[app-name="Telegram Desktop"]
+default-timeout=4000
+
+[app-name=Signal]
+default-timeout=6000
+
+[app-name=Cider]
+default-timeout=3000
+
+[app-name=Vivaldi]
+default-timeout=4000
