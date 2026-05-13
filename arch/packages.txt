@@ -14,6 +14,7 @@ deno
 cliphist
 grim
 hyprpaper
+xdg-desktop-portal-gtk
 hypridle
 hyprlock
 imv

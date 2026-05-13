@@ -130,6 +130,7 @@ if [[ "$(uname)" == "Linux" ]] && [[ -d "$repo_root/arch/applications" ]]; then
   link_path "$repo_root/arch/applications/slack.desktop" "$HOME/.local/share/applications/slack.desktop" "slack-desktop" "slack.desktop"
   mkdir -p "$HOME/.config"
   link_path "$repo_root/arch/applications/mimeapps.list" "$HOME/.config/mimeapps.list" "mimeapps" "mimeapps.list"
+  link_path "$repo_root/arch/vivaldi/vivaldi-stable.conf" "$HOME/.config/vivaldi-stable.conf" "vivaldi-flags" "vivaldi-stable.conf"
 fi
 
 link_path "$common_dir/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
