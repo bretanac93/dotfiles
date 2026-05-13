@@ -40,6 +40,9 @@ gnupg
 deno
 pnpm
 
+# Themes & icons
+papirus-icon-theme
+
 # Fonts
 noto-fonts
 ttf-jetbrains-mono-nerd

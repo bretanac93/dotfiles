@@ -88,6 +88,10 @@ mkdir -p "$HOME/.gnupg" && chmod 700 "$HOME/.gnupg"
 # ── Arch / Hyprland configs ───────────────────────────────────────────────────
 
 if [[ "$(uname)" == "Linux" ]]; then
+  mkdir -p "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"
+  link_path "$repo_root/arch/gtk/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini" "gtk-3.0"
+  link_path "$repo_root/arch/gtk/gtk-4.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini" "gtk-4.0"
+
   for dir in hypr waybar wofi yazi swaync swayosd walker; do
     [[ -d "$repo_root/arch/$dir" ]] && link_path "$repo_root/arch/$dir" "$HOME/.config/$dir" "$dir"
   done
