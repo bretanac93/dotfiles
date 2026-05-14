@@ -67,7 +67,7 @@ if [[ -r "$ZSH_CONFIG_DIR/lib/compinit.zsh" ]]; then
 fi
 
 # pnpm
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ "$OSTYPE" == darwin* ]]; then
   export PNPM_HOME="$HOME/Library/pnpm"
   case ":$PATH:" in
     *":$PNPM_HOME:"*) ;;

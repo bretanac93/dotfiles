@@ -18,7 +18,7 @@ if [[ -z "${DOCKER_HOST:-}" ]] && [[ -S "$HOME/.orbstack/run/docker.sock" ]]; th
   export DOCKER_HOST="unix://$HOME/.orbstack/run/docker.sock"
 fi
 
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ "$OSTYPE" == darwin* ]]; then
   export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 fi
 export GOPATH="${GOPATH:-$HOME/go}"
