@@ -36,8 +36,7 @@ tooltip label {
 #bluetooth,
 #network,
 #custom-system-stats,
-#custom-power,
-#custom-tray-toggle {
+#custom-power {
   background: transparent;
   border: none;
   color: #d8dee9;
@@ -105,8 +104,7 @@ tooltip label {
 #network,
 #pulseaudio,
 #custom-system-stats,
-#custom-power,
-#custom-tray-toggle {
+#custom-power {
   font-size: 20px;
 }
 
@@ -126,20 +124,6 @@ tooltip label {
   background: #434c5e;
 }
 
-#custom-tray-toggle {
-  color: #4c566a;
-}
-
-#custom-tray-toggle:hover {
-  color: #d8dee9;
-}
-
-#tray-drawer,
-.tray-item {
-  background: transparent;
-  border: none;
-  padding: 0 4px;
-}
 
 #custom-dnd {
   color: #4c566a;
