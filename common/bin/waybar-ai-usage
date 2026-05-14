@@ -53,7 +53,7 @@ max_pct = max(claude_pct, codex_pct)
 css_class = "ai-high" if max_pct >= 80 else ("ai-mid" if max_pct >= 50 else "ai-low")
 
 print(json.dumps({
-    "text": "󱚦",
+    "text": "",
     "tooltip": "\n".join(lines),
     "class": css_class,
 }))

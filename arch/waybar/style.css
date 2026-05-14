@@ -107,6 +107,7 @@ tooltip label {
 #custom-system-stats,
 #custom-ai-usage,
 #custom-power {
+  font-family: "Phosphor";
   font-size: 20px;
 }
 

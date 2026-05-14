@@ -53,9 +53,9 @@
   },
   "pulseaudio": {
     "format": "{icon}",
-    "format-muted": "󰖁",
+    "format-muted": "",
     "format-icons": {
-      "default": ["󰕿", "󰖀", "󰕾"]
+      "default": ["", "", ""]
     },
     "tooltip-format": "{volume}%  {desc}",
     "scroll-step": 5,
@@ -63,10 +63,10 @@
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
   "bluetooth": {
-    "format": "󰂯",
-    "format-off": "󰂲",
-    "format-disabled": "󰂲",
-    "format-connected": "󰂱",
+    "format": "",
+    "format-off": "",
+    "format-disabled": "",
+    "format-connected": "",
     "format-no-controller": "",
     "tooltip-format": "󰂯 {status}",
     "tooltip-format-connected": "{device_alias}",
@@ -75,9 +75,9 @@
     "on-click-right": "hypr-bluetooth-menu"
   },
   "network": {
-    "format-wifi": "󰖩",
-    "format-ethernet": "󰈀",
-    "format-disconnected": "󰖪",
+    "format-wifi": "",
+    "format-ethernet": "",
+    "format-disconnected": "",
     "tooltip-format-wifi": "{essid}  {signalStrength}%",
     "tooltip-format-ethernet": "{ifname}  {ipaddr}",
     "tooltip-format-disconnected": "Disconnected",
@@ -109,7 +109,7 @@
     }
   },
   "custom/power": {
-    "format": "\u23fb",
+    "format": "",
     "tooltip": false,
     "on-click": "hypr-power-menu"
   },
