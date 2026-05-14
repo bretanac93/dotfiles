@@ -109,30 +109,23 @@ tooltip label {
   background: #434c5e;
 }
 
-#custom-1password,
-#custom-cider,
-#custom-signal,
-#custom-telegram,
-#custom-slack,
-#custom-steam {
+#custom-tray-toggle {
   background: rgba(46, 52, 64, 0.94);
   border: 1px solid rgba(76, 86, 106, 0.85);
-  color: #d8dee9;
-  padding: 0 12px;
-  margin: 0;
-  font-size: 17px;
+  color: #4c566a;
+  padding: 0 10px;
+  font-size: 18px;
 }
 
-#custom-1password.stopped,
-#custom-cider.stopped,
-#custom-signal.stopped,
-#custom-telegram.stopped,
-#custom-slack.stopped,
-#custom-steam.stopped {
-  background: transparent;
-  border: none;
-  padding: 0;
-  min-width: 0;
+#custom-tray-toggle:hover {
+  color: #d8dee9;
+}
+
+.tray-item {
+  background: rgba(46, 52, 64, 0.94);
+  border: 1px solid rgba(76, 86, 106, 0.85);
+  border-right: none;
+  padding: 0 8px;
 }
 
 #custom-dnd {

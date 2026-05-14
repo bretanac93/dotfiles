@@ -15,7 +15,7 @@
     "clock"
   ],
   "modules-right": [
-    "tray",
+    "group/tray-drawer",
     "pulseaudio",
     "network",
     "custom/cpu-status",
@@ -112,6 +112,23 @@
         "today": "<span color='#2e3440' background='#88c0d0'><b>{}</b></span>"
       }
     }
+  },
+  "group/tray-drawer": {
+    "orientation": "inherit",
+    "drawer": {
+      "transition-duration": 400,
+      "children-class": "tray-item",
+      "transition-left-to-right": false
+    },
+    "modules": ["custom/tray-toggle", "tray"]
+  },
+  "custom/tray-toggle": {
+    "format": "·",
+    "tooltip": false
+  },
+  "tray": {
+    "icon-size": 16,
+    "spacing": 12
   },
   "custom/power": {
     "format": "\u23fb",
