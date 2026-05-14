@@ -127,22 +127,18 @@ tooltip label {
 }
 
 #custom-tray-toggle {
-  background: rgba(46, 52, 64, 0.94);
-  border: 1px solid rgba(76, 86, 106, 0.85);
   color: #4c566a;
-  padding: 0 10px;
-  font-size: 18px;
 }
 
 #custom-tray-toggle:hover {
   color: #d8dee9;
 }
 
+#tray-drawer,
 .tray-item {
-  background: rgba(46, 52, 64, 0.94);
-  border: 1px solid rgba(76, 86, 106, 0.85);
-  border-right: none;
-  padding: 0 8px;
+  background: transparent;
+  border: none;
+  padding: 0 4px;
 }
 
 #custom-dnd {

@@ -120,7 +120,7 @@
     "modules": ["custom/tray-toggle", "tray"]
   },
   "custom/tray-toggle": {
-    "format": "·",
+    "format": "‹",
     "tooltip": false
   },
   "tray": {
