@@ -24,7 +24,8 @@ tooltip label {
 #workspaces,
 #custom-media,
 #window,
-#clock {
+#clock,
+#custom-weather {
   background: rgba(46, 52, 64, 0.94);
   border: 1px solid rgba(76, 86, 106, 0.85);
   color: #d8dee9;

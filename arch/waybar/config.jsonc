@@ -10,7 +10,8 @@
     "hyprland/workspaces"
   ],
   "modules-center": [
-    "clock"
+    "clock",
+    "custom/weather"
   ],
   "modules-right": [
     "custom/ai-usage",
@@ -107,6 +108,16 @@
         "today": "<span color='#2e3440' background='#88c0d0'><b>{}</b></span>"
       }
     }
+  },
+  "custom/weather": {
+    "exec": "waybar-weather",
+    "return-type": "json",
+    "interval": 1800,
+    "format": "{}",
+    "tooltip": true,
+    "escape": false,
+    "on-click": "pkill -RTMIN+9 waybar",
+    "signal": 9
   },
   "custom/power": {
     "format": "",
