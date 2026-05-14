@@ -25,6 +25,7 @@ tooltip label {
 #custom-media,
 #window,
 #pulseaudio,
+#bluetooth,
 #network,
 #custom-system-stats,
 #clock,
@@ -82,8 +83,14 @@ tooltip label {
 }
 
 #network.disconnected,
-#pulseaudio.muted {
-  color: #bf616a;
+#pulseaudio.muted,
+#bluetooth.off,
+#bluetooth.disabled {
+  color: #4c566a;
+}
+
+#bluetooth.connected {
+  color: #88c0d0;
 }
 
 #custom-system-stats {
