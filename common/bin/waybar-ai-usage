@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+import json, subprocess
+
+def get_usage(cmd):
+    try:
+        out = subprocess.check_output(cmd, text=True, timeout=15)
+        return json.loads(out.strip())
+    except Exception:
+        return None
+
+claude = get_usage(["/usr/bin/claude-usage", "--waybar", "--browser", "vivaldi"])
+codex  = get_usage(["/usr/bin/codex-usage",  "--waybar", "--browser", "vivaldi"])
+
+def parse_reset(tooltip):
+    for line in tooltip.split("\n"):
+        if "5-Hour" in line:
+            parts = line.split()
+            return parts[-1] if parts else "?"
+    return "?"
+
+lines = []
+claude_pct = 0
+codex_pct  = 0
+
+if claude:
+    claude_pct = claude.get("percentage", 0)
+    reset = parse_reset(claude.get("tooltip", ""))
+    lines.append(f"Claude  {claude_pct}%  {reset}")
+else:
+    lines.append("Claude  unavailable")
+
+if codex:
+    codex_pct = codex.get("percentage", 0)
+    reset = parse_reset(codex.get("tooltip", ""))
+    lines.append(f"Codex   {codex_pct}%  {reset}")
+else:
+    lines.append("Codex   unavailable")
+
+max_pct = max(claude_pct, codex_pct)
+css_class = "ai-high" if max_pct >= 80 else ("ai-mid" if max_pct >= 50 else "ai-low")
+
+print(json.dumps({
+    "text": "󱚦",
+    "tooltip": "\n".join(lines),
+    "class": css_class,
+}))
