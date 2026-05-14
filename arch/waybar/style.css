@@ -93,12 +93,11 @@ tooltip label {
   color: #88c0d0;
 }
 
-#bluetooth {
-  font-size: 17px;
-}
-
-#custom-system-stats {
-  font-size: 15px;
+#bluetooth,
+#custom-system-stats,
+#custom-power,
+#custom-tray-toggle {
+  font-size: 16px;
 }
 
 #custom-system-stats.warm {
@@ -111,7 +110,7 @@ tooltip label {
 
 #custom-power {
   color: #ebcb8b;
-  padding: 0 14px;
+  padding: 0 10px;
 }
 
 #custom-power:hover {
