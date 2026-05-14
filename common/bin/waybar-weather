@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import json, urllib.request, sys
+import json, urllib.request
 
-LOCATION = "Berlin,Germany"
+import os
+LOCATION = os.environ.get("WAYBAR_WEATHER_LOCATION", "Berlin,Germany")
 
 # wttr.in weather codes → Phosphor icon codepoint
 # https://www.worldweatheronline.com/developer/api/docs/weather-icons.aspx
