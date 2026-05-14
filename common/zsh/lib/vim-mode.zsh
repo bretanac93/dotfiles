@@ -33,48 +33,28 @@ zle -N zle-line-init
 # System Clipboard Integration
 # ==========================================
 
-function _zsh_clip_copy() {
-  if (( $+commands[pbcopy] )); then
-    pbcopy
-  elif (( $+commands[wl-copy] )); then
-    wl-copy
-  fi
-}
-
-function _zsh_clip_paste() {
-  if (( $+commands[pbpaste] )); then
-    pbpaste
-  elif (( $+commands[wl-paste] )); then
-    wl-paste
-  fi
-}
+# Detect once at load time — avoids a hash lookup on every yank/paste
+if (( $+commands[pbcopy] )); then
+  _ZSH_CLIP_COPY=pbcopy; _ZSH_CLIP_PASTE=pbpaste
+elif (( $+commands[wl-copy] )); then
+  _ZSH_CLIP_COPY=wl-copy; _ZSH_CLIP_PASTE=wl-paste
+fi
 
 function zsh-vi-yank-to-clipboard {
-  local cut_text="$(echo "$CUTBUFFER" | head -c 10000)"
-  if [[ -n "$cut_text" ]]; then
-    echo -n "$cut_text" | _zsh_clip_copy 2>/dev/null
-  fi
+  local cut_text="${CUTBUFFER[1,10000]}"
+  [[ -n "$cut_text" && -n "${_ZSH_CLIP_COPY:-}" ]] && print -rn -- "$cut_text" | "$_ZSH_CLIP_COPY" 2>/dev/null
   zle .vi-yank
 }
 zle -N zsh-vi-yank-to-clipboard
 
 function zsh-vi-yank-whole-line-to-clipboard {
-  local line_text="$BUFFER"
-  if [[ -n "$line_text" ]]; then
-    echo -n "$line_text" | _zsh_clip_copy 2>/dev/null
-  fi
+  [[ -n "$BUFFER" && -n "${_ZSH_CLIP_COPY:-}" ]] && print -rn -- "$BUFFER" | "$_ZSH_CLIP_COPY" 2>/dev/null
   zle .vi-yank-whole-line
 }
 zle -N zsh-vi-yank-whole-line-to-clipboard
 
-# Override yank keys to use clipboard versions
 bindkey -M vicmd 'y' zsh-vi-yank-to-clipboard
 bindkey -M vicmd 'Y' zsh-vi-yank-whole-line-to-clipboard
-
-# Note: Visual mode in zsh uses the 'visual' keymap
-# When you press 'v' in vicmd, you enter visual mode
-# The 'y' key in visual mode is already handled by zle's internal visual-yank
-# We can add a post-yank hook if needed, but for now regular 'y' works
 
 # ==========================================
 # Vim Navigation and Keybindings
@@ -111,13 +91,10 @@ fi
 bindkey "^?" backward-delete-char
 bindkey "^H" backward-delete-char
 
-# Paste from system clipboard
 function zsh-vi-put-from-clipboard {
   local clipboard_content
-  clipboard_content=$(_zsh_clip_paste 2>/dev/null)
-  if [[ -n "$clipboard_content" ]]; then
-    LBUFFER="${LBUFFER}${clipboard_content}"
-  fi
+  [[ -n "${_ZSH_CLIP_PASTE:-}" ]] && clipboard_content=$("$_ZSH_CLIP_PASTE" 2>/dev/null)
+  [[ -n "$clipboard_content" ]] && LBUFFER="${LBUFFER}${clipboard_content}"
 }
 zle -N zsh-vi-put-from-clipboard
 
