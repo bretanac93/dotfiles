@@ -21,13 +21,19 @@ tooltip label {
   color: #d8dee9;
 }
 
-#workspaces,
+#workspaces {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0 4px;
+}
+
 #custom-media,
 #window,
 #clock,
 #custom-weather {
-  background: rgba(46, 52, 64, 0.94);
-  border: 1px solid rgba(76, 86, 106, 0.85);
+  background: transparent;
+  border: none;
   color: #d8dee9;
   margin: 0;
   padding: 0 12px;
@@ -46,22 +52,25 @@ tooltip label {
   margin: 0;
 }
 
-#workspaces {
-  padding: 0 6px;
-}
-
 #workspaces button {
-  color: #d8dee9;
-  opacity: 0.55;
+  color: #4c566a;
+  opacity: 1;
   background: transparent;
-  padding: 0 10px;
-  margin: 2px 2px;
+  padding: 0 5px;
+  margin: 0;
+  font-size: 8px;
+  box-shadow: none;
+  border: none;
 }
 
 #workspaces button.active {
-  color: #2e3440;
-  background: #88c0d0;
-  opacity: 1;
+  color: #88c0d0;
+  background: transparent;
+  font-size: 10px;
+}
+
+#workspaces button.urgent {
+  color: #bf616a;
 }
 
 #workspaces button:hover {
