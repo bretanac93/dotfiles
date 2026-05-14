@@ -8,20 +8,23 @@ STAT_FILE = CACHE / "system.stat"
 # ── CPU usage ─────────────────────────────────────────────────────────────────
 
 def cpu_usage():
-    fields = open("/proc/stat").readline().split()[1:]
-    user, nice, system, idle, iowait, irq, softirq, steal = (int(x) for x in fields[:8])
-    idle_all = idle + iowait
-    total = user + nice + system + idle + iowait + irq + softirq + steal
+    try:
+        fields = open("/proc/stat").readline().split()[1:]
+        user, nice, system, idle, iowait, irq, softirq, steal = (int(x) for x in fields[:8])
+        idle_all = idle + iowait
+        total = user + nice + system + idle + iowait + irq + softirq + steal
 
-    usage = 0
-    if STAT_FILE.exists():
-        prev_total, prev_idle = map(int, STAT_FILE.read_text().split())
-        td = total - prev_total
-        if td > 0:
-            usage = round(100 * (td - (idle_all - prev_idle)) / td)
+        usage = 0
+        if STAT_FILE.exists():
+            prev_total, prev_idle = map(int, STAT_FILE.read_text().split())
+            td = total - prev_total
+            if td > 0:
+                usage = round(100 * (td - (idle_all - prev_idle)) / td)
 
-    STAT_FILE.write_text(f"{total} {idle_all}")
-    return usage
+        STAT_FILE.write_text(f"{total} {idle_all}")
+        return usage
+    except Exception:
+        return 0
 
 # ── CPU temperature ───────────────────────────────────────────────────────────
 
@@ -50,13 +53,16 @@ def gpu_stats():
 # ── Memory ────────────────────────────────────────────────────────────────────
 
 def mem_usage():
-    info = {}
-    for line in open("/proc/meminfo"):
-        k, v = line.split(":")
-        info[k.strip()] = int(v.split()[0])
-    total = info["MemTotal"]
-    avail = info["MemAvailable"]
-    return round(100 * (total - avail) / total), round((total - avail) / 1024 / 1024, 1)
+    try:
+        info = {}
+        for line in open("/proc/meminfo"):
+            k, v = line.split(":")
+            info[k.strip()] = int(v.split()[0])
+        total = info["MemTotal"]
+        avail = info["MemAvailable"]
+        return round(100 * (total - avail) / total), round((total - avail) / 1024 / 1024, 1)
+    except Exception:
+        return 0, 0
 
 # ── Assemble ──────────────────────────────────────────────────────────────────
 
