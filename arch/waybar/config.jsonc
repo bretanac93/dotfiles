@@ -54,15 +54,12 @@
     "on-scroll-down": "playerctl previous"
   },
   "pulseaudio": {
-    "format": "{volume}% {icon}",
-    "format-muted": "mute",
+    "format": "{icon}",
+    "format-muted": "󰖁",
     "format-icons": {
-      "default": [
-        "vol",
-        "vol",
-        "vol"
-      ]
+      "default": ["󰕿", "󰖀", "󰕾"]
     },
+    "tooltip-format": "{volume}%  {desc}",
     "scroll-step": 5,
     "on-click": "hypr-audio-menu",
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
@@ -80,11 +77,11 @@
     "on-click-right": "hypr-bluetooth-menu"
   },
   "network": {
-    "format-wifi": "wifi",
-    "format-ethernet": "eth",
-    "format-disconnected": "offline",
-    "tooltip-format-wifi": "{essid} ({signalStrength}%)",
-    "tooltip-format-ethernet": "{ifname}",
+    "format-wifi": "󰖩",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰖪",
+    "tooltip-format-wifi": "{essid}  {signalStrength}%",
+    "tooltip-format-ethernet": "{ifname}  {ipaddr}",
     "tooltip-format-disconnected": "Disconnected",
     "on-click": "hypr-wifi-menu"
   },

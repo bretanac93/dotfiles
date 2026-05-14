@@ -94,6 +94,8 @@ tooltip label {
 }
 
 #bluetooth,
+#network,
+#pulseaudio,
 #custom-system-stats,
 #custom-power,
 #custom-tray-toggle {
