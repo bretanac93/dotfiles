@@ -18,9 +18,7 @@
     "group/tray-drawer",
     "pulseaudio",
     "network",
-    "custom/cpu-status",
-    "custom/gpu-status",
-    "memory",
+    "custom/system-stats",
     "custom/power"
   ],
   "hyprland/workspaces": {
@@ -78,23 +76,13 @@
     "on-click": "hypr-wifi-menu",
     "on-click-right": "hypr-bluetooth-menu"
   },
-  "custom/cpu-status": {
-    "exec": "waybar-cpu-temp",
+  "custom/system-stats": {
+    "exec": "waybar-system-stats",
     "return-type": "json",
     "interval": 5,
     "format": "{}",
-    "on-click": "waybar-toggle-mode cpu"
-  },
-  "custom/gpu-status": {
-    "exec": "waybar-gpu-temp",
-    "return-type": "json",
-    "interval": 5,
-    "format": "{}",
-    "on-click": "waybar-toggle-mode gpu"
-  },
-  "memory": {
-    "format": "mem {}%",
-    "tooltip": false
+    "on-click": "ghostty -e btop",
+    "tooltip": true
   },
   "clock": {
     "format": "{:%a %d %b  %H:%M}",

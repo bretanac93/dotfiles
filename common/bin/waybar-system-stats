@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+import json, subprocess, re, pathlib, time
+
+CACHE = pathlib.Path.home() / ".cache" / "waybar"
+CACHE.mkdir(parents=True, exist_ok=True)
+STAT_FILE = CACHE / "system.stat"
+
+# ── CPU usage ─────────────────────────────────────────────────────────────────
+
+def cpu_usage():
+    fields = open("/proc/stat").readline().split()[1:]
+    user, nice, system, idle, iowait, irq, softirq, steal = (int(x) for x in fields[:8])
+    idle_all = idle + iowait
+    total = user + nice + system + idle + iowait + irq + softirq + steal
+
+    usage = 0
+    if STAT_FILE.exists():
+        prev_total, prev_idle = map(int, STAT_FILE.read_text().split())
+        td = total - prev_total
+        if td > 0:
+            usage = round(100 * (td - (idle_all - prev_idle)) / td)
+
+    STAT_FILE.write_text(f"{total} {idle_all}")
+    return usage
+
+# ── CPU temperature ───────────────────────────────────────────────────────────
+
+def cpu_temp():
+    try:
+        out = subprocess.check_output(["sensors"], text=True)
+        m = re.search(r'Package id 0:\s+\+?([\d.]+)', out)
+        return int(float(m.group(1))) if m else None
+    except Exception:
+        return None
+
+# ── GPU stats ─────────────────────────────────────────────────────────────────
+
+def gpu_stats():
+    try:
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=utilization.gpu,temperature.gpu",
+             "--format=csv,noheader,nounits"],
+            text=True
+        ).strip()
+        usage, temp = out.split(",")
+        return int(usage.strip()), int(temp.strip())
+    except Exception:
+        return None, None
+
+# ── Memory ────────────────────────────────────────────────────────────────────
+
+def mem_usage():
+    info = {}
+    for line in open("/proc/meminfo"):
+        k, v = line.split(":")
+        info[k.strip()] = int(v.split()[0])
+    total = info["MemTotal"]
+    avail = info["MemAvailable"]
+    return round(100 * (total - avail) / total), round((total - avail) / 1024 / 1024, 1)
+
+# ── Assemble ──────────────────────────────────────────────────────────────────
+
+cpu  = cpu_usage()
+ct   = cpu_temp()
+gu, gt = gpu_stats()
+mu, mg = mem_usage()
+
+tooltip_lines = [f"CPU  {cpu}%" + (f"  {ct}°C" if ct is not None else "")]
+if gu is not None:
+    tooltip_lines.append(f"GPU  {gu}%" + (f"  {gt}°C" if gt is not None else ""))
+tooltip_lines.append(f"MEM  {mu}%  ({mg} GB)")
+
+# Colour the icon by highest concern
+hot = (ct or 0) >= 80 or (gt or 0) >= 80
+warm = (ct or 0) >= 65 or (gt or 0) >= 65 or cpu >= 80 or mu >= 85
+
+css_class = "hot" if hot else ("warm" if warm else "normal")
+
+print(json.dumps({
+    "text": "󰍛",
+    "tooltip": "\n".join(tooltip_lines),
+    "class": css_class,
+}))

@@ -26,12 +26,8 @@ tooltip label {
 #window,
 #pulseaudio,
 #network,
-#custom-cpu-status,
-#custom-gpu-status,
-#memory,
+#custom-system-stats,
 #clock,
-#tray,
-#custom-dnd,
 #custom-power {
   background: rgba(46, 52, 64, 0.94);
   border: 1px solid rgba(76, 86, 106, 0.85);
@@ -90,13 +86,15 @@ tooltip label {
   color: #bf616a;
 }
 
-#custom-cpu-status.warm,
-#custom-gpu-status.warm {
+#custom-system-stats {
+  font-size: 15px;
+}
+
+#custom-system-stats.warm {
   color: #ebcb8b;
 }
 
-#custom-cpu-status.hot,
-#custom-gpu-status.hot {
+#custom-system-stats.hot {
   color: #bf616a;
 }
 
