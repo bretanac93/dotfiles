@@ -64,6 +64,8 @@ mkdir -p "$HOME/.config/zsh.local/"{alias,completions}
 copy_if_missing "$common_dir/zsh.local/env.zsh" "$HOME/.config/zsh.local/env.zsh" "zsh local env"
 
 link_path "$common_dir/nvim"           "$HOME/.config/nvim"          "nvim"
+mkdir -p "$HOME/.config/btop"
+link_path "$common_dir/btop.conf"      "$HOME/.config/btop/btop.conf" "btop"
 link_path "$common_dir/tmux/tmux.conf" "$HOME/.tmux.conf"            "tmux" "tmux.conf"
 link_path "$common_dir/ghostty"        "$HOME/.config/ghostty"       "ghostty"
 link_path "$common_dir/wallpaper.png"  "$HOME/.config/wallpaper.png" "wallpaper" "wallpaper.png"
