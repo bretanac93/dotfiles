@@ -66,6 +66,5 @@ if (( $+commands[git] )); then
   alias gup='git pull --rebase'
   alias gupa='git pull --rebase --autostash'
   alias gupv='git pull --rebase -v'
-  alias gupa='git pull --rebase --autostash'
   alias gwch='git whatchanged -p --abbrev-commit --pretty=medium'
 fi
