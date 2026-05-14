@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Usage: waybar-app-indicator <pgrep_pattern> <glyph> <tooltip>
+process="$1"
+glyph="$2"
+tooltip="$3"
+
+if pgrep -x "$process" >/dev/null 2>&1; then
+    printf '{"text":"%s","tooltip":"%s","class":"running"}\n' "$glyph" "$tooltip"
+else
+    printf '{"text":"","class":"stopped"}\n'
+fi

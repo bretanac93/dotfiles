@@ -15,7 +15,12 @@
     "clock"
   ],
   "modules-right": [
-    "tray",
+    "custom/1password",
+    "custom/cider",
+    "custom/signal",
+    "custom/telegram",
+    "custom/slack",
+    "custom/steam",
     "pulseaudio",
     "network",
     "custom/cpu-status",
@@ -118,8 +123,53 @@
     "tooltip": false,
     "on-click": "hypr-power-menu"
   },
-  "tray": {
-    "spacing": 10
+  "custom/1password": {
+    "exec": "waybar-app-indicator 1password 󰌾 1Password",
+    "return-type": "json",
+    "interval": 3,
+    "format": "{}",
+    "on-click": "1password",
+    "tooltip": true
+  },
+  "custom/cider": {
+    "exec": "waybar-app-indicator cider  Cider",
+    "return-type": "json",
+    "interval": 3,
+    "format": "{}",
+    "on-click": "cider",
+    "tooltip": true
+  },
+  "custom/signal": {
+    "exec": "waybar-app-indicator signal-desktop 󰭹 Signal",
+    "return-type": "json",
+    "interval": 3,
+    "format": "{}",
+    "on-click": "signal-desktop",
+    "tooltip": true
+  },
+  "custom/telegram": {
+    "exec": "waybar-app-indicator telegram-desktop  Telegram",
+    "return-type": "json",
+    "interval": 3,
+    "format": "{}",
+    "on-click": "telegram-desktop",
+    "tooltip": true
+  },
+  "custom/slack": {
+    "exec": "waybar-app-indicator slack 󰒱 Slack",
+    "return-type": "json",
+    "interval": 3,
+    "format": "{}",
+    "on-click": "slack",
+    "tooltip": true
+  },
+  "custom/steam": {
+    "exec": "waybar-app-indicator steam 󰓓 Steam",
+    "return-type": "json",
+    "interval": 3,
+    "format": "{}",
+    "on-click": "steam",
+    "tooltip": true
   },
   "custom/dnd": {
     "exec": "swaync-client --subscribe-waybar",
