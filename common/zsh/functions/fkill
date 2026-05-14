@@ -1,0 +1,18 @@
+#!/bin/zsh
+# fzf-powered process killer
+emulate -L zsh
+
+if ! (( $+commands[fzf] )); then
+  print -u2 "fkill: fzf is required"
+  return 1
+fi
+
+local signal="${1:--9}"
+local pids
+pids=$(ps -eo pid,user,comm,args --no-headers 2>/dev/null || ps -eo pid,user,comm | tail -n +2) || return 1
+local selected
+selected=$(print -r -- "$pids" | fzf --multi --header="Select process(es) to kill [signal: $signal]") || return 0
+local pid
+print -r -- "$selected" | while read -r pid _rest; do
+  kill "$signal" "$pid" && print "Killed $pid"
+done

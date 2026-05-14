@@ -1,0 +1,21 @@
+#!/bin/zsh
+# git worktree shortcuts
+emulate -L zsh
+
+local cmd="${1:-list}"
+shift 2>/dev/null
+
+case "$cmd" in
+  list|ls|l)   git worktree list ;;
+  add|a)       git worktree add "$@" ;;
+  remove|rm|r) git worktree remove "$@" ;;
+  prune|p)     git worktree prune ;;
+  *)
+    print "Usage: gw <command> [args]"
+    print "  list             List worktrees (default)"
+    print "  add <path> [branch]  Add a worktree"
+    print "  remove <path>    Remove a worktree"
+    print "  prune            Prune stale worktree info"
+    return 1
+    ;;
+esac

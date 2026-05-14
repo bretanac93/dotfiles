@@ -1,0 +1,30 @@
+#!/bin/zsh
+# Universal archive extractor
+emulate -L zsh
+
+if [[ $# -eq 0 ]]; then
+  print -u2 "Usage: extract <archive> [archive ...]"
+  return 1
+fi
+
+for archive in "$@"; do
+  if [[ ! -f "$archive" ]]; then
+    print -u2 "extract: '$archive' is not a file"
+    continue
+  fi
+  case "${archive:l}" in
+    *.tar.bz2|*.tbz2) tar xjf "$archive" ;;
+    *.tar.gz|*.tgz)   tar xzf "$archive" ;;
+    *.tar.xz|*.txz)   tar xJf "$archive" ;;
+    *.tar.zst)         tar --zstd -xf "$archive" ;;
+    *.tar)             tar xf  "$archive" ;;
+    *.bz2)             bunzip2     "$archive" ;;
+    *.gz)              gunzip      "$archive" ;;
+    *.xz)              unxz        "$archive" ;;
+    *.zst)             unzstd      "$archive" ;;
+    *.zip)             unzip       "$archive" ;;
+    *.7z)              7z x        "$archive" ;;
+    *.rar)             unrar x     "$archive" ;;
+    *) print -u2 "extract: unknown format '$archive'" ;;
+  esac
+done
