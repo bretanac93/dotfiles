@@ -24,17 +24,25 @@ tooltip label {
 #workspaces,
 #custom-media,
 #window,
-#pulseaudio,
-#bluetooth,
-#network,
-#custom-system-stats,
-#clock,
-#custom-power {
+#clock {
   background: rgba(46, 52, 64, 0.94);
   border: 1px solid rgba(76, 86, 106, 0.85);
   color: #d8dee9;
   margin: 0;
   padding: 0 12px;
+}
+
+#pulseaudio,
+#bluetooth,
+#network,
+#custom-system-stats,
+#custom-power,
+#custom-tray-toggle {
+  background: transparent;
+  border: none;
+  color: #d8dee9;
+  padding: 0 8px;
+  margin: 0;
 }
 
 #workspaces {
@@ -99,7 +107,7 @@ tooltip label {
 #custom-system-stats,
 #custom-power,
 #custom-tray-toggle {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 #custom-system-stats.warm {
@@ -112,7 +120,6 @@ tooltip label {
 
 #custom-power {
   color: #ebcb8b;
-  padding: 0 10px;
 }
 
 #custom-power:hover {
