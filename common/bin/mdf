@@ -280,7 +280,6 @@ case "${1:-}" in
             exit 1
         fi
         echo "Running shellcheck on all shell scripts..."
-        _lint_errors=0
         _lint_scripts=()
         for _f in \
             "$COMMON_DIR/bin"/hypr-* \
@@ -288,18 +287,14 @@ case "${1:-}" in
             "$DOTFILES_DIR/scripts"/*; do
             [[ -f "$_f" ]] || continue
             _shebang=$(head -1 "$_f")
-            [[ "$_shebang" == *sh* || "$_shebang" == *zsh* || "$_shebang" == *bash* ]] || continue
+            _shell="${_shebang##* }"; _shell="${_shell##*/}"
+            [[ "$_shell" == sh || "$_shell" == bash || "$_shell" == zsh ]] || continue
             _lint_scripts+=("$_f")
         done
-        for _f in "${_lint_scripts[@]}"; do
-            if ! shellcheck "$_f" "$@"; then
-                (( _lint_errors++ )) || true
-            fi
-        done
-        if (( _lint_errors == 0 )); then
+        if shellcheck "${_lint_scripts[@]}" "$@"; then
             echo "✅ All scripts passed shellcheck"
         else
-            echo "❌ $_lint_errors script(s) had issues"
+            echo "❌ Some scripts had issues"
             exit 1
         fi
         ;;
