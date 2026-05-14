@@ -67,9 +67,11 @@ if [[ -r "$ZSH_CONFIG_DIR/lib/compinit.zsh" ]]; then
 fi
 
 # pnpm
-export PNPM_HOME="/Users/cesarbretana/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
+if [[ "$(uname)" == "Darwin" ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+  case ":$PATH:" in
+    *":$PNPM_HOME:"*) ;;
+    *) export PATH="$PNPM_HOME:$PATH" ;;
+  esac
+fi
 # pnpm end
