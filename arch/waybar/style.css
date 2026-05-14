@@ -93,6 +93,10 @@ tooltip label {
   color: #88c0d0;
 }
 
+#bluetooth {
+  font-size: 17px;
+}
+
 #custom-system-stats {
   font-size: 15px;
 }
