@@ -9,7 +9,8 @@ STAT_FILE = CACHE / "system.stat"
 
 def cpu_usage():
     try:
-        fields = open("/proc/stat").readline().split()[1:]
+        with open("/proc/stat") as f:
+            fields = f.readline().split()[1:]
         user, nice, system, idle, iowait, irq, softirq, steal = (int(x) for x in fields[:8])
         idle_all = idle + iowait
         total = user + nice + system + idle + iowait + irq + softirq + steal
@@ -55,9 +56,16 @@ def gpu_stats():
 def mem_usage():
     try:
         info = {}
-        for line in open("/proc/meminfo"):
-            k, v = line.split(":")
-            info[k.strip()] = int(v.split()[0])
+        needed = {"MemTotal", "MemAvailable"}
+        with open("/proc/meminfo") as f:
+            for line in f:
+                k, v = line.split(":")
+                k = k.strip()
+                if k in needed:
+                    info[k] = int(v.split()[0])
+                    needed.discard(k)
+                    if not needed:
+                        break
         total = info["MemTotal"]
         avail = info["MemAvailable"]
         return round(100 * (total - avail) / total), round((total - avail) / 1024 / 1024, 1)
