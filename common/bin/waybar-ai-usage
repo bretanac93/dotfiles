@@ -11,12 +11,15 @@ def get_usage(cmd):
 claude = get_usage(["/usr/bin/claude-usage", "--waybar", "--browser", "vivaldi"])
 codex  = get_usage(["/usr/bin/codex-usage",  "--waybar", "--browser", "vivaldi"])
 
-def parse_reset(tooltip):
+def parse_windows(tooltip):
+    five_h = seven_d = None
     for line in tooltip.split("\n"):
-        if "5-Hour" in line:
-            parts = line.split()
-            return parts[-1] if parts else "?"
-    return "?"
+        parts = line.split()
+        if "5-Hour" in line and len(parts) >= 3:
+            five_h = (parts[-2], parts[-1])  # (used%, reset)
+        if "7-Day" in line and len(parts) >= 3:
+            seven_d = (parts[-2], parts[-1])
+    return five_h, seven_d
 
 lines = []
 claude_pct = 0
@@ -24,15 +27,25 @@ codex_pct  = 0
 
 if claude:
     claude_pct = claude.get("percentage", 0)
-    reset = parse_reset(claude.get("tooltip", ""))
-    lines.append(f"Claude  {claude_pct}%  {reset}")
+    five_h, seven_d = parse_windows(claude.get("tooltip", ""))
+    lines.append("Claude")
+    if five_h:
+        lines.append(f"  5h    {five_h[0]:>4}   resets in {five_h[1]}")
+    if seven_d:
+        lines.append(f"  7d    {seven_d[0]:>4}   resets in {seven_d[1]}")
 else:
     lines.append("Claude  unavailable")
 
+lines.append("")
+
 if codex:
     codex_pct = codex.get("percentage", 0)
-    reset = parse_reset(codex.get("tooltip", ""))
-    lines.append(f"Codex   {codex_pct}%  {reset}")
+    five_h, seven_d = parse_windows(codex.get("tooltip", ""))
+    lines.append("Codex")
+    if five_h:
+        lines.append(f"  5h    {five_h[0]:>4}   resets in {five_h[1]}")
+    if seven_d:
+        lines.append(f"  7d    {seven_d[0]:>4}   resets in {seven_d[1]}")
 else:
     lines.append("Codex   unavailable")
 
