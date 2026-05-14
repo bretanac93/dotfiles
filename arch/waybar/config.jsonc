@@ -13,8 +13,8 @@
     "clock"
   ],
   "modules-right": [
-    "pulseaudio",
     "custom/ai-usage",
+    "pulseaudio",
     "bluetooth",
     "network",
     "custom/system-stats",
