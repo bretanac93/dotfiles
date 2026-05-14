@@ -116,9 +116,20 @@ tooltip label {
 #pulseaudio,
 #custom-system-stats,
 #custom-ai-usage,
+#custom-vpn,
 #custom-power {
   font-family: "Phosphor";
   font-size: 17px;
+}
+
+#custom-vpn.vpn-active {
+  color: #a3be8c;
+}
+
+#custom-vpn.vpn-off {
+  color: transparent;
+  padding: 0;
+  min-width: 0;
 }
 
 #custom-system-stats.warm {

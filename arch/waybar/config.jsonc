@@ -15,6 +15,7 @@
   ],
   "modules-right": [
     "custom/ai-usage",
+    "custom/vpn",
     "pulseaudio",
     "bluetooth",
     "network",
@@ -187,6 +188,13 @@
     "on-click-right": "swaync-client -t -sw",
     "tooltip": false,
     "escape": true
+  },
+  "custom/vpn": {
+    "exec": "waybar-vpn",
+    "return-type": "json",
+    "interval": 10,
+    "format": "{}",
+    "tooltip": true
   },
   "custom/ai-usage": {
     "exec": "waybar-ai-usage",

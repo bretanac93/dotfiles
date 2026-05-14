@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# USAGE: waybar-vpn
+# Outputs JSON for waybar. Shows icon when any VPN tunnel is active.
+# VPN_ICON codepoint (U+E2C0) is a Phosphor lock variant — update if wrong.
+import json, subprocess
+
+VPN_ICON = chr(0xe2c0)
+
+def active_vpn():
+    """Return (interface, type) of the first active VPN tunnel, or None."""
+    try:
+        wg = subprocess.run(
+            ["ip", "link", "show", "type", "wireguard"],
+            capture_output=True, text=True
+        )
+        for line in wg.stdout.splitlines():
+            if "state UP" in line or "state UNKNOWN" in line:
+                iface = line.split(":")[1].strip().split("@")[0]
+                return iface, "WireGuard"
+    except Exception:
+        pass
+
+    try:
+        tun = subprocess.run(
+            ["ip", "link", "show", "type", "tun"],
+            capture_output=True, text=True
+        )
+        for line in tun.stdout.splitlines():
+            if "state UP" in line or "state UNKNOWN" in line:
+                iface = line.split(":")[1].strip().split("@")[0]
+                return iface, "OpenVPN"
+    except Exception:
+        pass
+
+    return None
+
+
+vpn = active_vpn()
+if vpn:
+    iface, kind = vpn
+    print(json.dumps({
+        "text": f"<span font_family='Phosphor'>{VPN_ICON}</span>",
+        "tooltip": f"{kind}  {iface}",
+        "class": "vpn-active",
+    }))
+else:
+    print(json.dumps({"text": "", "tooltip": "No VPN", "class": "vpn-off"}))
