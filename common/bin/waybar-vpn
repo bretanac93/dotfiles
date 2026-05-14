@@ -5,33 +5,17 @@
 import json, subprocess
 
 VPN_ICON = chr(0xe2c0)
+VPN_TYPES = {"wireguard": "WireGuard", "tun": "OpenVPN"}
 
 def active_vpn():
-    """Return (interface, type) of the first active VPN tunnel, or None."""
     try:
-        wg = subprocess.run(
-            ["ip", "link", "show", "type", "wireguard"],
-            capture_output=True, text=True
-        )
-        for line in wg.stdout.splitlines():
-            if "state UP" in line or "state UNKNOWN" in line:
-                iface = line.split(":")[1].strip().split("@")[0]
-                return iface, "WireGuard"
+        result = subprocess.run(["ip", "-j", "link"], capture_output=True, text=True)
+        for link in json.loads(result.stdout):
+            if (link.get("link_type") in VPN_TYPES and
+                    link.get("operstate") in ("UP", "UNKNOWN")):
+                return link["ifname"], VPN_TYPES[link["link_type"]]
     except Exception:
         pass
-
-    try:
-        tun = subprocess.run(
-            ["ip", "link", "show", "type", "tun"],
-            capture_output=True, text=True
-        )
-        for line in tun.stdout.splitlines():
-            if "state UP" in line or "state UNKNOWN" in line:
-                iface = line.split(":")[1].strip().split("@")[0]
-                return iface, "OpenVPN"
-    except Exception:
-        pass
-
     return None
 
 
