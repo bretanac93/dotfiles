@@ -33,30 +33,36 @@ zle -N zle-line-init
 # System Clipboard Integration
 # ==========================================
 
-# Copy yanked text to system clipboard (macOS pbcopy)
-function zsh-vi-yank-to-clipboard {
-  # Get the text from zsh's cut buffer
-  local cut_text="$(echo "$CUTBUFFER" | head -c 10000)"
-  
-  # Copy to system clipboard using pbcopy
-  if [[ -n "$cut_text" ]]; then
-    echo -n "$cut_text" | pbcopy 2>/dev/null
+function _zsh_clip_copy() {
+  if (( $+commands[pbcopy] )); then
+    pbcopy
+  elif (( $+commands[wl-copy] )); then
+    wl-copy
   fi
-  
-  # Call the original yank function
+}
+
+function _zsh_clip_paste() {
+  if (( $+commands[pbpaste] )); then
+    pbpaste
+  elif (( $+commands[wl-paste] )); then
+    wl-paste
+  fi
+}
+
+function zsh-vi-yank-to-clipboard {
+  local cut_text="$(echo "$CUTBUFFER" | head -c 10000)"
+  if [[ -n "$cut_text" ]]; then
+    echo -n "$cut_text" | _zsh_clip_copy 2>/dev/null
+  fi
   zle .vi-yank
 }
 zle -N zsh-vi-yank-to-clipboard
 
-# Copy entire line to system clipboard
 function zsh-vi-yank-whole-line-to-clipboard {
-  # Copy current line to clipboard
   local line_text="$BUFFER"
   if [[ -n "$line_text" ]]; then
-    echo -n "$line_text" | pbcopy 2>/dev/null
+    echo -n "$line_text" | _zsh_clip_copy 2>/dev/null
   fi
-  
-  # Call the original function
   zle .vi-yank-whole-line
 }
 zle -N zsh-vi-yank-whole-line-to-clipboard
@@ -108,7 +114,7 @@ bindkey "^H" backward-delete-char
 # Paste from system clipboard
 function zsh-vi-put-from-clipboard {
   local clipboard_content
-  clipboard_content=$(pbpaste 2>/dev/null)
+  clipboard_content=$(_zsh_clip_paste 2>/dev/null)
   if [[ -n "$clipboard_content" ]]; then
     LBUFFER="${LBUFFER}${clipboard_content}"
   fi
