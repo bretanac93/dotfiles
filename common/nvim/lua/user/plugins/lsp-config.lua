@@ -51,6 +51,8 @@ return {
 
 		vim.lsp.config("gopls", with_defaults())
 
+		vim.lsp.config("groovyls", with_defaults())
+
 		vim.lsp.config("pyright", with_defaults())
 
 		vim.lsp.config("intelephense", with_defaults({
@@ -90,6 +92,8 @@ return {
 			},
 		}))
 
+		vim.lsp.config("kotlin_language_server", with_defaults())
+
 		vim.lsp.config("templ", with_defaults())
 
 		vim.lsp.config("html", with_defaults({
@@ -105,12 +109,14 @@ return {
 		-- Enable LSP servers
 		vim.lsp.enable("lua_ls")
 		vim.lsp.enable("gopls")
+		vim.lsp.enable("groovyls")
 		vim.lsp.enable("pyright")
 		vim.lsp.enable("intelephense")
 		vim.lsp.enable("vue_ls")
 		vim.lsp.enable("ts_ls")
 		vim.lsp.enable("tailwindcss")
 		vim.lsp.enable("jsonls")
+		vim.lsp.enable("kotlin_language_server")
 		vim.lsp.enable("templ")
 		vim.lsp.enable("html")
 		vim.lsp.enable("htmx")
