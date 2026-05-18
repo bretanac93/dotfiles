@@ -82,12 +82,10 @@ selection="$({
         prefix = section == "sink" ? "out" : "in"
         marker = index(m[1], "*") ? "default" : "      "
         gsub(/[[:space:]]+\[[^]]+\]$/, "", m[3])
-        print prefix "|" m[2] "|" marker "|" m[3]
+        print prefix "  " marker "  " m[3] "  [" m[2] "]"
       }
     }
-  ' | while IFS='|' read -r kind id marker name; do
-    printf '%s\n' "$kind  $marker  $name"
-  done
+  '
 } | menu 'audio')"
 
 [[ -z "$selection" ]] && exit 0
@@ -97,26 +95,5 @@ if [[ "$selection" == '🎛  audio profiles' ]]; then
   exit 0
 fi
 
-kind="${selection%%  *}"
-rest="${selection#*  }"
-rest="${rest#*  }"
-target_name="$rest"
-
-wpctl status | awk -v target="$target_name" -v kind="$kind" '
-  /Sinks:/ {section="out"; next}
-  /Sources:/ {section="in"; next}
-  /Sink endpoints:/ {section=""}
-  /Source endpoints:/ {section=""}
-  section == kind {
-    if (match($0, /([*[:space:]]*)[[:graph:]]+[[:space:]]+([0-9]+)\. (.*)/, m)) {
-      gsub(/[[:space:]]+\[[^]]+\]$/, "", m[3])
-      if (m[3] == target) {
-        print m[2]
-        exit
-      }
-    }
-  }
-' | {
-  read -r id || exit 0
-  wpctl set-default "$id"
-}
+id="${selection##*[}"; id="${id%]}"
+wpctl set-default "$id"
