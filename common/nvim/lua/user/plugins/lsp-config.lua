@@ -5,7 +5,7 @@ return {
 		"williamboman/mason-lspconfig.nvim",
 		"b0o/schemastore.nvim",
 	},
-	event = "VeryLazy",
+	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local bigfile = require("user.bigfile")
 
@@ -15,7 +15,13 @@ return {
 			},
 		})
 
-		require("mason-lspconfig").setup({ automatic_installation = true })
+		require("mason-lspconfig").setup({
+			automatic_installation = true,
+			ensure_installed = {
+				"groovyls",
+				"kotlin_lsp",
+			},
+		})
 
 		local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
@@ -92,7 +98,9 @@ return {
 			},
 		}))
 
-		vim.lsp.config("kotlin_language_server", with_defaults())
+		vim.lsp.config("kotlin_lsp", with_defaults({
+			cmd = { "intellij-server", "--stdio" },
+		}))
 
 		vim.lsp.config("templ", with_defaults())
 
@@ -116,7 +124,7 @@ return {
 		vim.lsp.enable("ts_ls")
 		vim.lsp.enable("tailwindcss")
 		vim.lsp.enable("jsonls")
-		vim.lsp.enable("kotlin_language_server")
+		vim.lsp.enable("kotlin_lsp")
 		vim.lsp.enable("templ")
 		vim.lsp.enable("html")
 		vim.lsp.enable("htmx")

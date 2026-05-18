@@ -28,6 +28,14 @@ return {
 		vim.api.nvim_create_autocmd("FileType", {
 			group = group,
 			callback = function(args)
+				if vim.bo[args.buf].buftype ~= "" or not vim.bo[args.buf].modifiable then
+					return
+				end
+
+				if vim.api.nvim_buf_get_name(args.buf) == "" then
+					return
+				end
+
 				if bigfile.is_large(args.buf) then
 					return
 				end
