@@ -1,0 +1,5 @@
+# Global gitignore — applies to all repositories
+# Symlinked from dotfiles/common/git/gitignore
+
+# wt worktree storage directories
+.worktrees/

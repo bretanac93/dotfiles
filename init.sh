@@ -84,6 +84,8 @@ if [[ -r "$common_dir/git/gitconfig" ]]; then
   [[ ! -r "$HOME/.config/git/config.local" ]] && print "\n⚠️  Local git config missing — run: setup-git-local\n"
 fi
 
+[[ -r "$common_dir/git/gitignore" ]] && link_path "$common_dir/git/gitignore" "$HOME/.gitignore" "git" "gitignore"
+
 mkdir -p "$HOME/.gnupg" && chmod 700 "$HOME/.gnupg"
 [[ -r "$common_dir/git/gpg.conf" ]] && link_path "$common_dir/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg" "gpg.conf"
 
@@ -113,6 +115,10 @@ fi
 for script in "$common_dir/bin/"* "$repo_root/scripts/"*; do
   [[ -f "$script" ]] || continue
   name=$(basename "$script")
+  # Skip Hyprland / Waybar helpers on macOS — they only work on Linux
+  if [[ "$(uname)" == "Darwin" ]] && [[ "$name" == hypr-* || "$name" == waybar-* ]]; then
+    continue
+  fi
   link_path "$script" "$HOME/.local/bin/$name" "$name"
 done
 

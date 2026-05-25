@@ -1,0 +1,328 @@
+#!/bin/zsh
+#
+# wt - Git worktree manager
+# Usage: wt <command> [args]
+
+set -euo pipefail
+
+script_name="${0:t}"
+
+usage() {
+  local fd="${1:-2}"
+
+  print -u"$fd" "Usage: ${script_name} <branch>"
+  print -u"$fd" "       ${script_name} <subcommand> [args]"
+  print -u"$fd" ""
+  print -u"$fd" "Quickly create, open, list, and remove git worktrees."
+  print -u"$fd" "Must be run from inside a git repository."
+  print -u"$fd" ""
+  print -u"$fd" "Branch names can be gitflow-style: feat/foo, chore/bar, docs/baz"
+  print -u"$fd" "These are automatically prefixed with a remote if the branch does not exist."
+  print -u"$fd" ""
+  print -u"$fd" "Subcommands:"
+  print -u"$fd" "  <branch>              Create or switch to a worktree for <branch>"
+  print -u"$fd" "  list, ls, l           List all worktrees for the current repo"
+  print -u"$fd" "  remove, rm <branch>   Remove the worktree for <branch>"
+  print -u"$fd" "  prune                 Remove all worktrees except the main one"
+  print -u"$fd" ""
+  print -u"$fd" "Examples:"
+  print -u"$fd" "  ${script_name} feat/my-feature"
+  print -u"$fd" "  ${script_name} fix-bug"
+  print -u"$fd" "  ${script_name} list"
+  print -u"$fd" "  ${script_name} rm feat/my-feature"
+  print -u"$fd" "  ${script_name} prune"
+}
+
+die() {
+  print -u2 "❌ $1"
+  exit 1
+}
+
+# Fail fast if not inside a git repo.
+# Returns the *main* repo root, not a worktree root.
+require_repo() {
+  local git_common_dir
+  local repo_root
+
+  if ! git_common_dir="$(git rev-parse --git-common-dir 2>/dev/null)"; then
+    die "not inside a git repository"
+  fi
+
+  # git-common-dir is the .git directory; repo root is its parent
+  repo_root="${git_common_dir:A:h}"
+
+  if [[ ! -d "$repo_root" ]]; then
+    die "not inside a git repository"
+  fi
+
+  print -r -- "$repo_root"
+}
+
+# Sanitize a branch name for use in a directory name
+sanitize_dirname() {
+  local value="$1"
+
+  value="${value//[^A-Za-z0-9_.-]/-}"
+  value="${value##-}"
+  value="${value%%-}"
+
+  if [[ -z "$value" ]]; then
+    value="worktree"
+  fi
+
+  print -r -- "$value"
+}
+
+# Resolve the worktree path for a given branch
+worktree_path_for_branch() {
+  local repo_root="$1"
+  local branch_name="$2"
+  local line
+  local current_worktree=""
+  local current_branch=""
+
+  while IFS= read -r line; do
+    if [[ -z "$line" ]]; then
+      if [[ "$current_branch" == "refs/heads/$branch_name" && -n "$current_worktree" ]]; then
+        print -r -- "$current_worktree"
+        return 0
+      fi
+
+      current_worktree=""
+      current_branch=""
+      continue
+    fi
+
+    if [[ "$line" == worktree\ * ]]; then
+      current_worktree="${line#worktree }"
+    elif [[ "$line" == branch\ * ]]; then
+      current_branch="${line#branch }"
+    fi
+  done < <(git -C "$repo_root" worktree list --porcelain)
+
+  if [[ "$current_branch" == "refs/heads/$branch_name" && -n "$current_worktree" ]]; then
+    print -r -- "$current_worktree"
+    return 0
+  fi
+
+  return 1
+}
+
+# List worktrees for the current repo
+list_worktrees() {
+  local repo_root="$1"
+  local line
+  local current_worktree=""
+  local current_branch=""
+  local current_head=""
+  local -a worktrees
+
+  while IFS= read -r line; do
+    if [[ -z "$line" ]]; then
+      if [[ -n "$current_worktree" && -n "$current_branch" ]]; then
+        local branch_display="${current_branch#refs/heads/}"
+        local marker=""
+        [[ "$current_worktree" == "$repo_root" ]] && marker=" (main)"
+        worktrees+=("${branch_display}${marker}: ${current_worktree}")
+      fi
+
+      current_worktree=""
+      current_branch=""
+      current_head=""
+      continue
+    fi
+
+    if [[ "$line" == worktree\ * ]]; then
+      current_worktree="${line#worktree }"
+    elif [[ "$line" == branch\ * ]]; then
+      current_branch="${line#branch }"
+    elif [[ "$line" == HEAD\ * ]]; then
+      current_head="${line#HEAD }"
+    fi
+  done < <(git -C "$repo_root" worktree list --porcelain)
+
+  # Handle last entry if no trailing newline
+  if [[ -n "$current_worktree" && -n "$current_branch" ]]; then
+    local branch_display="${current_branch#refs/heads/}"
+    local marker=""
+    [[ "$current_worktree" == "$repo_root" ]] && marker=" (main)"
+    worktrees+=("${branch_display}${marker}: ${current_worktree}")
+  fi
+
+  if (( ${#worktrees} == 0 )); then
+    print "No worktrees found."
+    return 0
+  fi
+
+  print "Worktrees for ${repo_root:t}:"
+  for wt in "${worktrees[@]}"; do
+    print "  $wt"
+  done
+}
+
+# Create or open a worktree for a branch.
+# Prints the worktree directory path to stdout on success so a shell wrapper can cd into it.
+open_worktree() {
+  local repo_root="$1"
+  local branch_name="$2"
+  local existing_worktree
+
+  existing_worktree="$(worktree_path_for_branch "$repo_root" "$branch_name" 2>/dev/null || true)"
+
+  if [[ -n "$existing_worktree" ]]; then
+    if [[ -d "$existing_worktree" ]]; then
+      print -u2 "📂 Worktree already exists: $existing_worktree"
+      print -r -- "$existing_worktree"
+      return 0
+    fi
+  fi
+
+  local worktree_dir="${repo_root}.worktrees/$(sanitize_dirname "$branch_name")"
+
+  if [[ -e "$worktree_dir" ]]; then
+    die "path already exists: $worktree_dir"
+  fi
+
+  mkdir -p "${worktree_dir:h}"
+
+  if git -C "$repo_root" show-ref --verify --quiet "refs/heads/$branch_name"; then
+    print -u2 "🌿 Creating worktree for existing branch: $branch_name"
+    git -C "$repo_root" worktree add "$worktree_dir" "$branch_name" >&2
+  else
+    local upstream=""
+    local remote
+
+    for remote in origin upstream; do
+      if git -C "$repo_root" show-ref --verify --quiet "refs/remotes/$remote/$branch_name" 2>/dev/null; then
+        upstream="$remote/$branch_name"
+        break
+      fi
+    done
+
+    if [[ -n "$upstream" ]]; then
+      print -u2 "🌿 Creating worktree from $upstream: $branch_name"
+      git -C "$repo_root" worktree add --track -b "$branch_name" "$worktree_dir" "$upstream" >&2
+    else
+      print -u2 "🌿 Creating worktree with new branch: $branch_name"
+      git -C "$repo_root" worktree add -b "$branch_name" "$worktree_dir" >&2
+    fi
+  fi
+
+  print -u2 "📂 Worktree ready: $worktree_dir"
+  print -r -- "$worktree_dir"
+}
+
+# Remove a worktree for a branch
+remove_worktree() {
+  local repo_root="$1"
+  local branch_name="$2"
+  local existing_worktree
+
+  existing_worktree="$(worktree_path_for_branch "$repo_root" "$branch_name" 2>/dev/null || true)"
+
+  if [[ -z "$existing_worktree" ]]; then
+    die "no worktree found for branch: $branch_name"
+  fi
+
+  if [[ "$existing_worktree" == "$repo_root" ]]; then
+    die "cannot remove the main worktree"
+  fi
+
+  print "🗑️  Removing worktree: $existing_worktree"
+  git -C "$repo_root" worktree remove --force "$existing_worktree" 2>/dev/null || \
+    git -C "$repo_root" worktree remove "$existing_worktree"
+
+  # Also prune any stale refs
+  git -C "$repo_root" worktree prune
+}
+
+# Prune all worktrees except the main one
+prune_worktrees() {
+  local repo_root="$1"
+  local line
+  local current_worktree=""
+  local current_branch=""
+  local -a to_remove
+
+  while IFS= read -r line; do
+    if [[ -z "$line" ]]; then
+      if [[ -n "$current_worktree" && -n "$current_branch" && "$current_worktree" != "$repo_root" ]]; then
+        to_remove+=("$current_worktree")
+      fi
+
+      current_worktree=""
+      current_branch=""
+      continue
+    fi
+
+    if [[ "$line" == worktree\ * ]]; then
+      current_worktree="${line#worktree }"
+    elif [[ "$line" == branch\ * ]]; then
+      current_branch="${line#branch }"
+    fi
+  done < <(git -C "$repo_root" worktree list --porcelain)
+
+  # Handle last entry
+  if [[ -n "$current_worktree" && -n "$current_branch" && "$current_worktree" != "$repo_root" ]]; then
+    to_remove+=("$current_worktree")
+  fi
+
+  if (( ${#to_remove} == 0 )); then
+    print "No extra worktrees to prune."
+    return 0
+  fi
+
+  print "Pruning ${#to_remove} worktree(s)..."
+  for wt in "${to_remove[@]}"; do
+    print "  🗑️  $wt"
+    git -C "$repo_root" worktree remove --force "$wt" 2>/dev/null || \
+      git -C "$repo_root" worktree remove "$wt" 2>/dev/null || \
+      print -u2 "    ⚠️  Could not remove $wt"
+  done
+
+  git -C "$repo_root" worktree prune
+  print "✅ Pruned."
+}
+
+# --- Main ---
+
+repo_root="$(require_repo)"
+repo_root="$(cd "$repo_root" && pwd -P)"
+
+# Parse subcommand or branch name
+case "${1:-}" in
+  "")
+    usage
+    exit 1
+    ;;
+
+  -h|--help|help)
+    usage 1
+    exit 0
+    ;;
+
+  list|ls|l)
+    list_worktrees "$repo_root"
+    ;;
+
+  remove|rm)
+    shift
+    if [[ -z "${1:-}" ]]; then
+      die "missing branch name. Usage: ${script_name} rm <branch>"
+    fi
+    remove_worktree "$repo_root" "$1"
+    ;;
+
+  prune)
+    prune_worktrees "$repo_root"
+    ;;
+
+  -*)
+    die "unknown option: $1"
+    ;;
+
+  *)
+    # Treat as branch name
+    open_worktree "$repo_root" "$1"
+    ;;
+esac

@@ -67,4 +67,28 @@ if (( $+commands[git] )); then
   alias gupa='git pull --rebase --autostash'
   alias gupv='git pull --rebase -v'
   alias gwch='git whatchanged -p --abbrev-commit --pretty=medium'
+
+  # wt - worktree manager wrapper (script lives in ~/.local/bin/wt)
+  wt() {
+    local subcommand="${1:-}"
+    local target_dir
+
+    case "$subcommand" in
+      list|ls|l|remove|rm|prune|-h|--help|help)
+        command wt "$@"
+        ;;
+      -*)
+        command wt "$@"
+        ;;
+      "")
+        command wt
+        ;;
+      *)
+        target_dir="$(command wt "$@")"
+        if [[ -d "$target_dir" ]]; then
+          cd "$target_dir"
+        fi
+        ;;
+    esac
+  }
 fi
