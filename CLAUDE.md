@@ -52,3 +52,41 @@ All files in `common/bin/` and `scripts/` are symlinked to `~/.local/bin/` autom
 ## Commit Style
 
 No `Co-Authored-By:` lines in commits. Conventional commits (`feat:`, `fix:`, `chore:`).
+
+## Git Worktree Workflow
+
+This repo manages a custom worktree tool (`wt`) at `common/bin/wt`.
+
+### When to use worktrees
+
+- Working on multiple branches/features simultaneously
+- Need to run tests/builds on one branch while editing another
+- Want to avoid `git stash` / `git checkout` context switches
+- Long-running background tasks on one branch, active dev on another
+
+### `wt` commands
+
+| Command | Action |
+|---|---|
+| `wt feat/my-feature` | Create or switch to a worktree for the branch |
+| `wt list` (or `ls`, `l`) | List all worktrees for the current repo |
+| `wt rm feat/my-feature` (or `remove`) | Remove a worktree |
+| `wt prune` | Remove all worktrees except the main one |
+
+### How it works
+
+- Worktrees are stored in `repo.worktrees/<sanitized-branch-name>/`
+- The global `~/.gitignore` ignores `.worktrees/` directories
+- `wt` can be run from any directory inside the repo, including from inside another worktree
+- The `wt()` zsh function wrapper auto-`cd`s into the worktree directory
+- Branch names can be gitflow-style (`feat/foo`, `chore/bar`) — slashes become dashes in directory names
+
+### Integration with `wb`
+
+`wb --with-worktree <branch>` (or `wb -w <branch>`) creates a tmux coding layout inside a worktree. It reuses existing worktrees or creates new ones under `WB_WORKTREE_ROOT` (default `~/.worktrees`).
+
+### Best practices
+
+- Clean up finished worktrees with `wt rm <branch>` or `wt prune`
+- Never manually delete worktree directories — always use `wt rm` or `git worktree remove`
+- The main worktree is protected — `wt rm` and `wt prune` will not remove it
