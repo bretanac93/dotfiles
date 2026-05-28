@@ -1,9 +1,9 @@
 [Default Applications]
 # Browser
-text/html=vivaldi-stable.desktop
+text/html=google-chrome.desktop
 application/xhtml+xml=vivaldi-stable.desktop
-x-scheme-handler/http=vivaldi-stable.desktop
-x-scheme-handler/https=vivaldi-stable.desktop
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
 x-scheme-handler/ftp=vivaldi-stable.desktop
 
 # Documents
@@ -62,3 +62,5 @@ application/zstd=org.kde.dolphin.desktop
 # Misc
 inode/directory=org.kde.dolphin.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+x-scheme-handler/about=google-chrome.desktop
+x-scheme-handler/unknown=google-chrome.desktop
