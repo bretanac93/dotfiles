@@ -49,7 +49,6 @@ noto-fonts
 ttf-jetbrains-mono-nerd
 
 # Desktop apps
-vivaldi
 signal-desktop
 telegram-desktop
 cider

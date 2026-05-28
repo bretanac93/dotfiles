@@ -5,3 +5,4 @@
 1password-cli
 elephant-all-bin
 ttf-phosphor-icons
+google-chrome
