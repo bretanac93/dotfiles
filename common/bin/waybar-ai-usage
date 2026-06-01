@@ -8,8 +8,8 @@ def get_usage(cmd):
     except Exception:
         return None
 
-claude = get_usage(["/usr/bin/claude-usage", "--waybar", "--browser", "vivaldi"])
-codex  = get_usage(["/usr/bin/codex-usage",  "--waybar", "--browser", "vivaldi"])
+claude = get_usage(["/usr/bin/claude-usage", "--waybar", "--browser", "chrome"])
+codex  = get_usage(["/usr/bin/codex-usage",  "--waybar", "--browser", "chrome"])
 
 def parse_windows(tooltip):
     five_h = seven_d = None
@@ -21,36 +21,39 @@ def parse_windows(tooltip):
             seven_d = (parts[-2], parts[-1])
     return five_h, seven_d
 
-lines = []
-claude_pct = 0
-codex_pct  = 0
+def append_usage(name, usage):
+    if not usage:
+        lines.append(f"{name:<7} unavailable")
+        return 0, False
 
-if claude:
-    claude_pct = claude.get("percentage", 0)
-    five_h, seven_d = parse_windows(claude.get("tooltip", ""))
-    lines.append("Claude")
+    usage_class = usage.get("class", "")
+    tooltip = usage.get("tooltip", "")
+    if "critical" in usage_class:
+        lines.append(f"{name}")
+        for line in tooltip.split("\n"):
+            line = line.strip()
+            if line and line != "Error:":
+                lines.append(f"  {line}")
+        return 0, True
+
+    pct = usage.get("percentage", 0)
+    five_h, seven_d = parse_windows(tooltip)
+    lines.append(name)
     if five_h:
         lines.append(f"  5h    {five_h[0]:>4}   resets in {five_h[1]}")
     if seven_d:
         lines.append(f"  7d    {seven_d[0]:>4}   resets in {seven_d[1]}")
-else:
-    lines.append("Claude  unavailable")
+    return pct, False
+
+lines = []
+claude_pct, claude_critical = append_usage("Claude", claude)
 
 lines.append("")
 
-if codex:
-    codex_pct = codex.get("percentage", 0)
-    five_h, seven_d = parse_windows(codex.get("tooltip", ""))
-    lines.append("Codex")
-    if five_h:
-        lines.append(f"  5h    {five_h[0]:>4}   resets in {five_h[1]}")
-    if seven_d:
-        lines.append(f"  7d    {seven_d[0]:>4}   resets in {seven_d[1]}")
-else:
-    lines.append("Codex   unavailable")
+codex_pct, codex_critical = append_usage("Codex", codex)
 
 max_pct = max(claude_pct, codex_pct)
-css_class = "ai-high" if max_pct >= 80 else ("ai-mid" if max_pct >= 50 else "ai-low")
+css_class = "critical" if claude_critical or codex_critical else ("ai-high" if max_pct >= 80 else ("ai-mid" if max_pct >= 50 else "ai-low"))
 
 print(json.dumps({
     "text": "",
