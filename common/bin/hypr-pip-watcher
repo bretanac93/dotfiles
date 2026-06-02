@@ -8,6 +8,10 @@ import time
 
 
 PIP_TITLES = {"Picture in picture", "Picture-in-Picture"}
+MEET_POPOUT_TITLE_PREFIX = "Meet "
+MEET_POPOUT_CLASSES = {"google-chrome", "google-chrome-stable"}
+PIP_SIZE = (480, 270)
+MEET_POPOUT_SIZE = (480, 320)
 MARGIN_X = 20
 MARGIN_Y = 20
 
@@ -16,10 +20,39 @@ def hypr_json(*args):
     return json.loads(subprocess.check_output(["hyprctl", *args, "-j"]))
 
 
+def normalize_address(address: str) -> str:
+    return address if address.startswith("0x") else "0x" + address
+
+
 def place_pip(address: str) -> bool:
     clients = hypr_json("clients")
     client = next((c for c in clients if c.get("address") == address), None)
-    if not client or client.get("title") not in PIP_TITLES:
+    if not client:
+        return False
+
+    title = client.get("title")
+    if title in PIP_TITLES:
+        size = PIP_SIZE
+    elif title.startswith(MEET_POPOUT_TITLE_PREFIX) and client.get("class") in MEET_POPOUT_CLASSES:
+        size = MEET_POPOUT_SIZE
+    else:
+        return False
+
+    subprocess.run(
+        [
+            "hyprctl",
+            "dispatch",
+            "resizewindowpixel",
+            f"exact {size[0]} {size[1]},address:{address}",
+        ],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    clients = hypr_json("clients")
+    client = next((c for c in clients if c.get("address") == address), None)
+    if not client:
         return False
 
     monitors = hypr_json("monitors")
@@ -58,8 +91,7 @@ def handle_event(line: str) -> None:
     if not payload:
         return
 
-    # Socket events omit the 0x prefix; hyprctl clients includes it
-    address = "0x" + payload[0]
+    address = normalize_address(payload[0])
 
     for _ in range(10):
         try:
