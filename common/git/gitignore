@@ -3,3 +3,5 @@
 
 # wt worktree storage directories
 .worktrees/
+
+**/.claude/settings.local.json
