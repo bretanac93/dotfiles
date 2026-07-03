@@ -11,6 +11,5 @@ set.autoread = true
 set.undofile = true
 set.wildmode = "longest:full,full"
 set.completeopt = "menuone,longest,preview"
-set.lazyredraw = true
 set.updatetime = 250
 set.redrawtime = 10000
