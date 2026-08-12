@@ -56,3 +56,7 @@ fi
 export PATH
 
 _source_local_configs profile
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/cesarbretana/.local/bin:$PATH"

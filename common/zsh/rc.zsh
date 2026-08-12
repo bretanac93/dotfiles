@@ -81,3 +81,9 @@ export PATH="$HOME/.grok/bin:$PATH"
 fpath=(~/.grok/completions/zsh $fpath)
 autoload -Uz compinit && compinit -C
 # <<< grok installer <<<
+eval "$(jenv init -)"
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/cesarbretana/.local/bin:$PATH"

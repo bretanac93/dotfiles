@@ -5,3 +5,5 @@
 .worktrees/
 
 **/.claude/settings.local.json
+
+.cesar-sandbox/
