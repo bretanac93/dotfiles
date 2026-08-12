@@ -42,7 +42,11 @@ return {
 					return
 				end
 
-				client.server_capabilities.semanticTokensProvider = nil
+				-- Kotlin's treesitter grammar can't resolve types, so the JetBrains
+				-- server's semantic tokens are the only source of real highlighting.
+				if client.name ~= "kotlin_lsp" then
+					client.server_capabilities.semanticTokensProvider = nil
+				end
 
 				if bigfile.is_huge(args.buf) and bigfile.is_minified(args.buf) then
 					vim.schedule(function()
@@ -98,9 +102,8 @@ return {
 			},
 		}))
 
-		vim.lsp.config("kotlin_lsp", with_defaults({
-			cmd = { "intellij-server", "--stdio" },
-		}))
+		-- cmd/root_markers come from lspconfig; the server ships its own JBR.
+		vim.lsp.config("kotlin_lsp", with_defaults())
 
 		vim.lsp.config("templ", with_defaults())
 

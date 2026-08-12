@@ -11,6 +11,8 @@ brew "gh"  # GitHub CLI
 brew "ripgrep"
 brew "gnupg"  # Required for GPG commit signing
 brew "deno"  # Required for markdown-preview.nvim
+brew "tree-sitter-cli"  # Required by nvim-treesitter (main) to build parsers
+brew "ktlint"  # Kotlin formatter used by conform.nvim
 
 # 1Password for secure secret storage and GPG key management
 cask "1password"

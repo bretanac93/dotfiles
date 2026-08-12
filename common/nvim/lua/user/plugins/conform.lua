@@ -16,6 +16,7 @@ return {
 	opts = {
 		formatters_by_ft = {
 			go = { "goimports", "gofmt" },
+			kotlin = { "ktlint" },
 			lua = { "stylua" },
 			python = { "black" },
 			php = { "pint" },
@@ -26,9 +27,12 @@ return {
 		default_format_opts = {
 			lsp_format = "fallback",
 		},
-		format_on_save = {
-			lsp_format = "fallback",
-			timeout_ms = 500,
-		},
+		-- ktlint pays JVM startup on every run, so it needs a longer leash.
+		format_on_save = function(bufnr)
+			return {
+				lsp_format = "fallback",
+				timeout_ms = vim.bo[bufnr].filetype == "kotlin" and 3000 or 500,
+			}
+		end,
 	},
 }

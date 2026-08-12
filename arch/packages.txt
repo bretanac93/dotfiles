@@ -40,6 +40,7 @@ ripgrep
 gnupg
 deno
 pnpm
+tree-sitter-cli
 
 # Themes & icons
 papirus-icon-theme

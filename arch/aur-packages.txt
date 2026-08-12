@@ -6,3 +6,6 @@
 elephant-all-bin
 ttf-phosphor-icons
 google-chrome
+
+# Kotlin formatter used by conform.nvim
+ktlint
