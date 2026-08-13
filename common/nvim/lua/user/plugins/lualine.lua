@@ -37,6 +37,13 @@ return {
 			},
 			lualine_c = {
 				"filename",
+				-- kotlin_lsp indexes for a long while on a big repo and answers
+				-- queries with empty results until it finishes, so surface it.
+				{
+					"lsp_progress",
+					display_components = { "lsp_client_name", "spinner", { "title", "percentage", "message" } },
+					timer = { progress_enddelay = 500, spinner = 200, lsp_client_name_enddelay = 1000 },
+				},
 			},
 			lualine_x = {
 				{
