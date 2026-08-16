@@ -79,8 +79,6 @@ Tracked config includes:
 - zsh config, aliases, functions, completions, and plugins
 - tmux config and helper layout tools
 - Ghostty config and macOS key-repeat tuning
-- Hyprland config for Linux/Arch environments
-- Neovim config
 - shared Git config plus local per-machine Git config support
 - SSH config that uses local keys instead of the 1Password SSH agent
 
@@ -223,19 +221,32 @@ common/
   bin/          user-facing tools linked to ~/.local/bin/
   ghostty/      shared Ghostty config
   git/          shared git config, template, and gpg.conf
-  nvim/         shared Neovim config
+  nvim/         Neovim config (skipped on Omarchy — LazyVim is used there)
 scripts/        shared setup helpers
   ssh/          shared SSH config
-  tmux/         shared tmux config
-  zsh/          shared zsh env, rc, aliases, functions, completions, plugins
+  tmux/         shared tmux config + Omarchy override layer
+  zsh-omarchy/  active zsh config: Omarchy's shell layer, on top of oh-my-zsh
+  zsh/          pre-Omarchy zsh setup, kept for reference only
 macos/
   Brewfile      macOS dependencies
   scripts/      macOS-only setup helpers
 arch/
-  hypr/         Hyprland config
   packages.txt  Arch repo packages
   aur-packages.txt
 ```
+
+On Omarchy, `init.sh` defers to Omarchy for anything it already standardizes:
+desktop config (Hyprland, bar, launcher, notifications, GTK, `.desktop` entries)
+plus btop, ghostty, and the wallpaper — all rewritten by `omarchy theme set`, so
+linking over them would just be undone on the next theme change. tmux and git
+become thin override layers on top of the packaged configs. Customize the rest
+through `~/.config/hypr/`, `~/.config/omarchy/`, and the `omarchy` CLI.
+
+Neovim stays in the repo at `common/nvim`, but is skipped on Omarchy in favor of
+the LazyVim install Omarchy ships and themes. Set `DOTFILES_LINK_NVIM=1` to link
+it there anyway.
+
+macOS otherwise still links the full set, `common/nvim` included.
 
 ## Requirements
 

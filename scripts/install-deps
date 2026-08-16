@@ -51,15 +51,30 @@ install_arch_deps() {
 
   packages=("${(@f)$(read_package_file "$arch_packages_file")}")
 
+  # Prefer Omarchy's package commands where available: they are idempotent,
+  # handle privilege escalation themselves, and verify the install afterwards.
   if (( ${#packages[@]} > 0 )); then
-    # -u (upgrade) keeps CachyOS package versions consistent in one transaction
-    sudo pacman -Syu --needed -- "${packages[@]}"
+    if command -v omarchy >/dev/null 2>&1; then
+      omarchy pkg add "${packages[@]}"
+    else
+      # -u (upgrade) keeps CachyOS package versions consistent in one transaction
+      sudo pacman -Syu --needed -- "${packages[@]}"
+    fi
   fi
 
   if [[ -r "$arch_aur_packages_file" ]]; then
     aur_packages=("${(@f)$(read_package_file "$arch_aur_packages_file")}")
     if (( ${#aur_packages[@]} > 0 )); then
-      if command -v paru >/dev/null 2>&1; then
+      if command -v omarchy >/dev/null 2>&1; then
+        # Returns false when the AUR is unreachable rather than failing the run.
+        if ! omarchy pkg aur add "${aur_packages[@]}"; then
+          print ""
+          print "⚠️  AUR packages could not be installed (AUR unreachable?):"
+          for pkg in "${aur_packages[@]}"; do
+            print "  - $pkg"
+          done
+        fi
+      elif command -v paru >/dev/null 2>&1; then
         paru -Syu --needed -- "${aur_packages[@]}"
       else
         print ""

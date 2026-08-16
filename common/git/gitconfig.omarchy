@@ -1,0 +1,72 @@
+# Symlinked to ~/.gitconfig on Omarchy.
+#
+# Omarchy's ~/.config/git/config is the base. Git reads that first and this
+# second, so everything here wins on overlap. Only settings Omarchy does NOT
+# already make belong in this file — keeping it thin is the whole point.
+#
+# Omarchy already sets: init.defaultBranch, pull.rebase, push.autoSetupRemote,
+# diff.algorithm, diff.colorMoved, diff.mnemonicPrefix, commit.verbose,
+# column.ui, branch.sort, tag.sort, rerere.enabled, rerere.autoupdate, and the
+# co/br/ci/st aliases. Do not repeat them here.
+#
+# Personal info (name, email, signingkey) lives in ~/.config/git/config.local,
+# written by `setup-git-local` from 1Password.
+
+[include]
+	path = ~/.config/git/config.local
+
+[core]
+	editor = nvim
+	excludesFile = ~/.gitignore
+	pager = diff-so-fancy | less --tabs=4 -RFX
+	autocrlf = false
+	safecrlf = true
+
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+
+[url "ssh://git@gitlab.com/"]
+	insteadOf = https://gitlab.com/
+
+[fetch]
+	prune = true
+
+[branch]
+	autosetuprebase = always
+
+[diff]
+	tool = nvimdiff
+
+[difftool "nvimdiff"]
+	cmd = nvim -d "$LOCAL" "$REMOTE"
+
+[merge]
+	tool = nvimdiff
+	conflictstyle = diff3
+
+[mergetool "nvimdiff"]
+	cmd = nvim -d "$LOCAL" "$BASE" "$REMOTE" "$MERGED"
+	trustExitCode = true
+
+[status]
+	showUntrackedFiles = all
+
+[log]
+	decorate = short
+	abbrevCommit = true
+
+[commit]
+	gpgsign = true
+
+[rebase]
+	autoSquash = true
+	autoStash = true
+
+# Complements Omarchy's co/br/ci/st rather than redefining them.
+[alias]
+	s = status
+	cob = checkout -b
+	cp = cherry-pick
+	unstage = reset HEAD --
+	undo = reset --soft HEAD~1
+	last = log -1 HEAD

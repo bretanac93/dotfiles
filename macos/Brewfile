@@ -3,11 +3,12 @@
 
 brew "fzf"
 brew "fd"
-brew "zsh-fast-syntax-highlighting"
 brew "tmux"
+brew "direnv"  # oh-my-zsh direnv plugin
 brew "neovim"
 brew "git"
 brew "gh"  # GitHub CLI
+brew "shellcheck"
 brew "ripgrep"
 brew "gnupg"  # Required for GPG commit signing
 brew "deno"  # Required for markdown-preview.nvim

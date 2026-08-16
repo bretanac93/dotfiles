@@ -27,13 +27,17 @@ networkmanager
 
 # Terminal & shell
 ghostty
-zsh-syntax-highlighting
+zsh
+zsh-completions
 tmux
+direnv
 
 # Editors & dev tools
 neovim
 git
 github-cli
+diff-so-fancy
+shellcheck
 fzf
 fd
 ripgrep
@@ -68,11 +72,6 @@ wl-clipboard
 cliphist
 wf-recorder
 playerctl
-swayosd
-swaync
-waybar
-walker
-wofi
 yazi
 
 # Gaming

@@ -45,12 +45,14 @@ print_ok() {
 
 print_error() {
     echo "  ❌ $1"
-    ((ERRORS++))
+    # Post-increment evaluates to the *old* value, so ((X++)) exits non-zero
+    # when X is 0 — which aborts the whole script under `set -e`.
+    ERRORS=$((ERRORS + 1))
 }
 
 print_warning() {
     echo "  ⚠️  $1"
-    ((WARNINGS++))
+    WARNINGS=$((WARNINGS + 1))
 }
 
 check_symlink() {
@@ -78,55 +80,60 @@ echo "Checking symlinks..."
 echo ""
 
 # Check core configs
-check_symlink "$COMMON_DIR/zsh/env.zsh" "$HOME/.zshenv" "zshenv"
-check_symlink "$COMMON_DIR/zsh/profile.zsh" "$HOME/.zprofile" "zprofile"
-check_symlink "$COMMON_DIR/zsh/rc.zsh" "$HOME/.zshrc" "zshrc"
-check_symlink "$COMMON_DIR/zsh" "$HOME/.config/zsh" "zsh config"
-check_symlink "$COMMON_DIR/nvim" "$HOME/.config/nvim" "nvim"
-check_symlink "$COMMON_DIR/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
-check_symlink "$COMMON_DIR/ghostty" "$HOME/.config/ghostty" "ghostty"
-check_symlink "$COMMON_DIR/wallpaper.png" "$HOME/.config/wallpaper.png" "wallpaper"
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/hypr" ]]; then
-    check_symlink "$REPO_ROOT/arch/hypr" "$HOME/.config/hypr" "hyprland"
+check_symlink "$COMMON_DIR/zsh-omarchy/zshenv" "$HOME/.zshenv" "zshenv"
+check_symlink "$COMMON_DIR/zsh-omarchy/zshrc" "$HOME/.zshrc" "zshrc"
+check_symlink "$COMMON_DIR/zsh-omarchy" "$HOME/.config/zsh" "zsh config"
+# On Omarchy, nvim is LazyVim and deliberately not linked — just check it exists.
+if [[ -d /usr/share/omarchy ]] && [[ "${DOTFILES_LINK_NVIM:-0}" != "1" ]]; then
+    if [[ -d "$HOME/.config/nvim" ]]; then
+        print_ok "nvim: Omarchy's LazyVim (common/nvim intentionally not linked)"
+    else
+        print_warning "nvim: not found"
+    fi
+else
+    check_symlink "$COMMON_DIR/nvim" "$HOME/.config/nvim" "nvim"
 fi
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/waybar" ]]; then
-    check_symlink "$REPO_ROOT/arch/waybar" "$HOME/.config/waybar" "waybar"
+
+# On Omarchy, tmux and git are thin override layers over the packaged configs,
+# and btop/ghostty/wallpaper are left entirely to Omarchy's theme system.
+# Desktop configs (hypr, bar, launcher, .desktop entries) are Omarchy's too, so
+# there is nothing of ours to verify for any of them.
+if [[ -d /usr/share/omarchy ]]; then
+    check_symlink "$COMMON_DIR/tmux/omarchy.conf" "$HOME/.config/tmux/tmux.conf" "tmux"
+    check_symlink "$COMMON_DIR/git/gitconfig.omarchy" "$HOME/.gitconfig" "gitconfig"
+    print_ok "btop/ghostty/wallpaper: delegated to Omarchy themes"
+else
+    check_symlink "$COMMON_DIR/tmux/tmux.conf" "$HOME/.tmux.conf" "tmux"
+    check_symlink "$COMMON_DIR/btop.conf" "$HOME/.config/btop/btop.conf" "btop"
+    check_symlink "$COMMON_DIR/ghostty" "$HOME/.config/ghostty" "ghostty"
+    check_symlink "$COMMON_DIR/wallpaper.png" "$HOME/.config/wallpaper.png" "wallpaper"
+    check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
 fi
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/wofi" ]]; then
-    check_symlink "$REPO_ROOT/arch/wofi" "$HOME/.config/wofi" "wofi"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/yazi" ]]; then
-    check_symlink "$REPO_ROOT/arch/yazi" "$HOME/.config/yazi" "yazi"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/swaync" ]]; then
-    check_symlink "$REPO_ROOT/arch/swaync" "$HOME/.config/swaync" "swaync"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/swayosd" ]]; then
-    check_symlink "$REPO_ROOT/arch/swayosd" "$HOME/.config/swayosd" "swayosd"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -d "$REPO_ROOT/arch/walker" ]]; then
-    check_symlink "$REPO_ROOT/arch/walker" "$HOME/.config/walker" "walker"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/yazi.desktop" ]]; then
-    check_symlink "$REPO_ROOT/arch/applications/yazi.desktop" "$HOME/.local/share/applications/yazi.desktop" "yazi-desktop"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/com.mitchellh.ghostty.desktop" ]]; then
-    check_symlink "$REPO_ROOT/arch/applications/com.mitchellh.ghostty.desktop" "$HOME/.local/share/applications/com.mitchellh.ghostty.desktop" "ghostty-desktop"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/vivaldi-stable.desktop" ]]; then
-    check_symlink "$REPO_ROOT/arch/applications/vivaldi-stable.desktop" "$HOME/.local/share/applications/vivaldi-stable.desktop" "vivaldi-desktop"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/zathura.desktop" ]]; then
-    check_symlink "$REPO_ROOT/arch/applications/zathura.desktop" "$HOME/.local/share/applications/zathura.desktop" "zathura-desktop"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/slack.desktop" ]]; then
-    check_symlink "$REPO_ROOT/arch/applications/slack.desktop" "$HOME/.local/share/applications/slack.desktop" "slack-desktop"
-fi
-if [[ "$(uname)" == "Linux" ]] && [[ -f "$REPO_ROOT/arch/applications/mimeapps.list" ]]; then
-    check_symlink "$REPO_ROOT/arch/applications/mimeapps.list" "$HOME/.config/mimeapps.list" "mimeapps"
-fi
-check_symlink "$COMMON_DIR/git/gitconfig" "$HOME/.gitconfig" "gitconfig"
 check_symlink "$COMMON_DIR/git/gpg.conf" "$HOME/.gnupg/gpg.conf" "gpg"
+
+echo ""
+echo "Checking shell..."
+echo ""
+
+if [[ "$(getent passwd "$USER" 2>/dev/null | cut -d: -f7)" == *zsh ]]; then
+    print_ok "login shell: zsh"
+else
+    print_warning "login shell: not zsh (run: chsh -s \"\$(command -v zsh)\")"
+fi
+
+if [[ -d "$HOME/.oh-my-zsh/.git" ]]; then
+    print_ok "oh-my-zsh: installed"
+else
+    print_error "oh-my-zsh: missing (run init.sh)"
+fi
+
+for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+    if [[ -d "$HOME/.oh-my-zsh/custom/plugins/$plugin/.git" ]]; then
+        print_ok "$plugin: installed"
+    else
+        print_error "$plugin: missing (run init.sh)"
+    fi
+done
 
 echo ""
 echo "Checking tools..."

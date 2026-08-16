@@ -1,0 +1,44 @@
+# Symlinked to ~/.zshrc — read only by interactive zsh.
+#
+# Layout: oh-my-zsh owns the framework (plugins, completions, compinit), then
+# the Omarchy layer loads on top and wins any conflict. Machine-specific config
+# belongs in ~/.config/zsh.local/, which local.zsh sources dead last.
+
+: "${ZSH_CONFIG_DIR:=${${(%):-%N}:A:h}}"
+
+# ── oh-my-zsh ─────────────────────────────────────────────────────────────────
+
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+
+# Empty on purpose: starship is Omarchy's prompt, so oh-my-zsh must not install
+# a theme of its own. init.zsh starts starship further down.
+ZSH_THEME=""
+
+CASE_SENSITIVE="false"
+HYPHEN_INSENSITIVE="true"
+COMPLETION_WAITING_DOTS="true"
+
+# The dotfiles repo pins the oh-my-zsh checkout, so don't self-update behind it.
+zstyle ':omz:update' mode disabled
+
+plugins=(
+  git
+  direnv
+  docker
+  kubectl
+  zsh-autosuggestions
+  zsh-syntax-highlighting # keep last — it wraps the widgets defined before it
+)
+
+[[ -r "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
+
+# ── Omarchy layer ─────────────────────────────────────────────────────────────
+# Loaded after oh-my-zsh so its aliases, functions, and options take precedence.
+
+source "$ZSH_CONFIG_DIR/rc.zsh"
+
+# ── Yours ─────────────────────────────────────────────────────────────────────
+# Add your own exports, aliases, and functions here.
+
+alias vim=nvim
+alias v=nvim

@@ -23,13 +23,12 @@ Commands:
   install, i       Run init.sh to set up dotfiles
   update, u        Pull latest changes and re-run init
   deps             Install platform dependencies
-  arch             Run Arch-specific setup helpers
   doctor, d        Check if everything is working
   benchmark, b     Benchmark zsh startup performance
   lint, l          Run shellcheck on all shell scripts
   uninstall       Remove dotfiles (with --dry-run support)
   aliases, a      Show available aliases
-  shortcuts, s    Show Hyprland keyboard shortcuts
+  shortcuts, s    Show keyboard shortcuts (via Omarchy)
   
 Setup Commands:
   ssh              Export SSH keys from 1Password
@@ -44,88 +43,23 @@ Examples:
   mdf install --force-symlinks
   mdf update               # Update to latest
   mdf doctor               # Check health
-  mdf arch --setup-sddm    # Install tracked SDDM theme
-  mdf arch --test-sddm     # Preview the installed SDDM theme
   mdf benchmark            # Measure shell startup time
   mdf aliases              # Show all aliases
-  mdf shortcuts            # Show Hyprland keybind cheat sheet
+  mdf shortcuts            # Show keybindings from the live Omarchy config
   mdf uninstall --dry-run  # Preview uninstall
 
 EOF
 }
 
 show_shortcuts() {
-    cat << 'EOF'
-Hyprland Shortcuts
-
-Launchers:
-  Super + Space        Open app switcher
-  Alt + Space          App launcher
-  Super + Return       Terminal
-  Super + E            File manager
-  Super + .            Emoji picker
-  Super + C            Calculator
-  Super + A            Audio devices
-  Super + B            Bluetooth menu
-  Super + W            Wi-Fi menu
-
-Window Actions:
-  Super + Q            Close focused window
-  Super + F            Fullscreen
-  Super + Shift + F    Toggle floating
-  Super + P            Toggle pseudotile
-  Super + \            Toggle split direction
-  Super + Tab          Next window
-  Super + Shift + Tab  Previous window
-  Super + `            Toggle scratch workspace
-  Super + Shift + `    Send window to scratch workspace
-  Super + M            Exit / power menu
-  Ctrl + Alt + L       Lock screen
-  Super + Shift + V    Clipboard history
-  Super + Shift + R    Screen recording menu
-  Super + Shift + 3    Save full screenshot
-  Super + Shift + 4    Save selection screenshot
-  Super + Shift + 5    Screenshot menu
-  Super + Ctrl + Shift + 3  Copy full screenshot
-  Super + Ctrl + Shift + 4  Copy selection screenshot
-
-Focus:
-  Super + H/J/K/L      Focus left/down/up/right
-  Super + Arrow keys   Focus left/down/up/right
-
-Move Windows:
-  Super + Shift + H/J/K/L   Move window left/down/up/right
-
-Resize Windows:
-  Super + Ctrl + H/J/K/L    Resize left/down/up/right
-
-Workspaces:
-  Super + 1..0         Switch to workspace 1..10
-  Super + Shift + 1..0 Move window to workspace 1..10
-  Super + mouse wheel  Cycle workspaces
-
-Mouse:
-  Super + Left drag    Move window
-  Super + Right drag   Resize window
-
-Waybar:
-  media click          Play/pause
-  media middle-click   Launcher
-  media scroll         Next/previous
-  volume click         Audio devices
-  volume right-click   Mute output
-  network click        Wi-Fi menu
-  network right-click  Bluetooth menu
-
-Media / Hardware:
-  XF86AudioRaiseVolume / XF86AudioLowerVolume
-  XF86AudioMute / XF86AudioMicMute
-  XF86AudioPlay / XF86AudioPause / XF86AudioNext / XF86AudioPrev
-  XF86MonBrightnessUp / XF86MonBrightnessDown
-
-Tip:
-  `hyprctl binds` shows the live bind list from Hyprland, but it is more raw than this cheat sheet.
-EOF
+    # Omarchy owns the keybindings now, and reads them from the live config, so
+    # there is no cheat sheet to keep in sync here.
+    if command -v omarchy >/dev/null 2>&1; then
+        omarchy menu keybindings "$@"
+    else
+        echo "Keyboard shortcuts are managed by Omarchy on this machine."
+        echo "Run: omarchy menu keybindings"
+    fi
 }
 
 show_aliases() {
@@ -148,6 +82,9 @@ group_title_for_file() {
             ;;
         k8s)
             print "Kubernetes Aliases"
+            ;;
+        aliases)
+            print "Omarchy Aliases"
             ;;
         *)
             print "${alias_name} Aliases"
@@ -195,7 +132,7 @@ print "Dotfiles Aliases"
 print ""
 
 local alias_file
-for alias_file in "$COMMON_DIR"/zsh/alias/*.zsh(N); do
+for alias_file in "$COMMON_DIR"/zsh-omarchy/aliases.zsh(N) "$COMMON_DIR"/zsh-omarchy/fns/*.zsh(N); do
     source_alias_file "$(group_title_for_file "$alias_file")" "$alias_file"
 done
 
@@ -241,28 +178,6 @@ case "${1:-}" in
         run_script "install-deps" "$@"
         ;;
 
-    arch)
-        shift
-        case "${1:-}" in
-            --setup-sddm)
-                shift
-                run_script "setup-sddm-theme" "$@"
-                ;;
-            --test-sddm)
-                shift
-                run_script "test-sddm-theme" "$@"
-                ;;
-            *)
-                echo "❌ Unknown arch option: ${1:-<none>}"
-                echo ""
-                echo "Available options:"
-                echo "  --setup-sddm    Install the tracked SDDM Astronaut theme"
-                echo "  --test-sddm     Preview the installed SDDM Astronaut theme"
-                exit 1
-                ;;
-        esac
-        ;;
-          
     doctor|d)
         shift
         run_script "dotfiles-doctor" "$@"
@@ -282,8 +197,7 @@ case "${1:-}" in
         echo "Running shellcheck on all shell scripts..."
         _lint_scripts=()
         for _f in \
-            "$COMMON_DIR/bin"/hypr-* \
-            "$COMMON_DIR/bin"/waybar-* \
+            "$COMMON_DIR/bin"/* \
             "$DOTFILES_DIR/scripts"/*; do
             [[ -f "$_f" ]] || continue
             _shebang=$(head -1 "$_f")

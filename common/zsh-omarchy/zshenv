@@ -1,0 +1,35 @@
+# Symlinked to ~/.zshenv — read by EVERY zsh (login, interactive, and scripts).
+#
+# Mirrors the env-bootstrap line at the top of Omarchy's ~/.bashrc: OMARCHY_PATH
+# and the user tool paths have to exist for `zsh -c`, ssh commands, and the uwsm
+# session, none of which read ~/.zshrc. Keep this file cheap — it runs constantly.
+
+# env-bootstrap is POSIX sh, not zsh, so run it under sh emulation.
+[[ -r /usr/share/omarchy/default/bash/env-bootstrap ]] &&
+  emulate sh -c 'source /usr/share/omarchy/default/bash/env-bootstrap'
+
+# Root of this layer, resolved through the symlink back to the dotfiles repo.
+export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-${${(%):-%N}:A:h}}"
+
+# Set here rather than in shell.zsh so oh-my-zsh's lib/history.zsh sees it
+# already set and doesn't briefly point history at ~/.zsh_history first.
+export HISTFILE="${HISTFILE:-$HOME/.local/state/zsh/history}"
+[[ -d "${HISTFILE:h}" ]] || mkdir -p "${HISTFILE:h}"
+
+# Language toolchains carried over from the pre-Omarchy dotfiles. The rest of the
+# old profile.zsh was macOS-specific (homebrew, orbstack, java_home, pyenv) and
+# belongs in ~/.config/zsh.local/env.zsh, which is untracked and per-machine.
+export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+export GOPATH="${GOPATH:-$HOME/go}"
+[[ -r "$CARGO_HOME/env" ]] && source "$CARGO_HOME/env"
+
+# Off Omarchy there is no env-bootstrap, so add the same user paths ourselves.
+# The (N) qualifier drops entries whose directory doesn't exist on this machine.
+path=(
+  $path
+  "$GOPATH/bin"(N)
+  "$HOME/.local/share/mise/shims"(N)
+  "$HOME/.local/bin"(N)
+)
+typeset -gU path PATH
+export PATH

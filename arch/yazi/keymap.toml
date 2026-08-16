@@ -1,4 +1,0 @@
-[manager]
-prepend_keymap = [
-  { on = ["o", "w"], run = "shell 'hypr-open-with \"$0\"'", desc = "Open with..." },
-]
