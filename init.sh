@@ -123,6 +123,31 @@ if (( on_omarchy )); then
   mkdir -p "$HOME/.config/tmux"
   link_path "$common_dir/tmux/omarchy.conf" "$HOME/.config/tmux/tmux.conf" "tmux (omarchy layer)" "tmux.conf"
 
+  # RGB: repaint the case fans, cooler, pump, and RAM from the theme palette.
+  # theme-set fires on `omarchy theme set`; post-boot covers a cold boot, which
+  # is the one case where the controllers lose the colors they were given.
+  # omarchy-hook runs whatever files it finds in these directories, so the hooks
+  # are symlinks straight to the script.
+  for rgb_hook in theme-set post-boot; do
+    mkdir -p "$HOME/.config/omarchy/hooks/$rgb_hook.d"
+    link_path "$common_dir/bin/omarchy-rgb-theme" \
+      "$HOME/.config/omarchy/hooks/$rgb_hook.d/rgb-theme" \
+      "rgb ($rgb_hook hook)" "rgb-theme-$rgb_hook"
+  done
+
+  # openrgb's device detection probes the SMBus and segfaults often enough that
+  # running it per invocation crashed on an ordinary theme switch. The server
+  # detects once at login and the CLI autoconnects to it instead.
+  if command -v openrgb >/dev/null 2>&1; then
+    mkdir -p "$HOME/.config/systemd/user"
+    link_path "$common_dir/systemd/openrgb.service" \
+      "$HOME/.config/systemd/user/openrgb.service" "openrgb server" "openrgb.service"
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user enable --now openrgb.service 2>/dev/null \
+      && print "  ✓ openrgb server enabled" \
+      || print "  ⚠️  could not enable openrgb.service"
+  fi
+
   print "  → btop, ghostty, wallpaper: managed by Omarchy themes (not linked)"
 else
   link_path "$common_dir/tmux/tmux.conf" "$HOME/.tmux.conf"             "tmux" "tmux.conf"

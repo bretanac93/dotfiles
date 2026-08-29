@@ -1,0 +1,373 @@
+#!/usr/bin/env bash
+# omarchy-rgb-theme — paint OpenRGB hardware with the current Omarchy theme colors.
+#
+# Driven by the theme-set hook (recolor on `omarchy theme set`) and the post-boot
+# hook. Reads the palette out of the theme Omarchy currently points at, resolves
+# every assignment below to a hex value, and applies the lot in one openrgb call.
+#
+#   omarchy-rgb-theme              paint from the current theme
+#   omarchy-rgb-theme --preview    cycle every theme's accent over the hardware
+#
+# Wants the openrgb.service user unit running. Device detection probes the SMBus
+# and segfaults often enough to matter — the server does it once at startup and
+# the CLI autoconnects, which is both stable and ~25x faster. Without it this
+# still works, it just falls back to per-invocation detection.
+#
+# Override anything below per machine in ~/.config/omarchy/rgb-theme.conf.
+
+set -uo pipefail
+
+theme_dir="${OMARCHY_THEME_DIR:-$HOME/.local/state/omarchy/current/theme}"
+config_file="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/rgb-theme.conf"
+
+# Each entry: <device match>|<zone or *>|<color role or hex>|<mode>|<zone size or ->
+#
+# The device match is a substring of the name `openrgb --list-devices` prints;
+# every device matching it is painted, which is how both identically named RAM
+# sticks get covered by one entry. The color role is any key from the theme's
+# colors.toml (accent, blue, magenta, …), a "/"-separated fallback chain, or a
+# literal hex.
+#
+# Zone map for this board, established by painting each zone a distinct color:
+#   0  D_LED1  bottom case fans
+#   1  D_LED2  CPU AIO + pump
+#   2-7        onboard motherboard lighting
+#
+# Gigabyte reports the two addressable headers as 0 LEDs until they are sized,
+# so D_LED1/D_LED2 carry an explicit count. Sizing above the physical LED count
+# is harmless — the strip just never consumes the surplus.
+#
+# Everything uses direct mode. Fusion's `static` is a hardware mode whose color
+# register behaves as device-wide, so chaining per-zone static writes leaves the
+# whole board on whichever zone was written last; direct addresses LEDs
+# individually and is the only mode that keeps the zones independent. The
+# tradeoff is that direct is not stored in the controller, which is what the
+# post-boot hook covers.
+assignments=(
+  "Z790|0|accent|direct|64"          # bottom case fans
+  "Z790|1|accent|direct|64"          # CPU AIO + pump
+  "Z790|2|accent|direct|-"           # onboard
+  "Z790|3|accent|direct|-"
+  "Z790|4|accent|direct|-"
+  "Z790|5|accent|direct|-"
+  "Z790|6|accent|direct|-"
+  "Z790|7|accent|direct|-"
+  "Corsair Vengeance|*|accent|direct|-"
+)
+
+# LED output needs two corrections that UI colors do not.
+#
+# Every accent is first scaled to full brightness. An LED is emissive, so a dark
+# theme color has no "dark" to render — it just comes out dim, and a dim LED
+# with all three channels lit washes out to murky white. That is what happened
+# to miasma's olive #78824b. Scaling keeps the hue and saturation ratios intact
+# and only removes the dimness; it always applies.
+#
+# vividness then trades brightness for saturation. Normalizing lands the color
+# on the sRGB gamut hull, so extra chroma can only be bought by getting darker.
+# 0 stays at full brightness and is the most faithful to the theme; 100 drives
+# each hue to its most saturated form. The trade is scaled by how colorful the
+# accent already is, so grey themes stay grey at any setting.
+#
+# 0 turned out to be the wrong default: almost every theme accent is low
+# saturation, so full brightness landed all of them in the same pale wash and
+# every theme looked like white with a faint tint. 70 is where the palettes
+# actually separate — nord #48AAFF, osaka-jade #3EFFB8, miasma #E3FF00 — without
+# the neon of the top of the range.
+vividness=70
+
+# Per-theme overrides, keyed by theme name. Themes differ in how much they can
+# take: an olive or a muted grey-blue needs a different trade than a palette
+# built on saturated colors. Anything not listed uses the global default above.
+#
+#   vividness_by_theme=([miasma]=35 [kanagawa]=40 [nord]=0)
+declare -A vividness_by_theme=()
+
+[[ -r $config_file ]] && . "$config_file"
+
+# Precedence: RGB_VIVIDNESS env > per-theme entry > global default. The env
+# override exists for trying a level without editing anything:
+#   RGB_VIVIDNESS=20 omarchy-rgb-theme
+effective_vividness() {
+  local v=${vividness_by_theme[$active_theme]:-$vividness}
+  printf '%s' "${RGB_VIVIDNESS:-$v}"
+}
+
+die() { printf 'omarchy-rgb-theme: %s\n' "$*" >&2; exit 1; }
+
+# A machine without openrgb has nothing to paint. Exit quietly rather than
+# failing, so the hook stays harmless on hosts with no controllable hardware.
+command -v openrgb >/dev/null 2>&1 || exit 0
+
+# ── Palette ───────────────────────────────────────────────────────────────────
+
+declare -A palette
+active_theme=""
+
+# The current theme lives in a directory literally named "theme", so its name
+# has to come from theme.name alongside it.
+current_theme_name() {
+  # An explicit OMARCHY_THEME_DIR names its own theme; theme.name only describes
+  # whatever Omarchy currently has applied, which is a different thing whenever
+  # the directory is overridden.
+  if [[ -n ${OMARCHY_THEME_DIR:-} ]]; then
+    basename "$theme_dir"
+    return
+  fi
+
+  local f="$HOME/.local/state/omarchy/current/theme.name"
+  [[ -r $f ]] && tr -d '[:space:]' <"$f" || basename "$theme_dir"
+}
+
+load_palette() {
+  local file=$1/colors.toml line
+  active_theme=${2:-$(basename "$1")}
+  [[ -r $file ]] || die "no theme palette at $file"
+
+  palette=()
+  while IFS= read -r line; do
+    [[ $line =~ ^[[:space:]]*([a-z_]+)[[:space:]]*=[[:space:]]*\"#?([0-9A-Fa-f]{6})\" ]] || continue
+    palette[${BASH_REMATCH[1]}]=${BASH_REMATCH[2]}
+  done <"$file"
+
+  [[ -n ${palette[accent]:-} ]] || die "no accent color in $file"
+}
+
+# ── Vividness ─────────────────────────────────────────────────────────────────
+
+# Works in OKLCH rather than HSV. HSV preserves the hue *number* but not the hue
+# you see: stripping saturation from a pastel shifts perceived hue, so
+# tokyo-night's violet #7aa2f7 came out as flat blue. OKLCH is perceptually
+# uniform, so raising chroma keeps the color recognisably the same one.
+#
+# Hue is never altered. Brightness normalization and the vividness trade both
+# move only lightness and chroma, so a theme's color stays recognisably itself
+# no matter where the dial sits.
+read -r -d '' oklch_program <<'AWK' || true
+function s2l(c) { return (c <= 0.04045) ? c/12.92 : ((c+0.055)/1.055)^2.4 }
+function l2s(c) { return (c <= 0.0031308) ? c*12.92 : 1.055*(c^(1/2.4))-0.055 }
+function cbrt(x) { return (x < 0) ? -((-x)^(1/3)) : x^(1/3) }
+function clamp(x) { return (x < 0) ? 0 : (x > 1 ? 1 : x) }
+
+function to_oklab(hex,   r,g,b,l,m,s,l_,m_,s_) {
+  r = s2l(strtonum("0x" substr(hex,1,2))/255)
+  g = s2l(strtonum("0x" substr(hex,3,2))/255)
+  b = s2l(strtonum("0x" substr(hex,5,2))/255)
+  l = 0.4122214708*r + 0.5363325363*g + 0.0514459929*b
+  m = 0.2119034982*r + 0.6806995451*g + 0.1073969566*b
+  s = 0.0883024619*r + 0.2817188376*g + 0.6299787005*b
+  l_ = cbrt(l); m_ = cbrt(m); s_ = cbrt(s)
+  OL = 0.2104542553*l_ + 0.7936177850*m_ - 0.0040720468*s_
+  Oa = 1.9779984951*l_ - 2.4285922050*m_ + 0.4505937099*s_
+  Ob = 0.0259040371*l_ + 0.7827717662*m_ - 0.8086757660*s_
+}
+
+function from_oklch(L,C,H,   a,b,l_,m_,s_,l,m,s) {
+  a = C*cos(H); b = C*sin(H)
+  l_ = L + 0.3963377774*a + 0.2158037573*b
+  m_ = L - 0.1055613458*a - 0.0638541728*b
+  s_ = L - 0.0894841775*a - 1.2914855480*b
+  l = l_*l_*l_; m = m_*m_*m_; s = s_*s_*s_
+  CR = l2s( 4.0767416621*l - 3.3077115913*m + 0.2309699292*s)
+  CG = l2s(-1.2684380046*l + 2.6097574011*m - 0.3413193965*s)
+  CB = l2s(-0.0041960863*l - 0.7034186147*m + 1.7076147010*s)
+}
+
+function in_gamut(   e) { e = 0.0005
+  return (CR >= -e && CR <= 1+e && CG >= -e && CG <= 1+e && CB >= -e && CB <= 1+e) }
+
+function max_chroma(L,H,   lo,hi,mid,i) {
+  lo = 0; hi = 0.5
+  for (i = 0; i < 22; i++) {
+    mid = (lo+hi)/2
+    from_oklch(L, mid, H)
+    if (in_gamut()) lo = mid; else hi = mid
+  }
+  return lo
+}
+
+function out() {
+  return sprintf("%02X%02X%02X", int(clamp(CR)*255+0.5),
+                                 int(clamp(CG)*255+0.5),
+                                 int(clamp(CB)*255+0.5))
+}
+
+function norm(hex,   r,g,b,m,k) {
+  r = strtonum("0x" substr(hex,1,2))
+  g = strtonum("0x" substr(hex,3,2))
+  b = strtonum("0x" substr(hex,5,2))
+  m = r; if (g > m) m = g; if (b > m) m = b
+  if (m <= 0) return "FFFFFF"
+  k = 255/m
+  return sprintf("%02X%02X%02X", int(r*k+0.5), int(g*k+0.5), int(b*k+0.5))
+}
+
+function cusp_L(H,   i,l,c,bestL,bestC) {
+  bestC = -1; bestL = 0.5
+  for (i = 1; i < 50; i++) {
+    l = i/50; c = max_chroma(l,H)
+    if (c > bestC) { bestC = c; bestL = l }
+  }
+  return bestL
+}
+
+function vivid(hex, amt,   r,g,b,mn,sat,t,L,C,H,Lc,Lo) {
+  # An LED is emissive: a theme's dark colors have no dark to render, they only
+  # come out dim, and a dim LED with all three channels lit washes to a murky
+  # white. miasma's olive #78824b did exactly that. Scaling to full brightness
+  # first preserves hue and saturation ratios but removes the dimness.
+  hex = norm(hex)
+
+  to_oklab(hex)
+  L = OL; C = sqrt(Oa*Oa + Ob*Ob); H = atan2(Ob, Oa)
+
+  # Achromatic accents (vantablack, white) have no hue to work with; inventing
+  # one turned both themes red in an earlier version. Leave them white.
+  if (C < 0.002) { from_oklch(L, 0, H); return out() }
+
+  # Normalizing puts the color on the sRGB gamut hull, so no chroma can be added
+  # at this lightness — more saturation is only buyable by getting darker. amt
+  # is that trade: 0 keeps full brightness, 100 goes to the hue's cusp, the
+  # lightness at which sRGB holds the most chroma for it.
+  r = strtonum("0x" substr(hex,1,2))
+  g = strtonum("0x" substr(hex,3,2))
+  b = strtonum("0x" substr(hex,5,2))
+  mn = r; if (g < mn) mn = g; if (b < mn) mn = b
+  sat = (255 - mn) / 255
+
+  # Scale the trade by how colorful the accent already is, so near-grey themes
+  # stay near-grey rather than becoming vivid blues at high settings.
+  t = (sat - 0.05) / (0.25 - 0.05)
+  if (t < 0) t = 0
+  if (t > 1) t = 1
+
+  Lc = cusp_L(H)
+  Lo = L + amt*t*(Lc - L)
+  from_oklch(Lo, max_chroma(Lo, H), H)
+  return out()
+}
+BEGIN { print vivid(hex, amt/100) }
+AWK
+
+declare -A vivid_cache
+
+# No shortcut at 0: brightness normalization still has to run, since 0 only
+# means "do not trade brightness for saturation". Returning the raw hex there
+# skipped normalization entirely and painted miasma its dim original olive.
+vivid() {
+  local hex=${1^^} amt key
+  amt=$(effective_vividness)
+  key="$hex:$amt"
+  [[ -n ${vivid_cache[$key]:-} ]] || \
+    vivid_cache[$key]=$(awk -v hex="$hex" -v amt="$amt" -e "$oklch_program")
+  printf '%s' "${vivid_cache[$key]}"
+}
+
+# A role may be a "/"-separated fallback chain; the first key the theme actually
+# defines wins. Needed because `orange` and `brown` are absent from 3 of the 22
+# stock themes, and a hook must never be able to fail a theme switch. accent is
+# the final backstop — every theme defines it.
+resolve() {
+  local role chain=${1#\#}
+  [[ $chain =~ ^[0-9A-Fa-f]{6}$ ]] && { vivid "$chain"; return; }
+
+  local -a parts
+  IFS='/' read -ra parts <<<"$chain"
+  for role in "${parts[@]}" accent; do
+    [[ -n ${palette[$role]:-} ]] && { vivid "${palette[$role]}"; return; }
+  done
+}
+
+# ── Devices ───────────────────────────────────────────────────────────────────
+
+# Detection also picks up transient devices (headsets, mice), so indices shift
+# between runs. Resolve names to indices every time rather than hardcoding them.
+declare -A devices
+while IFS= read -r line; do
+  [[ $line =~ ^([0-9]+):\ (.+)$ ]] && devices[${BASH_REMATCH[1]}]=${BASH_REMATCH[2]}
+done < <(openrgb --list-devices 2>/dev/null)
+
+(( ${#devices[@]} )) || die "openrgb detected no devices"
+
+# ── Apply ─────────────────────────────────────────────────────────────────────
+
+paint() {
+  local entry match zone role mode size hex idx attempt
+  local -a args=()
+
+  for entry in "${assignments[@]}"; do
+    IFS='|' read -r match zone role mode size <<<"$entry"
+    hex=$(resolve "$role")
+
+    for idx in "${!devices[@]}"; do
+      [[ ${devices[$idx]} == *"$match"* ]] || continue
+      args+=(-d "$idx")
+      if [[ $zone != '*' ]]; then
+        args+=(-z "$zone")
+        [[ ${size:--} != '-' ]] && args+=(-sz "$size")
+      fi
+      args+=(-m "$mode" -c "$hex")
+    done
+  done
+
+  (( ${#args[@]} )) || die "no detected device matched any assignment"
+
+  for attempt in 1 2 3; do
+    openrgb "${args[@]}" >/dev/null 2>&1 && return 0
+    sleep 1
+  done
+
+  printf 'omarchy-rgb-theme: openrgb failed after 3 attempts\n' >&2
+  return 1
+}
+
+# ── Preview ───────────────────────────────────────────────────────────────────
+
+# Walks every installed theme's palette over the hardware without touching the
+# desktop theme, then restores the current one.
+preview() {
+  local delay=$1 dir name
+
+  [[ $delay =~ ^[0-9]+$ ]] && (( delay >= 2 )) || delay=2
+
+  for dir in "$HOME/.config/omarchy/themes"/*/ /usr/share/omarchy/themes/*/; do
+    [[ -r $dir/colors.toml ]] || continue
+    name=$(basename "$dir")
+    load_palette "${dir%/}" "$name"
+    printf '  %-18s #%-7s -> #%-7s (v=%s)\n' \
+      "$name" "${palette[accent]}" "$(resolve accent)" "$(effective_vividness)"
+    paint || true
+    sleep "$delay"
+  done
+
+  load_palette "$theme_dir" "$(current_theme_name)"
+  paint || true
+  printf '\nrestored: %s\n' "$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null || echo current)"
+}
+
+# Resolves and prints what would be applied, without touching the hardware.
+show() {
+  local theme=${1:-} dir entry match zone role mode size
+
+  if [[ -n $theme ]]; then
+    for dir in "$HOME/.config/omarchy/themes/$theme" "/usr/share/omarchy/themes/$theme"; do
+      [[ -r $dir/colors.toml ]] && { load_palette "$dir" "$theme"; break; }
+    done
+    [[ $active_theme == "$theme" ]] || die "no theme named '$theme'"
+  else
+    load_palette "$theme_dir" "$(current_theme_name)"
+  fi
+
+  printf 'theme %s, vividness %s\n' "$active_theme" "$(effective_vividness)"
+  for entry in "${assignments[@]}"; do
+    IFS='|' read -r match zone role mode size <<<"$entry"
+    printf '  %-20s zone %-2s  %-8s #%-7s -> #%s\n' \
+      "$match" "$zone" "$role" "${palette[${role%%/*}]:-------}" "$(resolve "$role")"
+  done
+}
+
+case ${1:-} in
+  --preview) preview "${2:-4}" ;;
+  --show)    show "${2:-}" ;;
+  *)         load_palette "$theme_dir" "$(current_theme_name)"; paint || exit 1 ;;
+esac

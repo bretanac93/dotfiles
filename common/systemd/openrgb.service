@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenRGB server (persistent device detection for theme hooks)
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Detection probes the SMBus and segfaults often enough to matter — running it
+# once here instead of on every CLI invocation is what keeps the theme hook
+# stable. The CLI autoconnects to this server and skips detection entirely.
+ExecStart=/usr/bin/openrgb --server --noautoconnect
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
